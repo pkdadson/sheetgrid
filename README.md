@@ -166,6 +166,11 @@ Version is currently **0.1.0** for all packages. Bump together for the first rel
 - Multi-sheet (later)
 - Canvas renderer (later)
 
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, PR flow, and testing.
+Release notes live in [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT — see [LICENSE](LICENSE)
