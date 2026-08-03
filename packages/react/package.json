@@ -1,0 +1,59 @@
+{
+  "name": "@sheetgrid/react",
+  "version": "0.1.0",
+  "description": "SheetGrid — Excel-class React data grid: virtualized, customizable, responsive",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "sheetgrid",
+    "react",
+    "datagrid",
+    "data-grid",
+    "spreadsheet",
+    "excel",
+    "virtualized",
+    "table",
+    "typescript"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm run build && pnpm run test"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
+  },
+  "dependencies": {
+    "@sheetgrid/core": "workspace:*",
+    "@sheetgrid/tokens": "workspace:*"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "jsdom": "^25.0.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  }
+}

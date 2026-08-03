@@ -1,0 +1,25 @@
+{
+  "name": "@sheetgrid/tokens",
+  "version": "0.1.0",
+  "description": "SheetGrid design tokens (CSS variables)",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./variables.css": "./variables.css"
+  },
+  "files": ["variables.css", "src/index.ts", "README.md"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": ["sheetgrid", "css", "tokens", "theme"],
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "test": "node -e \"process.exit(0)\"",
+    "prepublishOnly": "node -e \"process.exit(0)\""
+  }
+}

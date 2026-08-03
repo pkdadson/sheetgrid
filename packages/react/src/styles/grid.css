@@ -1,0 +1,174 @@
+/* Mirror of inject-tokens styles for consumers who prefer a CSS import.
+   Prefer injectTokens() or @sheetgrid/tokens/variables.css + this file. */
+
+.eg-frame {
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: var(--eg-font);
+  color: var(--eg-text);
+  background: var(--eg-bg);
+  overflow: hidden;
+}
+
+.eg-root {
+  box-sizing: border-box;
+  color: var(--eg-text);
+  font-family: var(--eg-font);
+  background: var(--eg-bg);
+  border: none;
+  overflow: auto;
+  position: relative;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  /* Prevent browser scroll anchoring from fighting virtualized spacers. */
+  overflow-anchor: none;
+}
+
+.eg-virt-spacer {
+  overflow-anchor: none;
+  flex-shrink: 0;
+}
+
+.eg-root *,
+.eg-root *::before,
+.eg-root *::after,
+.eg-frame *,
+.eg-frame *::before,
+.eg-frame *::after {
+  box-sizing: border-box;
+}
+
+.eg-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 100%;
+}
+
+.eg-th,
+.eg-td {
+  border-bottom: var(--eg-border);
+  border-right: var(--eg-border);
+  padding: 0 8px;
+  height: var(--eg-row-height);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  font-size: var(--eg-font-size, 13px);
+  transition: background-color var(--eg-transition, 150ms ease);
+}
+
+.eg-th {
+  position: relative;
+  background: var(--eg-bg-header);
+  height: var(--eg-header-height);
+  font-weight: 600;
+  text-align: left;
+  user-select: none;
+  cursor: grab;
+}
+
+.eg-th:active {
+  cursor: grabbing;
+}
+
+.eg-td[aria-selected="true"] {
+  background: var(--eg-bg-selected);
+}
+
+.eg-td[data-active="true"] {
+  outline: var(--eg-focus-ring);
+  outline-offset: -2px;
+  background: var(--eg-bg-active);
+}
+
+/* Cells referenced while building a formula (click/drag point mode) */
+.eg-td.eg-formula-ref {
+  outline: 2px solid var(--eg-accent, #2563eb);
+  outline-offset: -2px;
+  background: color-mix(in srgb, var(--eg-accent, #2563eb) 12%, var(--eg-bg));
+}
+
+.eg-td[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--eg-error);
+  background: var(--eg-error-bg);
+}
+
+.eg-td-number {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.eg-td input.eg-editor,
+.eg-td select.eg-editor {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  padding: 0;
+}
+
+.eg-td input.eg-editor[aria-invalid="true"],
+.eg-td select.eg-editor[aria-invalid="true"] {
+  color: var(--eg-error);
+  box-shadow: inset 0 0 0 1px var(--eg-error);
+  border-radius: var(--eg-radius, 2px);
+}
+
+.eg-group-row td {
+  background: var(--eg-bg-group);
+  font-weight: 600;
+  color: var(--eg-text);
+  border-bottom: 1px solid var(--eg-bg-group-border);
+}
+
+.eg-group-row,
+.eg-data-row {
+  scroll-margin-top: var(--eg-header-band-height, calc(var(--eg-header-height) * 2));
+}
+
+.eg-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  vertical-align: middle;
+  position: relative;
+  z-index: 1;
+  transition: background-color var(--eg-transition, 150ms ease);
+}
+
+.eg-status {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--eg-text-muted);
+  background: var(--eg-status-bg);
+  border-top: 1px solid var(--eg-status-border);
+}
+
+.eg-status[data-has-error="true"] {
+  color: var(--eg-error);
+  background: var(--eg-error-bg);
+}
