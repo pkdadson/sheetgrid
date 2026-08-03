@@ -37,6 +37,33 @@ describe("QA bugfixes", () => {
     expect(select.options.length).toBeGreaterThan(1);
   });
 
+  it("Escape cancels edit without committing draft (blur must not save)", async () => {
+    const onRowsChange = vi.fn();
+    render(
+      <Grid
+        rows={[{ id: "1", name: "Grace Hopper" }]}
+        columns={[{ id: "name", header: "Name" }]}
+        onRowsChange={onRowsChange}
+      />,
+    );
+
+    const cell = screen.getByRole("gridcell", { name: "Grace Hopper" });
+    fireEvent.mouseDown(cell);
+    fireEvent.doubleClick(cell);
+    const input = await vi.waitFor(() => screen.getByRole("textbox"));
+    fireEvent.change(input, { target: { value: "Should Not Save" } });
+    fireEvent.keyDown(input, { key: "Escape" });
+    // Simulate blur that browsers fire when the editor unmounts
+    fireEvent.blur(input);
+
+    await vi.waitFor(() => {
+      expect(screen.queryByRole("textbox")).toBeNull();
+    });
+    expect(screen.getByRole("gridcell", { name: /Grace Hopper/ })).toBeTruthy();
+    expect(screen.queryByText("Should Not Save")).toBeNull();
+    expect(onRowsChange).not.toHaveBeenCalled();
+  });
+
   it("reject mode does not emit onRowsChange or clear required values", async () => {
     const onRowsChange = vi.fn();
     render(

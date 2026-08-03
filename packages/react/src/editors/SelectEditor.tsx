@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { EditorRenderProps } from "../cells/types.js";
 
 export function SelectEditor({
@@ -8,6 +9,7 @@ export function SelectEditor({
   onCancel,
   error,
 }: EditorRenderProps) {
+  const skipBlurCommit = useRef(false);
   const options = column.selectOptions ?? [];
 
   return (
@@ -19,12 +21,17 @@ export function SelectEditor({
       onChange={(e) => {
         const next = e.target.value;
         onChange(next);
+        skipBlurCommit.current = true;
         onCommit(next);
       }}
-      onBlur={() => onCommit()}
+      onBlur={() => {
+        if (skipBlurCommit.current) return;
+        onCommit();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Escape") {
           e.preventDefault();
+          skipBlurCommit.current = true;
           onCancel();
         }
       }}

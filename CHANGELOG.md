@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.2
+
+### Fixes
+
+- **Escape no longer commits the cell draft** — canceling edit unmounts the editor; a blur-induced commit was saving the discarded value. Editors and `Grid` now suppress that commit path.
+- Demo/e2e resolve package **sources** via Vite aliases so local fixes are testable without a stale `dist`.
+- CI builds packages **before** tests so `@sheetgrid/core` `dist` exports resolve.
+- E2E expectations for reject-mode validation match product behavior (close editor, restore value, error chrome; Escape clears error).
+
+### Packages
+
+| Package | Version |
+|---------|---------|
+| `@sheetgrid/react` | **0.1.2** |
+| `@sheetgrid/core` | 0.1.0 |
+| `@sheetgrid/tokens` | 0.1.0 |
+
 ## 0.1.1
 
 ### Packages

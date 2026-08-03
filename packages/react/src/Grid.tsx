@@ -255,6 +255,8 @@ export function Grid(props: GridProps) {
     rowId: RowId;
     columnId: ColumnId;
   } | null>(null);
+  /** Set while canceling so a blur-induced commit after Escape is ignored. */
+  const suppressCommitRef = useRef(false);
   const [scrollTop, setScrollTop] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(320);
@@ -493,6 +495,8 @@ export function Grid(props: GridProps) {
 
   const commitEdit = async (override?: unknown) => {
     if (!editing) return;
+    // Escape unmounts the editor; the subsequent blur must not commit the draft.
+    if (suppressCommitRef.current) return;
     const value = override !== undefined ? override : editing.draft;
     const result = await commitCell(store, {
       rowId: editing.rowId,
@@ -539,6 +543,7 @@ export function Grid(props: GridProps) {
   };
 
   const cancelEdit = () => {
+    suppressCommitRef.current = true;
     // Reject-mode failures leave an error on an unchanged value — clear on Escape.
     // Two cases: editor still open (clear the editing cell), or editor was
     // already closed by a rejected commit (clear the remembered cell).
@@ -554,6 +559,10 @@ export function Grid(props: GridProps) {
     clearFormulaPick();
     setEditing(null);
     scrollerRef.current?.focus({ preventScroll: true });
+    // Allow future edits to commit (blur from this cancel may still be pending).
+    queueMicrotask(() => {
+      suppressCommitRef.current = false;
+    });
   };
 
   const applySort = useCallback(
@@ -1400,56 +1409,28 @@ export function Grid(props: GridProps) {
                           startEdit(row.id, col.id);
                         }}
                       >
-                        {isEditing && EditorComp ? (
-                          <EditorComp
-                            value={editing.draft}
-                            column={col}
-                            error={err?.message}
-                            onChange={(v) => {
-                              // Typing ends the current click-pick so the next click appends a new ref
-                              formulaPickRef.current = null;
-                              setFormulaPickRange(null);
-                              setEditing({ ...editing, draft: v });
-                            }}
-                            onCommit={(v) => {
-                              void commitEdit(v);
-                            }}
-                            onCancel={cancelEdit}
-                          />
-                        ) : isEditing ? (
-                          <input
-                            className="eg-editor"
-                            // biome-ignore lint/a11y/noAutofocus: grid editor focus
-                            autoFocus
-                            value={
-                              editing.draft === null ||
-                              editing.draft === undefined
-                                ? ""
-                                : String(editing.draft)
-                            }
-                            onChange={(ev) =>
-                              setEditing({
-                                ...editing,
-                                draft: ev.target.value,
-                              })
-                            }
-                            onBlur={() => {
-                              void commitEdit();
-                            }}
-                            onKeyDown={(ev) => {
-                              if (ev.key === "Enter") {
-                                ev.preventDefault();
-                                void commitEdit();
-                              }
-                              if (ev.key === "Escape") {
-                                ev.preventDefault();
-                                cancelEdit();
-                              }
-                            }}
-                            aria-invalid={err ? true : undefined}
-                            title={err?.message}
-                          />
-                        ) : (
+                        {isEditing
+                          ? (() => {
+                              const Editor = EditorComp ?? TextEditor;
+                              return (
+                                <Editor
+                                  value={editing.draft}
+                                  column={col}
+                                  error={err?.message}
+                                  onChange={(v) => {
+                                    // Typing ends the current click-pick so the next click appends a new ref
+                                    formulaPickRef.current = null;
+                                    setFormulaPickRange(null);
+                                    setEditing({ ...editing, draft: v });
+                                  }}
+                                  onCommit={(v) => {
+                                    void commitEdit(v);
+                                  }}
+                                  onCancel={cancelEdit}
+                                />
+                              );
+                            })()
+                          : (
                           <>
                             {err ? (
                               <span

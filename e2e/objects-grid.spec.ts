@@ -107,7 +107,7 @@ test.describe("Objects grid — features", () => {
     await expect(g.getByText("Should Not Save")).toHaveCount(0);
   });
 
-  test("required validation rejects empty name and keeps editor", async ({
+  test("required validation rejects empty name, restores value, Escape clears error", async ({
     page,
   }) => {
     const g = grid(page);
@@ -115,17 +115,16 @@ test.describe("Objects grid — features", () => {
     const input = g.locator("input.eg-editor");
     await input.fill("");
     await input.press("Enter");
-    // reject mode: do not commit; stay in edit with empty draft
-    await expect(g.locator("input.eg-editor")).toBeVisible();
-    await expect(g.locator("input.eg-editor")).toHaveAttribute(
-      "aria-invalid",
-      "true",
-    );
+    // reject mode: do not commit; close editor and show prior value + error chrome
+    await expect(g.locator("input.eg-editor")).toHaveCount(0);
+    await expect(g.getByText("Alan Turing")).toBeVisible();
     await expect(g.locator("td.eg-td[aria-invalid='true']")).toBeVisible();
     const status = page.getByTestId("grid-objects-status");
     await expect(status).toHaveAttribute("data-has-error", "true");
     await expect(status).toContainText(/required/i);
-    await input.press("Escape");
+    await g.focus();
+    await page.keyboard.press("Escape");
+    await expect(g.locator("td.eg-td[aria-invalid='true']")).toHaveCount(0);
     await expect(g.getByText("Alan Turing")).toBeVisible();
   });
 

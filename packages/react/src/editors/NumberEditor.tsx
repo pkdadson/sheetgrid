@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { EditorRenderProps } from "../cells/types.js";
 
 export function NumberEditor({
@@ -7,6 +8,7 @@ export function NumberEditor({
   onCancel,
   error,
 }: EditorRenderProps) {
+  const skipBlurCommit = useRef(false);
   const display =
     value === null || value === undefined ? "" : String(value);
 
@@ -26,14 +28,19 @@ export function NumberEditor({
         const n = Number(raw);
         onChange(Number.isNaN(n) ? raw : n);
       }}
-      onBlur={() => onCommit()}
+      onBlur={() => {
+        if (skipBlurCommit.current) return;
+        onCommit();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
+          skipBlurCommit.current = true;
           onCommit();
         }
         if (e.key === "Escape") {
           e.preventDefault();
+          skipBlurCommit.current = true;
           onCancel();
         }
       }}

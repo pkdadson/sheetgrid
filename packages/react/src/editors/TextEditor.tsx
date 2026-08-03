@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import type { EditorRenderProps } from "../cells/types.js";
 
 export function TextEditor({
@@ -7,6 +8,9 @@ export function TextEditor({
   onCancel,
   error,
 }: EditorRenderProps) {
+  // Escape unmounts the input, which fires blur — skip commit in that case.
+  const skipBlurCommit = useRef(false);
+
   return (
     <input
       className="eg-editor"
@@ -14,14 +18,19 @@ export function TextEditor({
       autoFocus
       value={value === null || value === undefined ? "" : String(value)}
       onChange={(e) => onChange(e.target.value)}
-      onBlur={() => onCommit()}
+      onBlur={() => {
+        if (skipBlurCommit.current) return;
+        onCommit();
+      }}
       onKeyDown={(e) => {
         if (e.key === "Enter") {
           e.preventDefault();
+          skipBlurCommit.current = true;
           onCommit();
         }
         if (e.key === "Escape") {
           e.preventDefault();
+          skipBlurCommit.current = true;
           onCancel();
         }
       }}

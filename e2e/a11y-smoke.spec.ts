@@ -32,14 +32,16 @@ test.describe("Accessibility smoke", () => {
     const input = g.locator("input.eg-editor");
     await input.fill("");
     await input.press("Enter");
-    // Still editing after reject with invalid state for a11y
-    await expect(input).toBeVisible();
-    await expect(input).toHaveAttribute("aria-invalid", "true");
+    // reject mode closes editor, restores prior value, shows invalid chrome
+    await expect(g.locator("input.eg-editor")).toHaveCount(0);
+    await expect(g.getByText("Ada Lovelace")).toBeVisible();
+    await expect(g.locator("td.eg-td[aria-invalid='true']")).toBeVisible();
     await expect(page.getByTestId("grid-objects-status")).toHaveAttribute(
       "aria-live",
       "polite",
     );
-    await input.press("Escape");
+    await g.focus();
+    await page.keyboard.press("Escape");
     await expect(g.getByText("Ada Lovelace")).toBeVisible();
     // Escape clears reject-mode error on unchanged value
     await expect(g.locator("td.eg-td[aria-invalid='true']")).toHaveCount(0);
