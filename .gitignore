@@ -11,3 +11,6 @@ blob-report
 .worktrees/
 .playwright-mcp/
 /*.png
+
+# GitHub Packages staging
+.gh-publish-staging/
