@@ -107,11 +107,37 @@ Useful queries:
 - `locator('[data-active="true"]')`
 - `locator('td.eg-td[aria-invalid="true"]')`
 
+## Screen readers
+
+The grid renders standard ARIA `grid` / `row` / `columnheader` / `gridcell` roles, so VoiceOver and NVDA read it as a table. Practical guidance:
+
+### VoiceOver (macOS)
+
+- Enter Tables Mode with **VO + ⌘ + Y** (or auto-triggered on focus).
+- **VO + arrow** moves the reading focus cell-by-cell. The grid's own arrow-key navigation still fires — one keystroke moves both.
+- **VO + T** reads the current column header for context.
+- **VO + R** reads the current row.
+- Errors announce via the status region (`aria-live="polite"`), so validation messages come in after the cell content.
+
+### NVDA (Windows)
+
+- Focus the grid and press **NVDA + F5** to summarize the table.
+- **Ctrl + Alt + arrows** reads cell-by-cell in table navigation mode.
+- Set **speech > announcement of "invalid entry"** to hear `aria-invalid` cells.
+- Status changes (validation, edit hint) are announced through `role="status"`.
+
+### Testing tips
+
+- Use `axe-core` or the browser's built-in accessibility inspector on the demo (`http://localhost:5177`) — it should flag zero violations for the golden path.
+- Real AT testing beats automated checks. VoiceOver + Safari and NVDA + Firefox cover the most common assistive combos.
+- Verify the sort direction is announced when you press **Enter** on a `columnheader` — `aria-sort` toggles between `ascending` / `descending` / `none`.
+
 ## Known limits
 
 - Virtualization means off-screen cells are not in the DOM — prefer keyboard move / scroll-into-view of the active cell rather than querying every row.
 - There is no full **row-header** / Excel-style row number chrome yet.
-- Screen-reader depth is “grid + gridcell” smoke-level; complex multi-range selection is not fully announced as a single continuous region in all AT combos.
+- **`aria-rowcount` / `aria-colcount` are not set on `role="grid"`.** For 10 000-row datasets, screen readers currently announce visible rows only, not "row 5 of 10 000". Tracked for a future release — for now, prefer named landmarks / a summary line for very large grids.
+- Screen-reader depth is "grid + gridcell" smoke-level; complex multi-range selection is not fully announced as a single continuous region in all AT combos.
 - Prefer visible labels via `header` (and `selectOptions` labels) so checkboxes and headers have names.
 
 ## Related

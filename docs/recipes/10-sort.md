@@ -82,6 +82,37 @@ For uncontrolled use with an initial value, use `defaultSortBy`.
 - Sort by the grouped column → reorders the groups themselves.
 - Combine via shift+click (grouped column first, then within-group).
 
+### Collapse / expand
+
+Sort state is **independent of** collapse state. Collapsing a group hides
+its rows but the current `SortSpec[]` still applies — expanding the group
+brings the same sorted order back. The grid does not recompute sort on
+collapse.
+
+### Controlled `sortBy` + `rowGrouping`
+
+When you own `sortBy`, you also decide whether group reorder is
+persistent. Nothing special is required — the `SortSpec` for a grouped
+column still fires through `onSortChange`, and your state update controls
+the view:
+
+```tsx
+const [sortBy, setSortBy] = useState<SortSpec[]>([
+  { columnId: "region", direction: "asc" }, // groups by region alphabetically
+]);
+
+<Grid
+  rows={rows}
+  columns={columns}
+  rowGrouping={{ columns: ["region"] }}
+  sortBy={sortBy}
+  onSortChange={setSortBy}
+/>
+```
+
+If you strip out the grouped-column `SortSpec` in your reducer, groups
+snap back to their source-array order.
+
 ## What does NOT change
 
 Sort is a display transform. Formulas continue to see source-array order

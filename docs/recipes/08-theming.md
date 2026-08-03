@@ -98,6 +98,46 @@ Defaults live in `@sheetgrid/tokens/variables.css`. Common overrides:
 }
 ```
 
+### Selector specificity
+
+`<Grid>` applies its class to the same element as `.eg-root`. Compound the selector (**no space**) to win specificity against the injected defaults:
+
+```css
+/* ✓ wins — same element, 0-2-0 */
+.my-app-dark.eg-root { --eg-bg: #111; }
+
+/* ✗ same specificity as defaults; unreliable */
+.eg-root { --eg-bg: #111; }
+
+/* ✗ ancestor selector — descends into cells but is easily out-specificity'd */
+.my-app-dark .eg-td { color: #eee; }
+```
+
+For unscoped overrides, prefer `:root`:
+
+```css
+:root {
+  --eg-accent: #7c3aed;
+}
+```
+
+## Density-aware overrides
+
+`density="compact"` sets `--eg-row-height` and `--eg-header-height` inline. To customize per density, target the modifier class:
+
+```css
+.eg-root[data-density="compact"] {
+  --eg-font-size: 12px;
+  --eg-row-height: 26px;
+}
+
+.eg-root[data-density="comfortable"] {
+  --eg-font-size: 14px;
+}
+```
+
+The `data-density` attribute is set on the grid root by `<Grid density>`.
+
 ## Tokens package
 
 Optional explicit import (SSR or bundler CSS pipeline):

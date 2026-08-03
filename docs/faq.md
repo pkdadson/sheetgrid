@@ -161,6 +161,46 @@ Override CSS variables on `.eg-root` — [Theming](recipes/08-theming.md).
 - Auto-inject runs in `useEffect`-time on the client; first paint may briefly lack tokens if you rely only on inject — prefer the CSS import for SSR apps.
 - Grid needs a browser for clipboard and layout measurement; render it only on the client (`"use client"` / dynamic `ssr: false`) if your framework requires it.
 
+### Hydration mismatch warning
+
+If you render `<Grid>` on the server without importing the token CSS,
+you may see a **hydration mismatch** the first time the client
+`useEffect` injects `#sheetgrid-tokens` — the server HTML has no style
+tag, the client HTML gains one, and React flags the difference.
+
+Two safe fixes:
+
+1. **Import the CSS statically** in your root layout so the tag exists
+   in the server HTML as well:
+
+   ```ts
+   // app/layout.tsx (Next.js)
+   import "@sheetgrid/tokens/variables.css";
+   ```
+
+2. **Render client-only** if the grid isn't needed for SEO:
+
+   ```tsx
+   // Next.js App Router
+   "use client";
+   import dynamic from "next/dynamic";
+   const Grid = dynamic(() => import("@sheetgrid/react").then((m) => m.Grid), {
+     ssr: false,
+   });
+   ```
+
+Do **not** disable the auto-inject unconditionally — the tag is
+idempotent (checked by id) and adds nothing if the CSS is already
+present.
+
+### Theme flash on first paint
+
+The `theme` prop writes `data-theme` in `useEffect`. If you set an
+ancestor `[data-theme="dark"]` on `<html>` or `<body>` (Next.js theme
+providers usually do this before hydration), the grid inherits it
+immediately with no flash. Passing `theme="dark"` on `<Grid>` alone
+runs one paint late.
+
 ---
 
 ## Formulas

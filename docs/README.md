@@ -7,10 +7,18 @@ Start with the root [README](../README.md) for install and quickstarts, then use
 | Doc | When to use it |
 |-----|----------------|
 | [API reference](api.md) | All `<Grid>` props, column defs, validators, exports |
+| [TypeScript types](types.md) | Shapes for `GridRow`, `SortSpec`, `FormulaLimits`, `CommitReason`, etc. |
 | [Keyboard & accessibility](keyboard-a11y.md) | Shortcuts, ARIA roles, focus, screen readers |
 | [FAQ & troubleshooting](faq.md) | Height, IDs, controlled data, performance, SSR |
 | [Core / headless guide](core-guide.md) | `@sheetgrid/core` store, custom renderers |
 | [Formula function catalog](formulas-catalog.md) | Full list of spreadsheet functions |
+| [Performance](performance.md) | Virtualization knobs, formula cost, measurement |
+
+## Project
+
+- [Changelog](../CHANGELOG.md) — release notes
+- [Contributing](../CONTRIBUTING.md) — setup, PRs, testing
+- [Publishing](publishing.md) — release mechanics
 
 ## Recipes (task-oriented)
 

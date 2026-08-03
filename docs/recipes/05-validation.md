@@ -86,3 +86,46 @@ Paste runs validators **per cell**. Valid cells commit; invalid cells are flagge
 | `pattern(re, msg?)(value)` | RegExp match |
 
 Compose them in your own `validate` function — no Zod hard dependency.
+
+## Where errors appear
+
+When a `validate` returns `{ ok: false, message, code? }`, SheetGrid
+surfaces it in three coordinated places. The exact combination depends on
+`validationMode`:
+
+| Surface | Element / attribute | `reject` mode | `commit-with-error` mode |
+|---------|---------------------|---------------|--------------------------|
+| **Status bar** | `role="status"`, `aria-live="polite"`, `data-has-error="true"`, red `!` icon (`.eg-status-icon`, `aria-hidden`) + message text | Shown while editor is open OR active cell has a lingering error | Shown while editor is open OR active cell has an error |
+| **Cell** | `role="gridcell"`, `aria-invalid="true"` | Cleared on Escape / successful re-edit (value did not change) | Persists — value is committed but still marked invalid |
+| **Editor** | Input carries `aria-invalid="true"` while error is active | Editor stays open so the user can fix or Escape | Editor closes on commit; cell keeps `aria-invalid` |
+
+Programmatic hooks:
+
+- `onRowsChange` / `onDataChange` **do not** fire in `reject` mode when
+  validation fails — the store never wrote the value.
+- In `commit-with-error` mode they fire normally; use `code` in your
+  `ValidationResult` to disambiguate error types.
+
+Screen readers announce the status region politely, so the error message
+comes in after the cell value. See
+[Keyboard & a11y — Validation & a11y](../keyboard-a11y.md#validation--a11y).
+
+### Custom error UI
+
+The status bar and `aria-invalid` are built in. For richer inline UI
+(icons in every failing cell, tooltip on hover), use a custom `cell`
+renderer and read the `error` prop:
+
+```tsx
+{
+  id: "email",
+  header: "Email",
+  cell: ({ value, error }) => (
+    <span title={error ?? undefined}>
+      {String(value ?? "")}
+      {error ? <span aria-hidden="true"> ⚠</span> : null}
+    </span>
+  ),
+  validate: /* ... */,
+}
+```

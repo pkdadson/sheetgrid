@@ -46,9 +46,22 @@ import { Grid } from "@sheetgrid/react";
 
 Type `=B1*0.1` in Bonus (or click Score after typing `=`) and commit. References use **A1** over the current column order and row order — **not** field names like `score`.
 
-### Point mode
+### Point mode — click-to-reference
 
-While the editor draft starts with `=`, **click** another cell to insert its A1 address, or **drag** to insert a range. Highlight shows the pick. Type operators between picks; Enter commits.
+Instead of memorizing A1 addresses, you can build formulas by clicking:
+
+1. **Focus** the target cell (Bonus for Ada, row 1).
+2. Press **Enter** (or start typing) to open the editor.
+3. Type `=` — the draft is now a formula and point mode is active.
+4. **Click the Score cell** (row 1, column D). The editor value becomes `=D1`.
+5. Type an operator (`*`), then a literal or another cell click. Draft is now `=D1*0.1`.
+6. Press **Enter** to commit. The cell displays the computed value (e.g. `9.8` for a Score of 98).
+
+You can also **drag** across cells while the draft starts with `=` to insert a range, e.g. `=SUM(B1:E1)` by dragging from B1 to E1 after typing `=SUM(`.
+
+**Which A1 does a click produce?** The A1 address is computed from the **current column order and source row order** — the same rules the engine uses to resolve references. Sorting the view does not change the address a click produces.
+
+**Escape** cancels the whole draft (including any refs inserted by clicks). Nothing is committed.
 
 ## Security defaults
 
