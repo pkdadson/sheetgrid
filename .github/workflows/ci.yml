@@ -22,11 +22,12 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Test
-        run: pnpm test
-
+      # packages export dist/; react tests resolve @sheetgrid/core via package.json
       - name: Build
         run: pnpm build
+
+      - name: Test
+        run: pnpm test
 
       - name: Lint
         run: pnpm lint
