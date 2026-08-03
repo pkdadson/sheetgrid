@@ -44,4 +44,10 @@ node scripts/publish-npm.mjs --filter @sheetgrid/react
 
 ## Branch protection
 
-`main` should require the `build-and-test` check before merge. That keeps the default branch from going red unnoticed.
+Repository ruleset **main-must-be-green** on `main`:
+
+- Requires status check **`build-and-test`** (strict / up to date)
+- Blocks branch deletion and force-push
+- Repository **admin** can bypass (needed so solo maintainers can push new commits before CI has run); **publish is still gated** by `assert-ci-green` / the quality job
+
+For external contributors, open a PR — checks must pass before merge (no admin bypass for non-admins).
