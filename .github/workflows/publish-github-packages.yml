@@ -31,5 +31,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY_OWNER: ${{ github.repository_owner }}
-          GH_PKG_VERSION: "0.1.0"
         run: node scripts/publish-github-packages.mjs

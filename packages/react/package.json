@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "SheetGrid — Excel-class React data grid: virtualized, customizable, responsive",
   "license": "MIT",
   "type": "module",
@@ -14,7 +14,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "publishConfig": {
     "access": "public"

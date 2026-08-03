@@ -8,6 +8,7 @@
  *   @pkdadson/sheetgrid-react
  *
  * Source packages remain @sheetgrid/* for the public npm registry.
+ * Versions are taken from each package's package.json.
  *
  * Requires: NODE_AUTH_TOKEN with packages:write (GITHUB_TOKEN in Actions).
  */
@@ -38,22 +39,53 @@ const packages = [
     ghName: `@${owner}/sheetgrid-react`,
     copy: ["dist", "README.md", "LICENSE"],
     mapDeps: {
-      "@sheetgrid/core": `@${owner}/sheetgrid-core`,
-      "@sheetgrid/tokens": `@${owner}/sheetgrid-tokens`,
+      "@sheetgrid/core": {
+        ghName: `@${owner}/sheetgrid-core`,
+        versionFrom: "packages/core",
+      },
+      "@sheetgrid/tokens": {
+        ghName: `@${owner}/sheetgrid-tokens`,
+        versionFrom: "packages/tokens",
+      },
     },
   },
 ];
 
-function run(cmd, cwd) {
+function run(cmd, cwd, { ignoreError = false } = {}) {
   console.log(`$ ${cmd}`);
-  execSync(cmd, { cwd, stdio: "inherit", env: process.env });
+  try {
+    execSync(cmd, { cwd, stdio: "inherit", env: process.env });
+    return true;
+  } catch (err) {
+    if (ignoreError) return false;
+    throw err;
+  }
+}
+
+function readVersion(relDir) {
+  const pkgJson = JSON.parse(readFileSync(join(root, relDir, "package.json"), "utf8"));
+  return pkgJson.version;
+}
+
+function alreadyPublished(name, version, outDir) {
+  // Uses package-local .npmrc with auth
+  try {
+    const out = execSync(`npm view ${name}@${version} version --registry=${registry}`, {
+      cwd: outDir,
+      encoding: "utf8",
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"],
+    }).trim();
+    return out === version;
+  } catch {
+    return false;
+  }
 }
 
 function prepareOne(pkg) {
   const srcDir = join(root, pkg.dir);
   const pkgJson = JSON.parse(readFileSync(join(srcDir, "package.json"), "utf8"));
-  // Align GH package versions with the release line (0.1.0), even if local react is 0.1.1 WIP
-  const version = process.env.GH_PKG_VERSION || "0.1.0";
+  const version = pkgJson.version;
 
   const outDir = join(staging, pkg.dir.replace("packages/", ""));
   mkdirSync(outDir, { recursive: true });
@@ -62,7 +94,6 @@ function prepareOne(pkg) {
     const from = join(srcDir, item);
     const to = join(outDir, item);
     if (!existsSync(from)) {
-      // LICENSE may live at repo root
       if (item === "LICENSE" && existsSync(join(root, "LICENSE"))) {
         cpSync(join(root, "LICENSE"), to);
         continue;
@@ -85,29 +116,32 @@ function prepareOne(pkg) {
       access: "public",
       registry,
     },
-    // Avoid rebuild/test during GH publish (built in CI already)
     scripts: {
       ...(pkgJson.scripts || {}),
-      prepublishOnly: "node -e \"process.exit(0)\"",
+      prepublishOnly: 'node -e "process.exit(0)"',
     },
   };
 
   if (pkg.mapDeps && next.dependencies) {
     const deps = { ...next.dependencies };
-    for (const [from, to] of Object.entries(pkg.mapDeps)) {
+    for (const [from, mapping] of Object.entries(pkg.mapDeps)) {
       if (deps[from] != null) {
         delete deps[from];
-        deps[to] = version;
+        deps[mapping.ghName] = readVersion(mapping.versionFrom);
       }
     }
     next.dependencies = deps;
   }
 
-  // Drop workspace-only / dev tooling from published GH package
   delete next.devDependencies;
 
   writeFileSync(join(outDir, "package.json"), `${JSON.stringify(next, null, 2)}\n`);
-  return outDir;
+  writeFileSync(
+    join(outDir, ".npmrc"),
+    `@${owner}:registry=${registry}\n//npm.pkg.github.com/:_authToken=${process.env.NODE_AUTH_TOKEN}\n`,
+  );
+
+  return { outDir, version, ghName: pkg.ghName };
 }
 
 function main() {
@@ -119,25 +153,28 @@ function main() {
   rmSync(staging, { recursive: true, force: true });
   mkdirSync(staging, { recursive: true });
 
-  // Ensure builds exist
   run("pnpm --filter @sheetgrid/core build", root);
   run("pnpm --filter @sheetgrid/react build", root);
 
-  const npmrc = join(staging, ".npmrc");
-  writeFileSync(
-    npmrc,
-    `@${owner}:registry=${registry}\n//npm.pkg.github.com/:_authToken=${process.env.NODE_AUTH_TOKEN}\n`,
-  );
-
   for (const pkg of packages) {
-    const outDir = prepareOne(pkg);
-    // copy npmrc into package dir for publish
-    writeFileSync(
-      join(outDir, ".npmrc"),
-      `@${owner}:registry=${registry}\n//npm.pkg.github.com/:_authToken=${process.env.NODE_AUTH_TOKEN}\n`,
-    );
-    console.log(`\nPublishing ${pkg.ghName}@${process.env.GH_PKG_VERSION || "0.1.0"} …`);
-    run("npm publish --access public", outDir);
+    const { outDir, version, ghName } = prepareOne(pkg);
+
+    if (alreadyPublished(ghName, version, outDir)) {
+      console.log(`\nSkip ${ghName}@${version} (already on GitHub Packages)`);
+      continue;
+    }
+
+    console.log(`\nPublishing ${ghName}@${version} …`);
+    const ok = run("npm publish --access public", outDir, { ignoreError: true });
+    if (!ok) {
+      // Race or "cannot publish over previously published"
+      if (alreadyPublished(ghName, version, outDir)) {
+        console.log(`OK — ${ghName}@${version} already present after publish attempt`);
+      } else {
+        console.error(`Failed to publish ${ghName}@${version}`);
+        process.exit(1);
+      }
+    }
   }
 
   console.log("\nGitHub Packages publish complete.");

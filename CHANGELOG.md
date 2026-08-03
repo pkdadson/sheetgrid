@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.1
+
+### Packages
+
+| Package | Version | Notes |
+|---------|---------|--------|
+| `@sheetgrid/react` | **0.1.1** | Patch release on npm |
+| `@sheetgrid/core` | 0.1.0 | Unchanged |
+| `@sheetgrid/tokens` | 0.1.0 | Unchanged |
+
+### Distribution
+
+- GitHub Release `v0.1.1` with npm-compatible tarballs
+- GitHub Packages mirrors: `@pkdadson/sheetgrid-*` (scope required by GitHub)
+- CI pnpm setup fixed (`packageManager` field only)
+
 ## 0.1.0
 
 ### Features
