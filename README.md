@@ -96,7 +96,18 @@ Open [http://localhost:5177](http://localhost:5177):
 - **2D Matrix** — matrix API + paste
 - **10k Perf** — row × column virtualization playground
 
-## Recipes
+## Documentation
+
+| Doc | Description |
+|-----|-------------|
+| **[Docs index](docs/README.md)** | Full map of guides + recipes |
+| [API reference](docs/api.md) | All `<Grid>` props, columns, validators, exports |
+| [Keyboard & accessibility](docs/keyboard-a11y.md) | Shortcuts, ARIA, focus, testing |
+| [FAQ & troubleshooting](docs/faq.md) | Height, IDs, controlled data, perf, SSR |
+| [Core / headless guide](docs/core-guide.md) | `@sheetgrid/core` store & custom renderers |
+| [Formula catalog](docs/formulas-catalog.md) | Complete function list, errors, limits |
+
+### Recipes
 
 1. [Install](docs/recipes/01-install.md)
 2. [Row objects](docs/recipes/02-row-objects.md)
@@ -113,9 +124,9 @@ Open [http://localhost:5177](http://localhost:5177):
 
 | Package | Role |
 |---------|------|
-| `@sheetgrid/react` | Public React `<Grid />` |
-| `@sheetgrid/core` | Engine (also published; used by react) |
-| `@sheetgrid/tokens` | CSS variables |
+| [`@sheetgrid/react`](packages/react/README.md) | Public React `<Grid />` |
+| [`@sheetgrid/core`](packages/core/README.md) | Engine (also published; used by react) |
+| [`@sheetgrid/tokens`](packages/tokens/README.md) | CSS variables |
 
 ## Develop
 

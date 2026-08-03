@@ -1,6 +1,8 @@
-# Formulas
+# Recipe 09 — Formulas
 
 SheetGrid supports **opt-in spreadsheet formulas** with a secure, allowlist-only engine: no `eval`, no network, no host APIs.
+
+**Full function list:** [Formula catalog](../formulas-catalog.md)
 
 ## Enable
 
@@ -42,7 +44,7 @@ import { Grid } from "@sheetgrid/react";
 />
 ```
 
-Type `=B1*0.1` in Bonus (or click Score after typing `=`) and commit. References use **A1** over the current column order and row order — not field names like `score`.
+Type `=B1*0.1` in Bonus (or click Score after typing `=`) and commit. References use **A1** over the current column order and row order — **not** field names like `score`.
 
 ### Point mode
 
@@ -56,6 +58,7 @@ While the editor draft starts with `=`, **click** another cell to insert its A1 
 | `formulaEntry` | `"auto-equals"` | Strings starting with `=` become formulas on commit |
 | `allowIndirect` | `false` | `INDIRECT` returns `#REF!` unless enabled |
 | `allowVolatile` | `true` | `RAND`, `NOW`, `TODAY` |
+| `formulaLimits` | see catalog | Caps on range size, depth, eval time |
 
 For **untrusted paste** (multi-tenant, public forms), use:
 
@@ -71,22 +74,38 @@ Exporting to CSV/Excel: prefix text fields that look like formulas so desktop Ex
 
 - A1 notation over **current** column order and row order (`A1`, `$B$2`, `A1:C10`)
 - Sheet qualifiers (`Sheet1!A1`) are rejected
+- Sort is display-only — `=A1` still means source row 0 / first ordered column, not “top of sorted view”
 
-## Functions
+## Functions (overview)
 
-Pure Excel-class functions only (logical, math, stats, text, lookup, date, financial). List names at runtime:
+| Category | Examples |
+|----------|----------|
+| Logical | `IF`, `AND`, `OR`, `IFS`, `SWITCH` |
+| Math | `SUM`, `ROUND`, `POWER`, `MOD`, `RAND` |
+| Stats | `AVERAGE`, `STDEV`, `SUMIF`, `COUNTIFS` |
+| Text | `LEFT`, `TEXTJOIN`, `SUBSTITUTE`, `UPPER` |
+| Lookup | `VLOOKUP`, `XLOOKUP`, `INDEX`, `MATCH` |
+| Date | `TODAY`, `DATE`, `DATEDIF`, `NETWORKDAYS` |
+| Financial | `PMT`, `PV`, `NPV`, `IRR` |
+
+Complete tables + error codes + limits: **[formulas-catalog.md](../formulas-catalog.md)**
 
 ```ts
 import { listFunctions } from "@sheetgrid/core";
 console.log(listFunctions());
 ```
 
-Unknown names → `#NAME?`. Limits (depth, range size, string length) → `#LIMIT!`. Cycles → `#CYCLE!`.
+Unknown names → `#NAME?`. Limits → `#LIMIT!`. Cycles → `#CYCLE!`.
 
 ## Store API (core)
 
 ```ts
+import { createGridStore } from "@sheetgrid/core";
+
+// after createGridStore({ …, formulas: true })
 store.setFormula(rowId, columnId, "=A1+1");
 store.getFormula(rowId, columnId); // { source, result }
 store.clearFormula(rowId, columnId);
 ```
+
+More: [Core guide — formulas](../core-guide.md#formulas-on-the-store)

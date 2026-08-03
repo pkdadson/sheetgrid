@@ -17,6 +17,11 @@
 - Theme tokens (CSS variables, density)
 - Demo app and recipes
 
+### Documentation
+
+- API reference, keyboard/a11y guide, FAQ, core/headless guide
+- Formula function catalog; expanded package READMEs and recipes
+
 ### Packages
 
 | Package | npm |

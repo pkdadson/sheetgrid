@@ -39,3 +39,11 @@ export function App() {
 ```
 
 The grid fills its parent — give the container a height.
+
+## Next steps
+
+- [Row objects + TypeScript](02-row-objects.md)
+- [2D matrix data](03-2d-data.md)
+- [API reference](../api.md)
+- [FAQ](../faq.md) (blank grid, SSR, peers)
+- [Docs index](../README.md)
