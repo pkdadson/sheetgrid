@@ -1,16 +1,51 @@
 name: Publish GitHub Packages
 
+# Never publish packages without a green quality gate on the same commit.
 on:
-  workflow_dispatch:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: publish-gh-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Test
+        run: pnpm test
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E (Playwright)
+        run: pnpm test:e2e
+
   publish:
+    name: publish
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

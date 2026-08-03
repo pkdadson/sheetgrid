@@ -4,7 +4,11 @@
 
 > Independent monorepo at `sheetgrid/`. Not part of canvas-lib / Ananse.
 
+[![CI](https://github.com/pkdadson/sheetgrid/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pkdadson/sheetgrid/actions/workflows/ci.yml)
+[![npm @sheetgrid/react](https://img.shields.io/npm/v/@sheetgrid/react.svg)](https://www.npmjs.com/package/@sheetgrid/react)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+Published releases are gated on a green CI run (build, unit tests, and Playwright e2e). Local npm publish: `pnpm publish:npm` (refuses if CI is red).
 
 ## Why SheetGrid
 
