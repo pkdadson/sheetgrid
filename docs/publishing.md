@@ -46,8 +46,14 @@ node scripts/publish-npm.mjs --filter @sheetgrid/react
 
 Repository ruleset **main-must-be-green** on `main`:
 
-- Requires status check **`build-and-test`** (strict / up to date)
-- Blocks branch deletion and force-push
-- Repository **admin** can bypass (needed so solo maintainers can push new commits before CI has run); **publish is still gated** by `assert-ci-green` / the quality job
+- Blocks branch **deletion** and **force-push** (no rewriting published history)
+- Does **not** block normal pushes (solo maintainer workflow: push → CI runs)
 
-For external contributors, open a PR — checks must pass before merge (no admin bypass for non-admins).
+**Package quality** is enforced at publish time, not at git push:
+
+| Path | Gate |
+|------|------|
+| GitHub Packages | `quality` job must pass before `publish` |
+| npm | `pnpm publish:npm` → `assert-ci-green` |
+
+Do not tag or publish while the latest [CI run on main](https://github.com/pkdadson/sheetgrid/actions/workflows/ci.yml) is red.
