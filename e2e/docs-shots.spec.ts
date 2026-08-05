@@ -10,5 +10,29 @@ const DESKTOP = "docs-shots";
 const MOBILE = "docs-shots-mobile";
 
 test.describe("docs screenshots", () => {
-  // Tasks 2-5 add tests here.
+  test("objects — desktop", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToObjects(page);
+    await expect(grid(page, "grid-objects").getByText("Ada Lovelace")).toBeVisible();
+    await page.screenshot({ path: "docs/assets/objects/desktop.png", fullPage: false });
+  });
+
+  test("objects — mobile", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== MOBILE, "mobile-only");
+    await openDemo(page);
+    await goToObjects(page);
+    await expect(grid(page, "grid-objects").getByText("Ada Lovelace")).toBeVisible();
+    await page.screenshot({ path: "docs/assets/objects/mobile.png", fullPage: false });
+  });
+
+  test("objects — detail (selected cell)", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToObjects(page);
+    const g = grid(page, "grid-objects");
+    await g.getByText("Ada Lovelace").click();
+    await expect(g.locator('[data-active="true"]')).toContainText("Ada Lovelace");
+    await page.screenshot({ path: "docs/assets/objects/detail.png", fullPage: false });
+  });
 });
