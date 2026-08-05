@@ -10,6 +10,16 @@
 
 Published releases are gated on a green CI run (build, unit tests, and Playwright e2e). Local npm publish: `pnpm publish:npm` (refuses if CI is red).
 
+## Preview
+
+<p align="center">
+  <img src="docs/assets/objects/desktop.png" alt="SheetGrid Objects tab — desktop" width="820" />
+</p>
+
+| Objects (detail) | 2D Matrix | Mobile |
+|---|---|---|
+| <img src="docs/assets/objects/detail.png" alt="Selected cell" width="260" /> | <img src="docs/assets/matrix/desktop.png" alt="2D Matrix tab" width="260" /> | <img src="docs/assets/objects/mobile.png" alt="Objects on mobile" width="140" /> |
+
 ## Why SheetGrid
 
 | Need | What you get |

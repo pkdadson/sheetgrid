@@ -12,6 +12,12 @@ pnpm dev:demo   # http://localhost:5177
 
 Open **10k Perf**. Resize the browser or change the `Rows`/`Columns` selectors. Only the visible window mounts — scroll and check DevTools → Elements to confirm.
 
+![10k Perf initial](assets/perf/desktop.png)
+
+After scrolling — only the newly visible rows are mounted:
+
+![10k Perf after scroll](assets/perf/scrolled.png)
+
 ## Knobs
 
 ### `overscan` (default `3`)
