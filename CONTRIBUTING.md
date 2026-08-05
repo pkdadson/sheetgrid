@@ -69,6 +69,16 @@ The scope is usually the package name (`core`, `react`, `tokens`), `ci`, or `doc
 
 Doc-only PRs are welcome. Match the tone of existing recipes: task-focused, minimal prose, code you can paste. Prefer editing an existing doc over adding a new one.
 
+### Docs screenshots
+
+UI-affecting changes must regenerate screenshots:
+
+```bash
+pnpm docs:shots
+```
+
+Commit the updated files under `docs/assets/`. Screenshots are produced by `e2e/docs-shots.spec.ts` — add a step there for any new user-facing surface. This is advisory (no CI gate), but PRs that ship visible UI changes without updated shots will get requested changes.
+
 ## Release cadence
 
 - Patch bumps ship whenever a small fix is ready and CI is green.
