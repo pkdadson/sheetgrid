@@ -35,4 +35,12 @@ test.describe("docs screenshots", () => {
     await expect(g.locator('[data-active="true"]')).toContainText("Ada Lovelace");
     await page.screenshot({ path: "docs/assets/objects/detail.png", fullPage: false });
   });
+
+  test("matrix — desktop", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToMatrix(page);
+    await expect(grid(page, "grid-matrix").getByText("Widgets")).toBeVisible();
+    await page.screenshot({ path: "docs/assets/matrix/desktop.png", fullPage: false });
+  });
 });
