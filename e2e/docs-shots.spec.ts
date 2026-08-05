@@ -68,4 +68,17 @@ test.describe("docs screenshots", () => {
     await expect(g.getByText("R0C0")).toHaveCount(0);
     await page.screenshot({ path: "docs/assets/perf/scrolled.png", fullPage: false });
   });
+
+  test("a11y — keyboard focus ring", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToObjects(page);
+    const g = grid(page, "grid-objects");
+    // Focus a cell via keyboard so the focus ring renders naturally.
+    await g.getByText("Ada Lovelace").click();
+    await g.focus();
+    await page.keyboard.press("Tab");
+    await expect(g.locator('[data-active="true"]')).toBeVisible();
+    await page.screenshot({ path: "docs/assets/a11y/focus.png", fullPage: false });
+  });
 });
