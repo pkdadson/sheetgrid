@@ -13,6 +13,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
+    "docs:shots": "playwright test --project=docs-shots --project=docs-shots-mobile",
     "lint": "biome check .",
     "format": "biome format --write .",
     "dev:demo": "pnpm --filter=demo dev",

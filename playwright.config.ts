@@ -22,6 +22,17 @@ export default defineConfig({
     {
       name: "chromium",
       use: { ...devices["Desktop Chrome"] },
+      testIgnore: /docs-shots\.spec\.ts$/,
+    },
+    {
+      name: "docs-shots",
+      testMatch: /docs-shots\.spec\.ts$/,
+      use: { ...devices["Desktop Chrome"], screenshot: "off" },
+    },
+    {
+      name: "docs-shots-mobile",
+      testMatch: /docs-shots\.spec\.ts$/,
+      use: { ...devices["Pixel 5"], screenshot: "off" },
     },
   ],
   webServer: {
