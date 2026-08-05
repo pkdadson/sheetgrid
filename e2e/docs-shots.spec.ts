@@ -43,4 +43,29 @@ test.describe("docs screenshots", () => {
     await expect(grid(page, "grid-matrix").getByText("Widgets")).toBeVisible();
     await page.screenshot({ path: "docs/assets/matrix/desktop.png", fullPage: false });
   });
+
+  test("perf — desktop initial", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToPerf(page);
+    const g = grid(page, "grid-perf");
+    await expect(g.getByText("R0C0")).toBeVisible();
+    await page.screenshot({ path: "docs/assets/perf/desktop.png", fullPage: false });
+  });
+
+  test("perf — scrolled", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
+    await openDemo(page);
+    await goToPerf(page);
+    const g = grid(page, "grid-perf");
+    await expect(g.getByText("R0C0")).toBeVisible();
+    await g.evaluate((el) => {
+      el.scrollTop = 5000;
+    });
+    await g.dispatchEvent("scroll");
+    await page.waitForTimeout(200);
+    // Confirm the initial rows have scrolled out of view before capturing.
+    await expect(g.getByText("R0C0")).toHaveCount(0);
+    await page.screenshot({ path: "docs/assets/perf/scrolled.png", fullPage: false });
+  });
 });
