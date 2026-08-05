@@ -31,8 +31,10 @@ test.describe("docs screenshots", () => {
     await openDemo(page);
     await goToObjects(page);
     const g = grid(page, "grid-objects");
-    await g.getByText("Ada Lovelace").click();
-    await expect(g.locator('[data-active="true"]')).toContainText("Ada Lovelace");
+    // Click a numeric cell — the active-cell outline reads more clearly against
+    // right-aligned numeric content than against text cells nested in a group row.
+    await g.getByText("98").first().click();
+    await expect(g.locator('[data-active="true"]')).toHaveText("98");
     await page.screenshot({ path: "docs/assets/objects/detail.png", fullPage: false });
   });
 
@@ -74,10 +76,13 @@ test.describe("docs screenshots", () => {
     await openDemo(page);
     await goToObjects(page);
     const g = grid(page, "grid-objects");
-    // Focus a cell via keyboard so the focus ring renders naturally.
+    // Click into the grid, then navigate with arrow keys. Both the outer
+    // grid focus ring (keyboard focus on the scroll pane) and the per-cell
+    // active outline should be visible — that is the true a11y story.
     await g.getByText("Ada Lovelace").click();
     await g.focus();
-    await page.keyboard.press("Tab");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowDown");
     await expect(g.locator('[data-active="true"]')).toBeVisible();
     await page.screenshot({ path: "docs/assets/a11y/focus.png", fullPage: false });
   });

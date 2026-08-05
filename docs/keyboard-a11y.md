@@ -11,7 +11,7 @@ SheetGrid is keyboard-first for cell navigation and implements common spreadshee
 
 Give the grid (or its parent) a height so the virtualized viewport is visible.
 
-![Focused cell with active ring](assets/a11y/focus.png)
+![Grid with keyboard focus and the active cell moved via arrow keys](assets/a11y/focus.png)
 
 ## Keyboard shortcuts
 
