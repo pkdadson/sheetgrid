@@ -109,6 +109,10 @@ Open React DevTools → Profiler and record a scroll. Cell components should re-
 | Column reorder feels sluggish | Column virtualization is off with a large column count — turn it on |
 | First paint has no styles | Auto-inject runs in `useEffect` — for SSR, import `@sheetgrid/tokens/variables.css` directly ([FAQ → SSR](faq.md#ssr--nextjs)) |
 
+## Bring-your-own table
+
+If you keep your own markup, use `useVirtualWindow` instead of mounting thousands of rows. Same idea as the grid body: spacers + measured sizes, no transforms. See [recipe 11](recipes/11-bring-your-own-table.md).
+
 ## Related
 
 - [FAQ — Performance](faq.md#performance)

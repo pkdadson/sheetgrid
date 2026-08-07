@@ -105,6 +105,24 @@ export type {
 } from "./virtual/window.js";
 
 export {
+  buildPrefixSums,
+  computePads,
+  expandWindowForPins,
+  offsetOf,
+  sizeAt,
+  windowFromPrefix,
+} from "./virtual/prefix.js";
+
+export { createSizeCache } from "./virtual/size-cache.js";
+export type {
+  SizeCache,
+  SizeCacheOptions,
+  SizeSource,
+} from "./virtual/size-cache.js";
+
+export { anchorScrollDelta } from "./virtual/scroll-anchor.js";
+
+export {
   applyPaste,
   extractRange,
   parseTsv,

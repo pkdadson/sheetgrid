@@ -133,6 +133,7 @@ Open [http://localhost:5177](http://localhost:5177):
 8. [Theming](docs/recipes/08-theming.md)
 9. [Formulas](docs/recipes/09-formulas.md)
 10. [Sort](docs/recipes/10-sort.md)
+11. [Bring your own table](docs/recipes/11-bring-your-own-table.md) — virtualize existing markup without `<Grid />`
 
 ## Packages
 

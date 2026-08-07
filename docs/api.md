@@ -269,6 +269,36 @@ Full function list: [formulas-catalog.md](formulas-catalog.md).
 
 ---
 
+## `useVirtualWindow` (bring-your-own table)
+
+```tsx
+import { useVirtualWindow } from "@sheetgrid/react";
+```
+
+Window an **existing** scroll parent and row markup without mounting `<Grid />`. No extra scroller, no cell wrappers, no CSS transforms (safe for dropdowns / popovers).
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `count` | `number` | — | Length of the flattened list (after expand/collapse). |
+| `getItemKey` | `(index) => string` | — | Stable key; include expand state when height depends on it. |
+| `estimateSize` | `(index) => number` | — | Size until measured. |
+| `getScrollElement` | `() => HTMLElement \| null` | — | **Their** overflow container. |
+| `overscan` | `number` | `3` | Extra items outside the viewport. |
+| `horizontal` | `boolean` | `false` | Use horizontal scroll metrics. |
+| `pinKeys` / `pinIndexes` | `readonly string[]` / `number[]` | — | Force-include items (e.g. open menu row). |
+| `enabled` | `boolean` | `true` | When `false`, exposes the full range. |
+
+| Return | Description |
+|--------|-------------|
+| `virtualItems` | `{ index, key, start, size }[]` to map |
+| `padStart` / `padEnd` / `totalSize` | Spacer heights (or widths if horizontal) |
+| `measureElement` | Callback ref; set `data-index={index}` on the **same** node |
+| `scrollToIndex` | Programmatic scroll (`start` \| `center` \| `end` \| `auto`) |
+
+Full recipe: [Bring your own table](recipes/11-bring-your-own-table.md). Core helpers: `createSizeCache`, `buildPrefixSums`, `windowFromPrefix`, `expandWindowForPins`, `computePads`, `anchorScrollDelta`.
+
+---
+
 ## Core store (advanced)
 
 ```ts

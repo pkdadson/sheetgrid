@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Features
+
+- **Bring-your-own-table virtualization** — adopt windowing without mounting `<Grid />` or wrapping cells:
+  - `@sheetgrid/core`: `createSizeCache`, `buildPrefixSums`, `windowFromPrefix`, `expandWindowForPins`, `computePads`, `anchorScrollDelta` (variable sizes, pin ranges, scroll anchoring; no transforms)
+  - `@sheetgrid/react`: `useVirtualWindow` — uses *your* scroll element, `measureElement` on *your* row, spacers via `padStart`/`padEnd`, optional `pinKeys` so open dropdowns keep their anchor mounted
+- Recipe: [Bring your own table](docs/recipes/11-bring-your-own-table.md)
+
 ## 0.1.2
 
 ### Fixes

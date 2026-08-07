@@ -53,7 +53,7 @@ store.setFormula(rowId, columnId, "=A1+1");
 | Validation | `commitCell`, `required`, `number`, `min`, `max`, `pattern` |
 | Selection | Pure helpers: `selectCell`, `extendTo`, `moveActive`, … |
 | Keyboard | `mapKeyToCommand` → move / edit / copy / paste / … |
-| Virtual | `computeWindow`, `computeVariableWindow` |
+| Virtual | `computeWindow`, `computeVariableWindow`, size cache, prefix window, scroll anchor (BYO table) |
 | Clipboard | TSV `parse` / `serialize` / `applyPaste` |
 | Sort | `sortRows`, comparators |
 | Formulas | AST engine, `listFunctions`, A1 helpers |

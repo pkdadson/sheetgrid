@@ -35,6 +35,10 @@ pnpm add @sheetgrid/react
 Peers: `react` and `react-dom` ≥ 18.2 (React 19 supported).  
 `@sheetgrid/core` and `@sheetgrid/tokens` come in as transitive dependencies. Install `@sheetgrid/core` only if you build a headless or custom renderer (see [core guide](core-guide.md)).
 
+### Can I virtualize my existing table without replacing it with `<Grid />`?
+
+Yes. Use **`useVirtualWindow`** from `@sheetgrid/react` (or the size/window helpers in `@sheetgrid/core`). Keep your scroll parent, row components, and popover anchors; only mount the visible slice and render top/bottom spacers. Do not use CSS transforms for windowing. Recipe: [Bring your own table](recipes/11-bring-your-own-table.md).
+
 ---
 
 ## Data model
