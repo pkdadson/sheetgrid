@@ -32,6 +32,7 @@ Start with the root [README](../README.md) for install and quickstarts, then use
 8. [Theming](recipes/08-theming.md)
 9. [Formulas](recipes/09-formulas.md)
 10. [Sort](recipes/10-sort.md)
+11. [Bring your own table (headless virtualization)](recipes/11-bring-your-own-table.md)
 
 ## Packages
 

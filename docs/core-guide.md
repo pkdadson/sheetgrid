@@ -180,15 +180,40 @@ Wire `cmd` into selection + store in your UI layer. Shortcut table: [keyboard-a1
 ```ts
 import { computeWindow, computeVariableWindow } from "@sheetgrid/core";
 
-const { start, end } = computeWindow({
+const { startIndex, endIndex } = computeWindow({
   scrollOffset: 0,
   viewportSize: 400,
   itemSize: 32,
   itemCount: 10_000,
   overscan: 5,
 });
-// render rows start..end only
+// render rows startIndex..endIndex only
 ```
+
+### Variable size + size cache (bring-your-own table)
+
+For collapsible / measured rows without mounting `<Grid />`, use the size cache and prefix window helpers. Prefer **spacers** (`padStart` / `padEnd`) over CSS transforms so popovers stay aligned.
+
+```ts
+import {
+  createSizeCache,
+  buildPrefixSums,
+  windowFromPrefix,
+  expandWindowForPins,
+  computePads,
+  anchorScrollDelta,
+} from "@sheetgrid/core";
+
+const cache = createSizeCache();
+const keys = visibleItems.map((r) => r.id);
+const sizes = cache.buildSizes(keys, (i) => (visibleItems[i]!.expanded ? 120 : 40));
+const prefix = buildPrefixSums(sizes);
+const win = windowFromPrefix(prefix, scrollTop, clientHeight, 4);
+const range = expandWindowForPins(win.startIndex, win.endIndex, keys.length, pinIndexes);
+const { padStart, padEnd, totalSize } = computePads(prefix, range.startIndex, range.endIndex);
+```
+
+In React, use **`useVirtualWindow`** from `@sheetgrid/react` (listens to *your* scroll parent, `measureElement` ref on *your* row, optional `pinKeys` for open menus). Full recipe: [Bring your own table](recipes/11-bring-your-own-table.md).
 
 Also: `resolveColumnWidths`, `setColumnWidth`, `buildVisibleRows` (row groups), `flattenColumnGroups` (header bands).
 
@@ -273,7 +298,7 @@ For production, add selection state, `mapKeyToCommand`, virtualization windows, 
 | Validators | `required`, `number`, `min`, `max`, `pattern` |
 | Selection | `createSelection`, `selectCell`, `extendTo`, `moveActive`, … |
 | Keyboard | `mapKeyToCommand` |
-| Virtual | `computeWindow`, `computeVariableWindow` |
+| Virtual | `computeWindow`, `computeVariableWindow`, `createSizeCache`, `buildPrefixSums`, `windowFromPrefix`, `expandWindowForPins`, `computePads`, `anchorScrollDelta` |
 | Layout | `resolveColumnWidths`, `buildVisibleRows`, `flattenColumnGroups`, `moveItem` |
 | Clipboard | `parseTsv`, `serializeTsv`, `applyPaste`, `extractRange` |
 | Sort | `sortRows`, `pickDefaultComparator`, `withNullsLast` |

@@ -6,7 +6,11 @@ export type {
   SelectOption,
 } from "./column-types.js";
 export { injectTokens } from "./inject-tokens.js";
-export { registerCellType, getCellType, resolveColumnType } from "./cells/registry.js";
+export {
+  registerCellType,
+  getCellType,
+  resolveColumnType,
+} from "./cells/registry.js";
 export type {
   BuiltInCellType,
   CellRenderProps,
@@ -21,6 +25,13 @@ export { TextEditor } from "./editors/TextEditor.js";
 export { NumberEditor } from "./editors/NumberEditor.js";
 export { SelectEditor } from "./editors/SelectEditor.js";
 
+export { useVirtualWindow } from "./useVirtualWindow.js";
+export type {
+  UseVirtualWindowOptions,
+  UseVirtualWindowResult,
+  VirtualItem,
+} from "./useVirtualWindow.js";
+
 export {
   fromMatrix,
   toMatrix,
@@ -32,4 +43,12 @@ export {
   max,
   pattern,
   cellKey,
+  computeWindow,
+  computeVariableWindow,
+  createSizeCache,
+  buildPrefixSums,
+  windowFromPrefix,
+  expandWindowForPins,
+  computePads,
+  anchorScrollDelta,
 } from "@sheetgrid/core";

@@ -1,3 +1,5 @@
+import { buildPrefixSums, windowFromPrefix } from "./prefix.js";
+
 export interface FixedWindowInput {
   scrollOffset: number;
   viewportSize: number;
@@ -43,59 +45,20 @@ export function computeWindow(opts: FixedWindowInput): WindowResult {
 export interface VariableWindowInput {
   scrollOffset: number;
   viewportSize: number;
-  sizes: number[];
+  sizes: number[] | readonly number[];
   overscan: number;
 }
 
 /**
- * Window items with variable sizes (e.g. column widths).
+ * Window items with variable sizes (e.g. column widths or measured rows).
  * Item i occupies [offsets[i], offsets[i+1]).
+ * Implemented via prefix sums + binary search (see `windowFromPrefix`).
  */
-export function computeVariableWindow(
-  opts: VariableWindowInput,
-): WindowResult {
+export function computeVariableWindow(opts: VariableWindowInput): WindowResult {
   const { scrollOffset, viewportSize, sizes, overscan } = opts;
-  const itemCount = sizes.length;
-  if (itemCount === 0) {
+  if (sizes.length === 0) {
     return { startIndex: 0, endIndex: -1, offsetBefore: 0, totalSize: 0 };
   }
-
-  const offsets: number[] = new Array(itemCount + 1);
-  offsets[0] = 0;
-  for (let i = 0; i < itemCount; i++) {
-    offsets[i + 1] = offsets[i]! + sizes[i]!;
-  }
-  const totalSize = offsets[itemCount]!;
-  const maxScroll = Math.max(0, totalSize - Math.max(0, viewportSize));
-  const clampedScroll = Math.min(Math.max(0, scrollOffset), maxScroll);
-  const endScroll = clampedScroll + viewportSize;
-
-  // First item whose right edge is past scrollOffset
-  let startIndex = 0;
-  while (
-    startIndex < itemCount - 1 &&
-    offsets[startIndex + 1]! <= clampedScroll
-  ) {
-    startIndex += 1;
-  }
-
-  // Grow while the next item's left edge is still before endScroll
-  // (i.e. next item still starts inside the viewport)
-  let endIndex = startIndex;
-  while (
-    endIndex < itemCount - 1 &&
-    offsets[endIndex + 1]! < endScroll
-  ) {
-    endIndex += 1;
-  }
-
-  startIndex = Math.max(0, startIndex - overscan);
-  endIndex = Math.min(itemCount - 1, endIndex + overscan);
-
-  return {
-    startIndex,
-    endIndex,
-    offsetBefore: offsets[startIndex]!,
-    totalSize,
-  };
+  const prefix = buildPrefixSums(sizes);
+  return windowFromPrefix(prefix, scrollOffset, viewportSize, overscan);
 }

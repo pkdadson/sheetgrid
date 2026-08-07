@@ -2,6 +2,8 @@
 
 Excel-class **React** data grid — virtualized rows & columns, object or 2D data, edit, validation, clipboard, groups, sort, built-in cell types, opt-in formulas.
 
+**Bring-your-own table:** `useVirtualWindow` virtualizes an existing scroll parent and row markup without wrappers or CSS transforms (popup-safe). See [recipe 11](../../docs/recipes/11-bring-your-own-table.md).
+
 ## Install
 
 ```bash
