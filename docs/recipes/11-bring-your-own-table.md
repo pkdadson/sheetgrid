@@ -2,6 +2,8 @@
 
 Use SheetGrid **only as a windowing engine** so large tables stay fast without replacing markup, styles, selection, or popup anchors.
 
+Works with **object rows** and **2D JSON matrices** (`unknown[][]` / `data[r][c]`). The hook never needs your data model — only a `count` and how to key/measure each index.
+
 ## Goals
 
 | Keep | Change |
@@ -10,8 +12,9 @@ Use SheetGrid **only as a windowing engine** so large tables stay fast without r
 | Your scroll parent | None (we listen to it) |
 | Dropdown / popover alignment | Unmount off-screen rows only |
 | Expand/collapse behavior | Flatten first, then window |
+| 2D matrix JSON as-is | Map `data[item.index]` (no need to convert to objects) |
 
-**Non-goals:** SheetGrid does **not** inject a scroller, wrap your cells, or apply `transform` (those break fixed/popper math).
+**Non-goals:** SheetGrid does **not** inject a scroller, wrap your cells, or apply `transform` (those break fixed/popper math). Prefer full `<Grid data={matrix} />` when you want Excel chrome (edit, selection, formulas) — see [2D data](03-2d-data.md).
 
 ## Install
 
@@ -21,7 +24,100 @@ pnpm add @sheetgrid/react
 # pnpm add @sheetgrid/core
 ```
 
-## React: `useVirtualWindow`
+## 2D matrix JSON
+
+If your source is a 2D array, pass `data.length` as `count` and read cells with `data[item.index][c]`. Index keys are fine when row identity *is* the row index.
+
+```tsx
+import { useRef } from "react";
+import { useVirtualWindow } from "@sheetgrid/react";
+
+export function MatrixTable({ data }: { data: unknown[][] }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const rowCount = data.length;
+  const colCount = data[0]?.length ?? 0;
+
+  const v = useVirtualWindow({
+    count: rowCount,
+    getItemKey: (i) => String(i),
+    estimateSize: () => 32,
+    getScrollElement: () => scrollerRef.current,
+  });
+
+  return (
+    <div ref={scrollerRef} style={{ height: 400, overflow: "auto" }}>
+      <table>
+        <tbody>
+          {v.padStart > 0 && (
+            <tr aria-hidden="true" style={{ height: v.padStart }}>
+              <td
+                colSpan={colCount}
+                style={{ padding: 0, border: 0, lineHeight: 0 }}
+              />
+            </tr>
+          )}
+
+          {v.virtualItems.map((item) => {
+            const row = data[item.index]!;
+            return (
+              <tr
+                key={item.key}
+                data-index={item.index}
+                ref={v.measureElement}
+              >
+                {row.map((cell, c) => (
+                  <td key={c}>{String(cell ?? "")}</td>
+                ))}
+              </tr>
+            );
+          })}
+
+          {v.padEnd > 0 && (
+            <tr aria-hidden="true" style={{ height: v.padEnd }}>
+              <td
+                colSpan={colCount}
+                style={{ padding: 0, border: 0, lineHeight: 0 }}
+              />
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+| 2D JSON | Hook / render |
+|---------|----------------|
+| `data.length` | `count` |
+| `data[item.index]` | the visible row |
+| `data[r][c]` | each cell |
+| `data[0].length` | `colSpan` / column loop |
+
+### Header row in the matrix
+
+If the first JSON row is headers, keep it always mounted and window the body:
+
+```tsx
+const header = data[0] ?? [];
+const bodyRowCount = Math.max(0, data.length - 1);
+
+const v = useVirtualWindow({
+  count: bodyRowCount,
+  getItemKey: (i) => String(i + 1), // stable id for matrix row index
+  estimateSize: () => 32,
+  getScrollElement: () => scrollerRef.current,
+});
+
+// thead: header.map(...)
+// tbody: virtualItems → data[item.index + 1]
+```
+
+### Many columns
+
+For very wide matrices, a second `useVirtualWindow` with `horizontal: true` on the **same** scroller windows columns. Cell value is still `data[row.index][col.index]`. Most sheets only need the vertical window above.
+
+## React: object rows + menus (`useVirtualWindow`)
 
 ```tsx
 import { useRef, useState } from "react";
@@ -173,6 +269,7 @@ Measurements use `ResizeObserver` on **your** row node. Size changes fully above
 
 ## Related
 
+- [2D data](03-2d-data.md) — `<Grid data={matrix} />` when you want full grid chrome  
 - [Core / headless guide](../core-guide.md) — store, selection, keyboard if you adopt more later  
 - [Performance](../performance.md) — full `<Grid />` knobs  
 - API: `useVirtualWindow` in `@sheetgrid/react`; size/window helpers in `@sheetgrid/core`

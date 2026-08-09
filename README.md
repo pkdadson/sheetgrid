@@ -80,6 +80,57 @@ import { Grid } from "@sheetgrid/react";
 />
 ```
 
+Row and column virtualization is built into `<Grid />` for both object rows and 2D matrices.
+
+### Keep your own table (still virtualize)
+
+Already have a `<table>` (or custom grid) and only need windowing? Use **`useVirtualWindow`** — works with **object rows or 2D JSON** (`data[r][c]`). SheetGrid does not replace your markup.
+
+```tsx
+import { useRef } from "react";
+import { useVirtualWindow } from "@sheetgrid/react";
+
+function MatrixTable({ data }: { data: unknown[][] }) {
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const colCount = data[0]?.length ?? 0;
+
+  const v = useVirtualWindow({
+    count: data.length,
+    getItemKey: (i) => String(i),
+    estimateSize: () => 32,
+    getScrollElement: () => scrollerRef.current,
+  });
+
+  return (
+    <div ref={scrollerRef} style={{ height: 400, overflow: "auto" }}>
+      <table>
+        <tbody>
+          {v.padStart > 0 && (
+            <tr aria-hidden style={{ height: v.padStart }}>
+              <td colSpan={colCount} style={{ padding: 0, border: 0 }} />
+            </tr>
+          )}
+          {v.virtualItems.map((item) => (
+            <tr key={item.key} data-index={item.index} ref={v.measureElement}>
+              {data[item.index]!.map((cell, c) => (
+                <td key={c}>{String(cell ?? "")}</td>
+              ))}
+            </tr>
+          ))}
+          {v.padEnd > 0 && (
+            <tr aria-hidden style={{ height: v.padEnd }}>
+              <td colSpan={colCount} style={{ padding: 0, border: 0 }} />
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+```
+
+Full contract (spacers, measure ref, `pinKeys` for menus): [Bring your own table](docs/recipes/11-bring-your-own-table.md).
+
 ## Features
 
 - Virtualized body rows **and** columns (DOM)
@@ -133,7 +184,7 @@ Open [http://localhost:5177](http://localhost:5177):
 8. [Theming](docs/recipes/08-theming.md)
 9. [Formulas](docs/recipes/09-formulas.md)
 10. [Sort](docs/recipes/10-sort.md)
-11. [Bring your own table](docs/recipes/11-bring-your-own-table.md) — virtualize existing markup without `<Grid />`
+11. [Bring your own table](docs/recipes/11-bring-your-own-table.md) — virtualize existing markup (objects or 2D JSON) without `<Grid />`
 
 ## Packages
 
