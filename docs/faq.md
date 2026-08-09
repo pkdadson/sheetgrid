@@ -37,7 +37,9 @@ Peers: `react` and `react-dom` ≥ 18.2 (React 19 supported).
 
 ### Can I virtualize my existing table without replacing it with `<Grid />`?
 
-Yes. Use **`useVirtualWindow`** from `@sheetgrid/react` (or the size/window helpers in `@sheetgrid/core`). Keep your scroll parent, row components, and popover anchors; only mount the visible slice and render top/bottom spacers. Do not use CSS transforms for windowing. Recipe: [Bring your own table](recipes/11-bring-your-own-table.md).
+Yes. Use **`useVirtualWindow`** from `@sheetgrid/react` (or the size/window helpers in `@sheetgrid/core`). Keep your scroll parent, row components, and popover anchors; only mount the visible slice and render top/bottom spacers. Do not use CSS transforms for windowing.
+
+Works with **object rows** and **2D JSON** (`count: data.length`, cells via `data[item.index][c]`). Recipe: [Bring your own table](recipes/11-bring-your-own-table.md) (includes a matrix section).
 
 ---
 

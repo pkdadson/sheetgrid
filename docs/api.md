@@ -277,9 +277,11 @@ import { useVirtualWindow } from "@sheetgrid/react";
 
 Window an **existing** scroll parent and row markup without mounting `<Grid />`. No extra scroller, no cell wrappers, no CSS transforms (safe for dropdowns / popovers).
 
+Works with object lists or **2D matrices**: `count: data.length`, paint `data[item.index][c]`. Index keys (`String(i)`) are fine when the row index is the identity.
+
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `count` | `number` | — | Length of the flattened list (after expand/collapse). |
+| `count` | `number` | — | Length of the flattened list (after expand/collapse). For a matrix, `data.length`. |
 | `getItemKey` | `(index) => string` | — | Stable key; include expand state when height depends on it. |
 | `estimateSize` | `(index) => number` | — | Size until measured. |
 | `getScrollElement` | `() => HTMLElement \| null` | — | **Their** overflow container. |

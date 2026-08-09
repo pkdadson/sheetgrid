@@ -9,6 +9,10 @@
   - `@sheetgrid/react`: `useVirtualWindow` — uses *your* scroll element, `measureElement` on *your* row, spacers via `padStart`/`padEnd`, optional `pinKeys` so open dropdowns keep their anchor mounted
 - Recipe: [Bring your own table](docs/recipes/11-bring-your-own-table.md)
 
+### Docs
+
+- Document **2D JSON + `useVirtualWindow`** on the root README, recipe 11 (matrix section), FAQ, API, 2D recipe cross-link, and `@sheetgrid/react` package README
+
 ## 0.1.2
 
 ### Fixes
