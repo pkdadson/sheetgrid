@@ -116,6 +116,7 @@ export function useVirtualWindow(
   const observed = new Map<Element, number>();
   let ro: ResizeObserver | null = null;
   let boundEl: HTMLElement | null = null;
+  let prevOverflowAnchor: string | null = null;
 
   const applyMetrics = () => {
     const node = getScrollElement();
@@ -136,6 +137,11 @@ export function useVirtualWindow(
       } catch {
         /* ignore */
       }
+      // Restore the original overflow-anchor so we do not leak our override.
+      if (prevOverflowAnchor !== null) {
+        boundEl.style.overflowAnchor = prevOverflowAnchor;
+        prevOverflowAnchor = null;
+      }
     }
     boundEl = next;
     if (typeof ResizeObserver !== "undefined" && ro === null) {
@@ -151,6 +157,12 @@ export function useVirtualWindow(
       });
     }
     if (boundEl) {
+      // The composable grows/shrinks a top spacer (padStart) as the user scrolls.
+      // The browser's default overflow-anchor: auto treats that as "content inserted
+      // above viewport" and auto-adjusts scrollTop, which fights our own scroll
+      // handling and causes runaway scroll. Disable it while we own this element.
+      prevOverflowAnchor = boundEl.style.overflowAnchor;
+      boundEl.style.overflowAnchor = "none";
       boundEl.addEventListener("scroll", onScroll, { passive: true });
       ro?.observe(boundEl);
       applyMetrics();
@@ -158,7 +170,13 @@ export function useVirtualWindow(
   });
 
   onScopeDispose(() => {
-    if (boundEl) boundEl.removeEventListener("scroll", onScroll);
+    if (boundEl) {
+      boundEl.removeEventListener("scroll", onScroll);
+      if (prevOverflowAnchor !== null) {
+        boundEl.style.overflowAnchor = prevOverflowAnchor;
+        prevOverflowAnchor = null;
+      }
+    }
     ro?.disconnect();
     ro = null;
     observed.clear();

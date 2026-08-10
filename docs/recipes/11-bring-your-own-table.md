@@ -290,6 +290,10 @@ import { toRefs } from "vue";
 const { padStart, virtualItems } = toRefs(v);
 ```
 
+### Scroll anchoring
+
+The composable sets `overflow-anchor: none` on your scroll element while it is bound and restores the previous value on unmount. Without this the browser's native scroll anchoring would fight the growing `padStart` spacer and produce runaway scroll as you scroll into the list. You do not need to set this in your own CSS.
+
 ### SSR / Nuxt
 
 `useVirtualWindow` never touches `window` at module scope. On the server it returns empty; the client re-runs after mount and populates. Hydration matches. A `@sheetgrid/nuxt` module ships in a later milestone.

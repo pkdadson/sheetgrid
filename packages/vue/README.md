@@ -77,6 +77,10 @@ const v = useVirtualWindow({
 
 The result is a `reactive({...})` object: `virtualItems`, `padStart`, `padEnd`, `totalSize`, `startIndex`, `endIndex` read as plain values (auto-unwrapped in both script and template — no `.value`). `measureElement(el)` and `scrollToIndex(i, align?)` are plain functions. If you destructure the result, use `toRefs()` first to preserve reactivity.
 
+## Scroll anchoring
+
+The composable sets `overflow-anchor: none` on your scroll element while it is bound and restores the previous value on unmount. This is required — without it the browser's native scroll anchoring fights the growing/shrinking `padStart` spacer and produces runaway scroll. You do not need to set this in your own CSS.
+
 ## SSR / Nuxt
 
 `useVirtualWindow` is SSR-safe: no `window` / `ResizeObserver` access at module scope. On the server it returns empty; the client re-runs after mount and populates. Hydration matches by construction.
