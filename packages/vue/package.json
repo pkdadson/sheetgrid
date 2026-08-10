@@ -14,7 +14,10 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
@@ -45,6 +48,7 @@
     "@sheetgrid/tokens": "workspace:*"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.0",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^25.0.0",
     "tsup": "^8.3.0",
