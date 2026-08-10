@@ -128,4 +128,16 @@ describe("useVirtualWindow", () => {
     expect(wrapper.find('[data-testid="row-0"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="row-50"]').exists()).toBe(true);
   });
+
+  it("keeps pinKeys mounted when outside the natural window", async () => {
+    const Fixture = makeFixture({ count: 100, itemSize: 40, pinKeys: ["r0"] });
+    const wrapper = mount(Fixture, { attachTo: document.body });
+    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    mockScroller(scroller, { clientHeight: 200, scrollTop: 3000 });
+    scroller.dispatchEvent(new Event("scroll"));
+    await wrapper.vm.$nextTick();
+
+    // Natural window is near the end; the pin expands range to include r0.
+    expect(wrapper.find('[data-testid="row-0"]').exists()).toBe(true);
+  });
 });
