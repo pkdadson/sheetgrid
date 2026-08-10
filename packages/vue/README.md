@@ -2,7 +2,7 @@
 
 Excel-class **Vue 3** data grid — virtualized rows & columns, object or 2D data, edit, validation, clipboard, groups, sort, built-in cell types, opt-in formulas.
 
-> **Status:** `0.0.x` ships the `useVirtualWindow` composable for bring-your-own-table virtualization. The `<SheetGrid>` component and cell/editor system land in subsequent releases.
+> **Status:** `0.0.x` ships the `useVirtualWindow` composable and the `<SheetGrid>` component (data-only render, object rows and 2D matrix). Row/column virtualization, selection, keyboard, and clipboard land in the next release; cell types + editors follow.
 
 ## Install
 
@@ -14,6 +14,35 @@ pnpm add @sheetgrid/vue
 **Peer:** `vue >= 3.4` (needed for `defineModel` in later milestones).
 
 Transitive: `@sheetgrid/core`, `@sheetgrid/tokens`.
+
+## `<SheetGrid>` (data-only render, m2a preview)
+
+```vue
+<script setup lang="ts">
+import { SheetGrid } from "@sheetgrid/vue";
+
+const rows = [
+  { id: "1", name: "Ada", age: 36 },
+  { id: "2", name: "Grace", age: 40 },
+];
+const columns = [
+  { id: "name", header: "Name" },
+  { id: "age", header: "Age" },
+];
+</script>
+
+<template>
+  <SheetGrid :rows="rows" :columns="columns" />
+</template>
+```
+
+Matrix mode:
+
+```vue
+<SheetGrid :data="[['Name', 'Age'], ['Ada', 36]]" header-row />
+```
+
+**Current props:** `rows`, `columns`, `data`, `headerRow`, `density`, `theme`, `zebra`, `className`. Row/column virtualization, selection, keyboard, and clipboard ship in the next release; cell types and editors follow.
 
 ## `useVirtualWindow`
 

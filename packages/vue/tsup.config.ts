@@ -1,4 +1,5 @@
 import { defineConfig } from "tsup";
+import Vue from "unplugin-vue/esbuild";
 
 export default defineConfig({
   entry: ["src/index.ts"],
@@ -7,4 +8,5 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   external: ["vue", "@sheetgrid/core", "@sheetgrid/tokens"],
+  esbuildPlugins: [Vue({})],
 });
