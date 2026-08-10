@@ -5,10 +5,16 @@ import {
 } from "@sheetgrid/core";
 import type { CellError, ColumnDef, GridRow } from "@sheetgrid/core";
 import type { ComputedRef, MaybeRefOrGetter } from "vue";
-import { computed, onScopeDispose, shallowRef, toValue } from "vue";
+import { computed, onScopeDispose, shallowRef, toValue, watch } from "vue";
 
 export interface UseGridStoreOptions {
-  input: MaybeRefOrGetter<CreateGridStoreInput>;
+  /**
+   * When true, watches the reactive input and calls `store.replaceRows()` /
+   * `store.replaceColumns()` when it changes. Default false — the caller
+   * (typically `<SheetGrid>`) manages replacement explicitly to keep control
+   * over commit reasons and change emission.
+   */
+  autoWatch?: boolean;
 }
 
 export interface UseGridStoreResult {
@@ -27,6 +33,7 @@ export interface UseGridStoreResult {
  */
 export function useGridStore(
   input: MaybeRefOrGetter<CreateGridStoreInput>,
+  options?: UseGridStoreOptions,
 ): UseGridStoreResult {
   const store = createGridStore(toValue(input));
   const version = shallowRef(0);
@@ -48,6 +55,17 @@ export function useGridStore(
     void version.value;
     return store.getErrors();
   });
+
+  if (options?.autoWatch) {
+    watch(
+      () => toValue(input),
+      (next) => {
+        store.replaceColumns(next.columns);
+        store.replaceRows(next.rows);
+      },
+      { deep: true },
+    );
+  }
 
   return { store, rows, columns, errors };
 }

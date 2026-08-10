@@ -43,6 +43,22 @@ describe("useGridStore", () => {
     expect(rows.value).toHaveLength(2);
   });
 
+  it("autoWatch: replaces rows when the reactive input changes", async () => {
+    const src = ref(makeInput());
+    const { rows } = useGridStore(() => src.value, { autoWatch: true });
+    expect(rows.value).toHaveLength(2);
+
+    src.value = {
+      ...makeInput(),
+      rows: [{ id: "9", values: { name: "Nine", age: 9 } }],
+    };
+    await new Promise((r) => setTimeout(r, 0));
+    // Vue watchers fire on next microtask
+    expect(rows.value).toHaveLength(1);
+    // biome-ignore lint/style/noNonNullAssertion: length checked above
+    expect(rows.value[0]!.values.name).toBe("Nine");
+  });
+
   it("unsubscribes when the scope is disposed", () => {
     const scope = effectScope();
     let refRows: ReturnType<typeof useGridStore>["rows"] | null = null;

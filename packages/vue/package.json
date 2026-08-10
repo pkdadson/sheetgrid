@@ -41,7 +41,7 @@
     "prepublishOnly": "pnpm run build && pnpm run test"
   },
   "peerDependencies": {
-    "vue": ">=3.4.0"
+    "vue": ">=3.3.0"
   },
   "dependencies": {
     "@sheetgrid/core": "workspace:*",
