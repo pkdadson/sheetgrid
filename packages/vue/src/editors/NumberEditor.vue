@@ -1,0 +1,57 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import type { EditorRenderProps } from "../cells/types.js";
+
+const props = defineProps<EditorRenderProps>();
+const inputRef = ref<HTMLInputElement | null>(null);
+let skipBlurCommit = false;
+
+onMounted(() => {
+  inputRef.value?.focus();
+});
+
+const display =
+  props.value === null || props.value === undefined ? "" : String(props.value);
+
+function onInput(e: Event) {
+  const raw = (e.target as HTMLInputElement).value;
+  if (raw === "") {
+    props.onChange(null);
+    return;
+  }
+  const n = Number(raw);
+  props.onChange(Number.isNaN(n) ? raw : n);
+}
+
+function onBlur() {
+  if (skipBlurCommit) return;
+  props.onCommit();
+}
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    skipBlurCommit = true;
+    props.onCommit();
+  }
+  if (e.key === "Escape") {
+    e.preventDefault();
+    skipBlurCommit = true;
+    props.onCancel();
+  }
+}
+</script>
+
+<template>
+  <input
+    ref="inputRef"
+    class="eg-editor"
+    type="number"
+    :value="display"
+    :aria-invalid="error ? true : undefined"
+    :title="error"
+    @input="onInput"
+    @blur="onBlur"
+    @keydown="onKeyDown"
+  />
+</template>

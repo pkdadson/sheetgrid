@@ -1,5 +1,10 @@
-import type { ColumnDef } from "@sheetgrid/core";
-import type { BuiltInCellType } from "./cells/types.js";
+import type { ColumnDef, GridRow } from "@sheetgrid/core";
+import type { Component } from "vue";
+import type {
+  BuiltInCellType,
+  CellRenderProps,
+  EditorRenderProps,
+} from "./cells/types.js";
 
 /**
  * A row you pass into `<SheetGrid rows={...}>`. `id` must be a stable string
@@ -15,11 +20,16 @@ export interface SelectOption {
 }
 
 /**
- * Column definition used by `<SheetGrid>`. Extends core `ColumnDef`. Vue
- * component overrides for `cell` and `editor` land in a later milestone.
+ * Column definition used by `<SheetGrid>`. Extends core `ColumnDef`.
  */
 export interface VueColumnDef extends ColumnDef {
   /** Built-in cell type. Default: "text". */
   type?: BuiltInCellType | (string & {});
   selectOptions?: SelectOption[];
+  /** Override the cell renderer for this column. */
+  cell?: Component<CellRenderProps>;
+  /** Override the editor for this column. */
+  editor?: Component<EditorRenderProps>;
+  /** Editability: boolean or predicate. Default true. */
+  editable?: boolean | ((row: GridRow) => boolean);
 }
