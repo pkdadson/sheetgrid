@@ -98,31 +98,41 @@ function wildcardMatch(text: string, pattern: string): boolean {
   return matchAt(t, 0, p, 0);
 }
 
+/**
+ * Iterative two-pointer wildcard matcher with backtracking to the last '*'.
+ * Runs in O(m * n) worst case — no exponential blowup on patterns with
+ * multiple stars (see criteria.test.ts). Supports '?', '*', and '~' escape.
+ */
 function matchAt(t: string, ti: number, p: string, pi: number): boolean {
-  while (pi < p.length) {
-    if (p[pi] === "~" && pi + 1 < p.length) {
-      if (ti >= t.length || t[ti] !== p[pi + 1]) return false;
-      ti++;
-      pi += 2;
-      continue;
-    }
-    if (p[pi] === "*") {
-      // greedy star
-      if (pi + 1 >= p.length) return true;
-      for (let k = ti; k <= t.length; k++) {
-        if (matchAt(t, k, p, pi + 1)) return true;
+  let starPi = -1; // pattern index of the last '*' seen, -1 if none
+  let starTi = 0; // text index where the last '*' started matching
+
+  while (ti < t.length) {
+    // Escape: ~x matches literal x
+    if (pi + 1 < p.length && p[pi] === "~") {
+      if (t[ti] === p[pi + 1]) {
+        ti++;
+        pi += 2;
+        continue;
       }
-      return false;
-    }
-    if (p[pi] === "?") {
-      if (ti >= t.length) return false;
+      // fall through to backtrack
+    } else if (pi < p.length && (p[pi] === "?" || p[pi] === t[ti])) {
       ti++;
       pi++;
       continue;
+    } else if (pi < p.length && p[pi] === "*") {
+      starPi = pi;
+      starTi = ti;
+      pi++;
+      continue;
     }
-    if (ti >= t.length || t[ti] !== p[pi]) return false;
-    ti++;
-    pi++;
+    // Mismatch — try to backtrack to the last '*' and consume one more char
+    if (starPi < 0) return false;
+    pi = starPi + 1;
+    starTi++;
+    ti = starTi;
   }
-  return ti === t.length;
+  // Text exhausted — remaining pattern must be all '*'
+  while (pi < p.length && p[pi] === "*") pi++;
+  return pi === p.length;
 }
