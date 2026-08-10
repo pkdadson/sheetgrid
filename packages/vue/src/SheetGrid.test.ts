@@ -20,4 +20,18 @@ describe("SheetGrid", () => {
     expect(text).toContain("Ada");
     expect(text).toContain("36");
   });
+
+  it("renders 2D data with headerRow", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        data: [
+          ["Name", "Age"],
+          ["Grace", 40],
+        ],
+        headerRow: true,
+      },
+      attachTo: document.body,
+    });
+    expect(wrapper.text()).toContain("Grace");
+  });
 });
