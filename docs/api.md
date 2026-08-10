@@ -301,6 +301,38 @@ Full recipe: [Bring your own table](recipes/11-bring-your-own-table.md). Core he
 
 ---
 
+## `useVirtualWindow` (Vue)
+
+```ts
+import { useVirtualWindow } from "@sheetgrid/vue";
+```
+
+Same behavior as the React hook, Vue-idiomatic surface. Options accept `MaybeRefOrGetter` where reactivity is useful; the result is a `reactive({...})` object so template access needs no `.value`. SSR-safe: no `window` or `ResizeObserver` at module scope.
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `count` | `MaybeRefOrGetter<number>` | — | Length of the flattened list. For a matrix, `data.length`. |
+| `getItemKey` | `(index) => string` | — | Stable key per index. |
+| `estimateSize` | `(index) => number` | — | Size until measured. |
+| `scrollElement` | `MaybeRefOrGetter<HTMLElement \| null>` | — | Your scroll parent — template ref, getter, or raw element. |
+| `overscan` | `MaybeRefOrGetter<number>` | `3` | Extra items outside the viewport. |
+| `horizontal` | `MaybeRefOrGetter<boolean>` | `false` | Use horizontal scroll metrics. |
+| `pinKeys` / `pinIndexes` | `MaybeRefOrGetter<readonly string[] \| number[]>` | — | Force-include items. |
+| `enabled` | `MaybeRefOrGetter<boolean>` | `true` | When `false`, exposes the full range. |
+
+| Return | Description |
+|--------|-------------|
+| `virtualItems` | `{ index, key, start, size }[]` — auto-unwrapped from the reactive result |
+| `padStart` / `padEnd` / `totalSize` | Spacer heights (or widths if horizontal), plain numbers |
+| `measureElement` | Callback ref; set `:data-index="item.index"` on the same node |
+| `scrollToIndex` | Programmatic scroll (`start` \| `center` \| `end` \| `auto`) |
+
+If you destructure the result, use `toRefs()` first to keep reactivity: `const { padStart } = toRefs(v)`.
+
+Full recipe: [Bring your own table](recipes/11-bring-your-own-table.md#vue-usevirtualwindow).
+
+---
+
 ## Core store (advanced)
 
 ```ts

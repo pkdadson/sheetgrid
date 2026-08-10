@@ -32,12 +32,13 @@ Start with the root [README](../README.md) for install and quickstarts, then use
 8. [Theming](recipes/08-theming.md)
 9. [Formulas](recipes/09-formulas.md)
 10. [Sort](recipes/10-sort.md)
-11. [Bring your own table (headless virtualization)](recipes/11-bring-your-own-table.md) — objects or 2D JSON
+11. [Bring your own table (headless virtualization)](recipes/11-bring-your-own-table.md) — React or Vue, objects or 2D JSON
 
 ## Packages
 
 | Package | Docs |
 |---------|------|
 | `@sheetgrid/react` | [package README](../packages/react/README.md) |
+| `@sheetgrid/vue` | [package README](../packages/vue/README.md) — Vue 3 port; `useVirtualWindow` ships in 0.0.x |
 | `@sheetgrid/core` | [package README](../packages/core/README.md) + [core guide](core-guide.md) |
 | `@sheetgrid/tokens` | [package README](../packages/tokens/README.md) |
