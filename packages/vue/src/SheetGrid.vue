@@ -1,12 +1,28 @@
 <script setup lang="ts">
 import {
+  type CellCoord,
   type ColumnDef,
+  type ColumnId,
   type GridRow,
+  type RowId,
+  type SelectionState,
+  applyPaste,
   computeVariableWindow,
   computeWindow,
+  createSelection,
+  extendTo,
+  extractRange,
   fromMatrix,
   fromObjects,
+  isCellSelected,
+  mapKeyToCommand,
+  moveActive,
+  parseTsv,
   resolveColumnWidths,
+  selectAll,
+  selectCell,
+  serializeTsv,
+  toggleCell,
 } from "@sheetgrid/core";
 import {
   computed,
@@ -29,9 +45,7 @@ export interface SheetGridProps {
   theme?: "light" | "dark";
   zebra?: boolean;
   className?: string;
-  /** Extra items outside the viewport in both directions. Default 3. */
   overscan?: number;
-  /** Window columns horizontally (default true). */
   virtualizeColumns?: boolean;
 }
 
@@ -41,6 +55,11 @@ const props = withDefaults(defineProps<SheetGridProps>(), {
   overscan: 3,
   virtualizeColumns: true,
 });
+
+const emit = defineEmits<{
+  (e: "rowsChange", rows: ObjectRow[], meta: { reason: string }): void;
+  (e: "dataChange", data: unknown[][], meta: { reason: string }): void;
+}>();
 
 onMounted(() => {
   injectTokens();
@@ -75,12 +94,25 @@ watch(
   { deep: true },
 );
 
+function emitChange(reason: string) {
+  if (props.data) {
+    emit("dataChange", store.toMatrix({ headerRow: props.headerRow }), {
+      reason,
+    });
+  } else {
+    const objects: ObjectRow[] = rows.value.map((r) => ({
+      id: r.id,
+      ...(r.values as Record<string, unknown>),
+    }));
+    emit("rowsChange", objects, { reason });
+  }
+}
+
 // --- Layout & virtualization -------------------------------------------------
 
 const rowHeight = computed(() => (props.density === "compact" ? 28 : 32));
 const headerHeight = computed(() => (props.density === "compact" ? 30 : 36));
 
-// Scroller viewport + scroll offsets. Refreshed via scroll listener + ResizeObserver.
 const scrollerRef = ref<HTMLDivElement | null>(null);
 const scrollTop = shallowRef(0);
 const scrollLeft = shallowRef(0);
@@ -128,7 +160,20 @@ onScopeDispose(() => {
   ro = null;
 });
 
-const columnIds = computed(() => columns.value.map((c) => c.id));
+const columnIds = computed<ColumnId[]>(() => columns.value.map((c) => c.id));
+const rowIds = computed<RowId[]>(() => rows.value.map((r) => r.id));
+
+const rowIndexOf = computed(() => {
+  const m = new Map<RowId, number>();
+  rowIds.value.forEach((id, i) => m.set(id, i));
+  return m;
+});
+
+const colIndexOf = computed(() => {
+  const m = new Map<ColumnId, number>();
+  columnIds.value.forEach((id, i) => m.set(id, i));
+  return m;
+});
 
 const widths = computed<Record<string, number>>(() => {
   return resolveColumnWidths(
@@ -144,15 +189,15 @@ const colSizes = computed<number[]>(() =>
 
 const tableWidth = computed(() => colSizes.value.reduce((a, b) => a + b, 0));
 
-const rowWindow = computed(() => {
-  return computeWindow({
+const rowWindow = computed(() =>
+  computeWindow({
     scrollOffset: scrollTop.value,
     viewportSize: viewportHeight.value > 0 ? viewportHeight.value : 1,
     itemSize: rowHeight.value,
     itemCount: rows.value.length,
     overscan: props.overscan,
-  });
-});
+  }),
+);
 
 const colWindow = computed(() => {
   const n = columnIds.value.length;
@@ -205,6 +250,136 @@ function formatCellValue(v: unknown): string {
     return String(v);
   return "";
 }
+
+// --- Selection ---------------------------------------------------------------
+
+const selection = shallowRef<SelectionState>(createSelection());
+
+const primaryRange = computed(() => {
+  const s = selection.value;
+  if (s.ranges.length === 0) return null;
+  return s.ranges[s.ranges.length - 1] ?? null;
+});
+
+function cellSelected(rowId: RowId, columnId: ColumnId): boolean {
+  return isCellSelected(
+    selection.value,
+    { rowId, columnId },
+    rowIndexOf.value,
+    colIndexOf.value,
+  );
+}
+
+function cellActive(rowId: RowId, columnId: ColumnId): boolean {
+  return (
+    selection.value.active?.rowId === rowId &&
+    selection.value.active?.columnId === columnId
+  );
+}
+
+function onCellMouseDown(event: MouseEvent, rowId: RowId, columnId: ColumnId) {
+  const coord: CellCoord = { rowId, columnId };
+  if (event.shiftKey) {
+    selection.value = extendTo(selection.value, coord);
+  } else if (event.ctrlKey || event.metaKey) {
+    selection.value = toggleCell(selection.value, coord);
+  } else {
+    selection.value = selectCell(createSelection(), coord);
+  }
+  scrollerRef.value?.focus({ preventScroll: true });
+}
+
+// --- Clipboard ---------------------------------------------------------------
+
+async function copySelection(): Promise<void> {
+  const range = primaryRange.value;
+  if (!range) return;
+  const matrix = extractRange(store, range.start, range.end);
+  const tsv = serializeTsv(matrix);
+  try {
+    await navigator.clipboard.writeText(tsv);
+  } catch {
+    /* ignore when clipboard API unavailable */
+  }
+}
+
+async function cutSelection(): Promise<void> {
+  const range = primaryRange.value;
+  if (!range) return;
+  await copySelection();
+  const matrix = extractRange(store, range.start, range.end);
+  const empty = matrix.map((row) => row.map(() => ""));
+  await applyPaste(store, range.start, empty, "commit-with-error");
+  emitChange("cut");
+}
+
+async function pasteSelection(text?: string): Promise<void> {
+  const active = selection.value.active ?? primaryRange.value?.start;
+  if (!active) return;
+  let raw = text;
+  if (raw === undefined) {
+    try {
+      raw = await navigator.clipboard.readText();
+    } catch {
+      return;
+    }
+  }
+  const matrix = parseTsv(raw);
+  await applyPaste(store, active, matrix, "reject");
+  emitChange("paste");
+}
+
+// --- Keyboard ----------------------------------------------------------------
+
+async function onKeyDown(event: KeyboardEvent): Promise<void> {
+  const cmd = mapKeyToCommand(
+    {
+      key: event.key,
+      code: event.code,
+      shiftKey: event.shiftKey,
+      ctrlKey: event.ctrlKey,
+      metaKey: event.metaKey,
+      altKey: event.altKey,
+    },
+    "navigate",
+  );
+  if (cmd.type === "none") return;
+  if (cmd.type === "move") {
+    event.preventDefault();
+    selection.value = moveActive(
+      selection.value,
+      cmd.dir,
+      rowIds.value,
+      columnIds.value,
+      { extend: cmd.extend },
+    );
+    return;
+  }
+  if (cmd.type === "selectAll") {
+    event.preventDefault();
+    selection.value = selectAll(rowIds.value, columnIds.value);
+    return;
+  }
+  if (cmd.type === "copy") {
+    event.preventDefault();
+    await copySelection();
+    return;
+  }
+  if (cmd.type === "cut") {
+    event.preventDefault();
+    await cutSelection();
+    return;
+  }
+  if (cmd.type === "paste") {
+    event.preventDefault();
+    await pasteSelection();
+  }
+}
+
+function onPaste(event: ClipboardEvent): void {
+  event.preventDefault();
+  void pasteSelection(event.clipboardData?.getData("text/plain"));
+}
 </script>
 
 <template>
@@ -215,7 +390,14 @@ function formatCellValue(v: unknown): string {
     :data-theme="theme"
     :data-zebra="zebra ? 'true' : 'false'"
   >
-    <div ref="scrollerRef" class="eg-root" role="grid" tabindex="0">
+    <div
+      ref="scrollerRef"
+      class="eg-root"
+      role="grid"
+      tabindex="0"
+      @keydown="onKeyDown"
+      @paste="onPaste"
+    >
       <div
         :style="{
           height: rowsTotalSize + headerHeight + 'px',
@@ -332,6 +514,9 @@ function formatCellValue(v: unknown): string {
                 :key="col.id"
                 class="eg-td"
                 role="cell"
+                :aria-selected="cellSelected(row.id, col.id)"
+                :data-active="cellActive(row.id, col.id) ? 'true' : undefined"
+                @mousedown="(e) => onCellMouseDown(e, row.id, col.id)"
               >
                 {{ formatCellValue(row.values[col.id]) }}
               </td>
