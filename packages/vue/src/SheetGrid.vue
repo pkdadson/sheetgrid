@@ -716,6 +716,12 @@ function startEdit(rowId: RowId, columnId: ColumnId, seed?: unknown): void {
   editing.value = { rowId, columnId, draft: value };
 }
 
+function onEditorChange(v: unknown): void {
+  if (editing.value) {
+    editing.value = { ...editing.value, draft: v };
+  }
+}
+
 async function commitEdit(override?: unknown): Promise<void> {
   if (!editing.value) return;
   const value = override !== undefined ? override : editing.value.draft;
@@ -1118,7 +1124,7 @@ function onPaste(event: ClipboardEvent): void {
                       :value="editing.draft"
                       :column="col"
                       :error="undefined"
-                      :on-change="(v: unknown) => { if (editing) editing = { ...editing, draft: v }; }"
+                      :on-change="onEditorChange"
                       :on-commit="(v?: unknown) => commitEdit(v)"
                       :on-cancel="cancelEdit"
                     />

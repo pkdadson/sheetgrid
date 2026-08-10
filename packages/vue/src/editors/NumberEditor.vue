@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type { EditorRenderProps } from "../cells/types.js";
 
 const props = defineProps<EditorRenderProps>();
@@ -10,8 +10,9 @@ onMounted(() => {
   inputRef.value?.focus();
 });
 
-const display =
-  props.value === null || props.value === undefined ? "" : String(props.value);
+const display = computed(() =>
+  props.value === null || props.value === undefined ? "" : String(props.value),
+);
 
 function onInput(e: Event) {
   const raw = (e.target as HTMLInputElement).value;
@@ -31,11 +32,13 @@ function onBlur() {
 function onKeyDown(e: KeyboardEvent) {
   if (e.key === "Enter") {
     e.preventDefault();
+    e.stopPropagation();
     skipBlurCommit = true;
     props.onCommit();
   }
   if (e.key === "Escape") {
     e.preventDefault();
+    e.stopPropagation();
     skipBlurCommit = true;
     props.onCancel();
   }
