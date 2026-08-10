@@ -21,6 +21,8 @@ import {
   extendTo,
   extractRange,
   flattenColumnGroups,
+  formatA1,
+  formatA1Range,
   formulaDisplayValue,
   fromMatrix,
   fromObjects,
@@ -47,6 +49,13 @@ import SortHeader from "./SortHeader.vue";
 import { resolveColumnType } from "./cells/registry.js";
 import type { ObjectRow, VueColumnDef } from "./column-types.js";
 import { useGridStore } from "./composables/useGridStore.js";
+import {
+  type FormulaPickRange,
+  applyFormulaPick,
+  cellInPickRange,
+  expandPickRange,
+  isFormulaDraft,
+} from "./formula-point.js";
 import { injectTokens } from "./inject-tokens.js";
 
 export interface SheetGridProps {
@@ -545,6 +554,52 @@ function cellActive(rowId: RowId, columnId: ColumnId): boolean {
 }
 
 function onCellMouseDown(event: MouseEvent, rowId: RowId, columnId: ColumnId) {
+  // Formula pick mode: click cells while editing a formula draft to insert A1 refs.
+  if (
+    editing.value &&
+    store.isFormulasEnabled() &&
+    isFormulaDraft(editing.value.draft)
+  ) {
+    event.preventDefault();
+    event.stopPropagation();
+    // Don't pick the cell that's being edited.
+    if (rowId === editing.value.rowId && columnId === editing.value.columnId) {
+      return;
+    }
+    const rIdx = rowIndexOf.value.get(rowId);
+    const cIdx = colIndexOf.value.get(columnId);
+    if (rIdx === undefined || cIdx === undefined) return;
+
+    if (event.shiftKey && formulaPickAnchor.value) {
+      // Extend last pick into a range from the anchor
+      const range = expandPickRange(
+        formulaPickAnchor.value.row,
+        formulaPickAnchor.value.col,
+        rIdx,
+        cIdx,
+      );
+      formulaPickRange.value = range;
+      const token = formatA1Range(range.r1, range.c1, range.r2, range.c2);
+      const result = applyFormulaPick(
+        String(editing.value.draft),
+        token,
+        formulaPickStart.value,
+      );
+      editing.value = { ...editing.value, draft: result.draft };
+      formulaPickStart.value = result.pickStart;
+    } else {
+      // New pick — anchor here
+      formulaPickAnchor.value = { row: rIdx, col: cIdx };
+      formulaPickRange.value = { r1: rIdx, c1: cIdx, r2: rIdx, c2: cIdx };
+      const token = formatA1(rIdx, cIdx);
+      const result = applyFormulaPick(String(editing.value.draft), token, null);
+      editing.value = { ...editing.value, draft: result.draft };
+      formulaPickStart.value = result.pickStart;
+    }
+    return;
+  }
+
+  // Existing selection branches:
   const coord: CellCoord = { rowId, columnId };
   if (event.shiftKey) {
     selection.value = extendTo(selection.value, coord);
@@ -619,6 +674,25 @@ interface EditingState {
 
 const editing = shallowRef<EditingState | null>(null);
 
+const formulaPickRange = shallowRef<FormulaPickRange | null>(null);
+const formulaPickStart = shallowRef<number | null>(null);
+const formulaPickAnchor = shallowRef<{ row: number; col: number } | null>(null);
+
+function clearFormulaPick() {
+  formulaPickRange.value = null;
+  formulaPickStart.value = null;
+  formulaPickAnchor.value = null;
+}
+
+function cellInFormulaPick(rowId: RowId, columnId: ColumnId): boolean {
+  const range = formulaPickRange.value;
+  if (!range) return false;
+  const r = rowIndexOf.value.get(rowId);
+  const c = colIndexOf.value.get(columnId);
+  if (r === undefined || c === undefined) return false;
+  return cellInPickRange(r, c, range);
+}
+
 function isColumnEditable(col: VueColumnDef, row: GridRow): boolean {
   if (col.editable === undefined) return true;
   if (typeof col.editable === "function") return col.editable(row);
@@ -654,6 +728,7 @@ async function commitEdit(override?: unknown): Promise<void> {
     value.startsWith("=")
   ) {
     const ok = store.setFormula(rowId, columnId, value);
+    clearFormulaPick();
     editing.value = null;
     if (ok) emitChange("edit");
     scrollerRef.value?.focus({ preventScroll: true });
@@ -669,12 +744,14 @@ async function commitEdit(override?: unknown): Promise<void> {
     reason: "edit",
   });
   if (result.ok) {
+    clearFormulaPick();
     editing.value = null;
     rejectedCell.value = null;
     emitChange("edit");
     scrollerRef.value?.focus({ preventScroll: true });
   } else {
     // validation failed: close editor, record rejected cell for Escape-clear
+    clearFormulaPick();
     editing.value = null;
     if (props.validationMode === "reject") {
       rejectedCell.value = { rowId, columnId };
@@ -685,6 +762,7 @@ async function commitEdit(override?: unknown): Promise<void> {
 
 function cancelEdit(): void {
   if (editing.value) {
+    clearFormulaPick();
     editing.value = null;
     scrollerRef.value?.focus({ preventScroll: true });
     return;
@@ -1022,7 +1100,7 @@ function onPaste(event: ClipboardEvent): void {
                 <td
                   v-for="col in visibleColumns"
                   :key="col.id"
-                  class="eg-td"
+                  :class="{ 'eg-td': true, 'eg-formula-ref': cellInFormulaPick(vr.row.id, col.id) }"
                   role="cell"
                   :aria-selected="cellSelected(vr.row.id, col.id)"
                   :aria-invalid="cellError(vr.row.id, col.id) ? true : undefined"
