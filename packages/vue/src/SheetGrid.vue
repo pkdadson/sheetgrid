@@ -17,6 +17,7 @@ import {
   extendTo,
   extractRange,
   flattenColumnGroups,
+  formulaDisplayValue,
   fromMatrix,
   fromObjects,
   isCellSelected,
@@ -58,6 +59,11 @@ export interface SheetGridProps {
   columnGroups?: ColumnGroupDef[];
   sortBy?: SortSpec[];
   defaultSortBy?: SortSpec[];
+  formulas?: boolean;
+  formulaEntry?: import("@sheetgrid/core").FormulaEntryMode;
+  formulaLimits?: Partial<import("@sheetgrid/core").FormulaLimits>;
+  allowIndirect?: boolean;
+  allowVolatile?: boolean;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -94,6 +100,15 @@ const initial = normalize(props);
 const { store, rows, columns } = useGridStore({
   rows: initial.rows,
   columns: initial.columns,
+  formulas: props.formulas,
+  formulaEntry: props.formulaEntry,
+  formulaOptions: props.formulas
+    ? {
+        limits: props.formulaLimits,
+        allowIndirect: props.allowIndirect,
+        allowVolatile: props.allowVolatile,
+      }
+    : undefined,
 });
 
 // Cast columns to VueColumnDef for access to type/cell/editor/editable fields
@@ -393,7 +408,20 @@ function onCellMouseDown(event: MouseEvent, rowId: RowId, columnId: ColumnId) {
 async function copySelection(): Promise<void> {
   const range = primaryRange.value;
   if (!range) return;
-  const matrix = extractRange(store, range.start, range.end);
+  const { start, end } = range;
+  const single = start.rowId === end.rowId && start.columnId === end.columnId;
+  if (single && store.isFormulasEnabled()) {
+    const f = store.getFormula(start.rowId, start.columnId);
+    if (f) {
+      try {
+        await navigator.clipboard.writeText(f.source);
+      } catch {
+        /* ignore */
+      }
+      return;
+    }
+  }
+  const matrix = extractRange(store, start, end);
   const tsv = serializeTsv(matrix);
   try {
     await navigator.clipboard.writeText(tsv);
@@ -445,17 +473,44 @@ function isColumnEditable(col: VueColumnDef, row: GridRow): boolean {
 }
 
 function startEdit(rowId: RowId, columnId: ColumnId, seed?: unknown): void {
-  const value =
-    seed !== undefined ? seed : (store.getCell(rowId, columnId) ?? "");
+  if (seed !== undefined) {
+    editing.value = { rowId, columnId, draft: seed };
+    return;
+  }
+  if (store.isFormulasEnabled()) {
+    const f = store.getFormula(rowId, columnId);
+    if (f) {
+      editing.value = { rowId, columnId, draft: f.source };
+      return;
+    }
+  }
+  const value = store.getCell(rowId, columnId) ?? "";
   editing.value = { rowId, columnId, draft: value };
 }
 
 async function commitEdit(override?: unknown): Promise<void> {
   if (!editing.value) return;
   const value = override !== undefined ? override : editing.value.draft;
+  const { rowId, columnId } = editing.value;
+
+  // Formula routing: if the store has formulas enabled AND value is a string
+  // starting with "=" (auto-equals mode), treat as formula source.
+  if (
+    store.isFormulasEnabled() &&
+    typeof value === "string" &&
+    value.startsWith("=")
+  ) {
+    const ok = store.setFormula(rowId, columnId, value);
+    editing.value = null;
+    if (ok) emitChange("edit");
+    scrollerRef.value?.focus({ preventScroll: true });
+    return;
+  }
+
+  // Non-formula path
   const result = await commitCell(store, {
-    rowId: editing.value.rowId,
-    columnId: editing.value.columnId,
+    rowId,
+    columnId,
     value,
     mode: "reject",
     reason: "edit",
@@ -489,6 +544,16 @@ async function commitValue(
     reason: "edit",
   });
   if (result.ok) emitChange("edit");
+}
+
+// --- Formula display ---------------------------------------------------------
+
+function displayValue(row: GridRow, col: VueColumnDef): unknown {
+  if (store.isFormulasEnabled()) {
+    const f = store.getFormula(row.id, col.id);
+    if (f) return formulaDisplayValue(f.result);
+  }
+  return row.values[col.id];
 }
 
 // --- Keyboard ----------------------------------------------------------------
@@ -760,7 +825,7 @@ function onPaste(event: ClipboardEvent): void {
                 <template v-else>
                   <component
                     :is="col.cell ?? resolveColumnType(col.type).cell"
-                    :value="row.values[col.id]"
+                    :value="displayValue(row, col)"
                     :row="row"
                     :column="col"
                     :row-id="row.id"

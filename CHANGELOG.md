@@ -15,6 +15,7 @@
 
 ### Added
 
+- `@sheetgrid/vue`: `<SheetGrid>` opts into `@sheetgrid/core`'s formula engine via `formulas` prop (+ `formulaEntry`, `formulaLimits`, `allowIndirect`, `allowVolatile`). Editing a cell with a leading `=` commits as a formula; the cell displays the evaluated result; copy on a single formula cell writes the source. The Excel-style cell-pick mode (click cells while editing to insert A1 refs) is deferred to a subsequent release.
 - `@sheetgrid/vue`: new package (0.0.1). Ships `useVirtualWindow` composable — bring-your-own-table virtualization for Vue 3. Vue-idiomatic surface: `MaybeRefOrGetter` inputs, `reactive({...})` result (no `.value` in templates), `scrollElement` accepts a template ref. Object rows and 2D JSON matrices supported. SSR-safe. Documented on root README, docs/README index, docs/api reference, FAQ, and recipes 03 and 11 (Vue section alongside React).
 
 ## 0.1.2

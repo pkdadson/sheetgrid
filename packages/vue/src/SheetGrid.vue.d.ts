@@ -15,6 +15,11 @@ export interface SheetGridProps {
   columnGroups?: import("@sheetgrid/core").ColumnGroupDef[];
   sortBy?: import("@sheetgrid/core").SortSpec[];
   defaultSortBy?: import("@sheetgrid/core").SortSpec[];
+  formulas?: boolean;
+  formulaEntry?: import("@sheetgrid/core").FormulaEntryMode;
+  formulaLimits?: Partial<import("@sheetgrid/core").FormulaLimits>;
+  allowIndirect?: boolean;
+  allowVolatile?: boolean;
 }
 
 declare const SheetGrid: DefineComponent<SheetGridProps>;
