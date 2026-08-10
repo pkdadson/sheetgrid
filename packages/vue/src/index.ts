@@ -17,3 +17,27 @@ export type {
 export { injectTokens, isTokensInjected } from "./inject-tokens.js";
 
 export type { ObjectRow, SelectOption, VueColumnDef } from "./column-types.js";
+
+export {
+  registerCellType,
+  getCellType,
+  resolveColumnType,
+} from "./cells/registry.js";
+export type {
+  CellRenderProps,
+  EditorRenderProps,
+  CellTypeDefinition,
+  BuiltInCellType,
+} from "./cells/types.js";
+
+export { default as TextCell } from "./cells/TextCell.vue";
+export { default as NumberCell } from "./cells/NumberCell.vue";
+export { default as BooleanCell } from "./cells/BooleanCell.vue";
+export { default as SelectCell } from "./cells/SelectCell.vue";
+
+export { default as TextEditor } from "./editors/TextEditor.vue";
+export { default as NumberEditor } from "./editors/NumberEditor.vue";
+export { default as SelectEditor } from "./editors/SelectEditor.vue";
+
+export { default as SortHeader } from "./SortHeader.vue";
+export type { SortHeaderProps } from "./SortHeader.vue";
