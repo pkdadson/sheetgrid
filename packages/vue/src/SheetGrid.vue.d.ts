@@ -22,6 +22,7 @@ export interface SheetGridProps {
   allowVolatile?: boolean;
   validationMode?: "reject" | "commit-with-error";
   statusBar?: boolean;
+  rowGrouping?: { columns: string[] };
 }
 
 declare const SheetGrid: DefineComponent<SheetGridProps>;

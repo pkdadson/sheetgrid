@@ -10,7 +10,9 @@ import {
   type SelectionState,
   type SortSpec,
   type ValidationMode,
+  type VisibleRow,
   applyPaste,
+  buildVisibleRows,
   cellKey,
   commitCell,
   computeVariableWindow,
@@ -68,6 +70,7 @@ export interface SheetGridProps {
   allowVolatile?: boolean;
   validationMode?: ValidationMode;
   statusBar?: boolean;
+  rowGrouping?: { columns: string[] };
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -217,7 +220,8 @@ onScopeDispose(() => {
 });
 
 const columnIds = computed<ColumnId[]>(() => columns.value.map((c) => c.id));
-const rowIds = computed<RowId[]>(() => sortedRows.value.map((r) => r.id));
+// rowIds uses only data rows (not group header rows) for keyboard nav / selection
+const rowIds = computed<RowId[]>(() => dataRowIds.value);
 
 const rowIndexOf = computed(() => {
   const m = new Map<RowId, number>();
@@ -340,7 +344,7 @@ const rowWindow = computed(() =>
     scrollOffset: scrollTop.value,
     viewportSize: viewportHeight.value > 0 ? viewportHeight.value : 1,
     itemSize: rowHeight.value,
-    itemCount: sortedRows.value.length,
+    itemCount: visibleFlatRows.value.length,
     overscan: props.overscan,
   }),
 );
@@ -381,10 +385,14 @@ const rightPad = computed(() =>
   ),
 );
 
-const visibleRows = computed(() => {
+const visibleRows = computed<VisibleRow[]>(() => {
+  const flat = visibleFlatRows.value;
+  if (flat.length === 0) return [];
+  // When viewport is unmeasured (SSR or zero-height mount), show everything
+  if (viewportHeight.value === 0) return flat;
   const { startIndex, endIndex } = rowWindow.value;
-  if (endIndex < startIndex || sortedRows.value.length === 0) return [];
-  return sortedRows.value.slice(startIndex, endIndex + 1);
+  if (endIndex < startIndex) return [];
+  return flat.slice(startIndex, endIndex + 1);
 });
 
 const topPad = computed(() => rowWindow.value.offsetBefore);
@@ -450,11 +458,65 @@ function ariaSort(
   return d === "asc" ? "ascending" : d === "desc" ? "descending" : "none";
 }
 
-const sortedRows = computed(() => {
+// --- Row grouping ------------------------------------------------------------
+
+const expandState = shallowRef<Record<string, boolean>>({});
+const groupBy = computed(() => props.rowGrouping?.columns ?? []);
+
+function toggleGroup(key: string) {
+  const cur = expandState.value[key] !== false;
+  expandState.value = { ...expandState.value, [key]: !cur };
+}
+
+const sortedBodyRows = computed<GridRow[]>(() => {
   const spec = effectiveSort.value;
+  const gb = groupBy.value;
   if (spec.length === 0) return rows.value;
-  return sortRows(rows.value, columns.value, spec);
+  const sortingGrouped = spec.some((s) => gb.includes(s.columnId));
+  if (gb.length === 0 || sortingGrouped) {
+    return sortRows(rows.value, columns.value, spec);
+  }
+  // Sort within groups, preserve source group order
+  const key = (row: GridRow) =>
+    gb.map((g) => String(row.values[g])).join("\u0000");
+  const order: string[] = [];
+  const buckets = new Map<string, GridRow[]>();
+  for (const r of rows.value) {
+    const k = key(r);
+    if (!buckets.has(k)) {
+      order.push(k);
+      buckets.set(k, []);
+    }
+    // biome-ignore lint/style/noNonNullAssertion: bucket set above
+    buckets.get(k)!.push(r);
+  }
+  const out: GridRow[] = [];
+  for (const k of order) {
+    // biome-ignore lint/style/noNonNullAssertion: k comes from order
+    const sorted = sortRows(buckets.get(k)!, columns.value, spec);
+    out.push(...sorted);
+  }
+  return out;
 });
+
+// Keep sortedRows as an alias for backward compat with rowIds
+const sortedRows = sortedBodyRows;
+
+const visibleFlatRows = computed<VisibleRow[]>(() =>
+  buildVisibleRows(
+    sortedBodyRows.value,
+    { groupBy: groupBy.value },
+    expandState.value,
+  ),
+);
+
+const dataRowIds = computed<RowId[]>(() =>
+  visibleFlatRows.value
+    .filter(
+      (v): v is Extract<VisibleRow, { type: "body" }> => v.type === "body",
+    )
+    .map((v) => v.rowId),
+);
 
 // --- Selection ---------------------------------------------------------------
 
@@ -901,76 +963,113 @@ function onPaste(event: ClipboardEvent): void {
             <col v-if="rightPad > 0" :style="{ width: rightPad + 'px' }" />
           </colgroup>
           <tbody>
-            <tr
-              v-for="row in visibleRows"
-              :key="row.id"
-              role="row"
-              class="eg-data-row"
-              :style="{ height: rowHeight + 'px' }"
-            >
-              <td
-                v-if="leftPad > 0"
-                aria-hidden="true"
-                class="eg-spacer"
-                :style="{
-                  width: leftPad + 'px',
-                  minWidth: leftPad + 'px',
-                  maxWidth: leftPad + 'px',
-                  padding: 0,
-                  border: 'none',
-                  height: rowHeight + 'px',
-                }"
-              />
-              <td
-                v-for="col in visibleColumns"
-                :key="col.id"
-                class="eg-td"
-                role="cell"
-                :aria-selected="cellSelected(row.id, col.id)"
-                :aria-invalid="cellError(row.id, col.id) ? true : undefined"
-                :title="cellError(row.id, col.id) || undefined"
-                :data-active="cellActive(row.id, col.id) ? 'true' : undefined"
-                @mousedown="(e) => onCellMouseDown(e, row.id, col.id)"
+            <template v-for="vr in visibleRows" :key="vr.type === 'group' ? vr.key : vr.row.id">
+              <!-- Group header row -->
+              <tr
+                v-if="vr.type === 'group'"
+                role="row"
+                class="eg-group-row"
+                :style="{ height: rowHeight + 'px' }"
               >
-                <template v-if="editing && editing.rowId === row.id && editing.columnId === col.id">
-                  <component
-                    :is="col.editor ?? resolveColumnType(col.type).editor ?? col.cell ?? resolveColumnType(col.type).cell"
-                    :value="editing.draft"
-                    :column="col"
-                    :error="undefined"
-                    :on-change="(v: unknown) => { if (editing) editing = { ...editing, draft: v }; }"
-                    :on-commit="(v?: unknown) => commitEdit(v)"
-                    :on-cancel="cancelEdit"
-                  />
-                </template>
-                <template v-else>
-                  <component
-                    :is="col.cell ?? resolveColumnType(col.type).cell"
-                    :value="displayValue(row, col)"
-                    :row="row"
-                    :column="col"
-                    :row-id="row.id"
-                    :error="cellError(row.id, col.id)"
-                    :is-selected="cellSelected(row.id, col.id)"
-                    :is-editing="false"
-                    :on-commit-value="(v: unknown) => commitValue(row.id, col.id, v)"
-                  />
-                </template>
-              </td>
-              <td
-                v-if="rightPad > 0"
-                aria-hidden="true"
-                class="eg-spacer"
-                :style="{
-                  width: rightPad + 'px',
-                  minWidth: rightPad + 'px',
-                  maxWidth: rightPad + 'px',
-                  padding: 0,
-                  border: 'none',
-                  height: rowHeight + 'px',
-                }"
-              />
-            </tr>
+                <td
+                  v-if="leftPad > 0"
+                  aria-hidden="true"
+                  class="eg-spacer"
+                  :style="{ width: leftPad + 'px' }"
+                />
+                <td class="eg-td" :colspan="Math.max(1, visibleColumns.length)">
+                  <button
+                    type="button"
+                    class="eg-group-toggle"
+                    :aria-expanded="vr.expanded"
+                    :aria-label="vr.expanded ? `Collapse group ${String(vr.value)}` : `Expand group ${String(vr.value)}`"
+                    @click="toggleGroup(vr.key)"
+                  >
+                    <svg class="eg-chevron" viewBox="0 0 12 12">
+                      <path :d="vr.expanded ? 'M2 4l4 4 4-4' : 'M4 2l4 4-4 4'" />
+                    </svg>
+                  </button>
+                  {{ String(vr.value) }} ({{ vr.count }})
+                </td>
+                <td
+                  v-if="rightPad > 0"
+                  aria-hidden="true"
+                  class="eg-spacer"
+                  :style="{ width: rightPad + 'px' }"
+                />
+              </tr>
+              <!-- Data row -->
+              <tr
+                v-else
+                :data-index="vr.row.id"
+                role="row"
+                class="eg-data-row"
+                :style="{ height: rowHeight + 'px' }"
+              >
+                <td
+                  v-if="leftPad > 0"
+                  aria-hidden="true"
+                  class="eg-spacer"
+                  :style="{
+                    width: leftPad + 'px',
+                    minWidth: leftPad + 'px',
+                    maxWidth: leftPad + 'px',
+                    padding: 0,
+                    border: 'none',
+                    height: rowHeight + 'px',
+                  }"
+                />
+                <td
+                  v-for="col in visibleColumns"
+                  :key="col.id"
+                  class="eg-td"
+                  role="cell"
+                  :aria-selected="cellSelected(vr.row.id, col.id)"
+                  :aria-invalid="cellError(vr.row.id, col.id) ? true : undefined"
+                  :title="cellError(vr.row.id, col.id) || undefined"
+                  :data-active="cellActive(vr.row.id, col.id) ? 'true' : undefined"
+                  @mousedown="(e) => onCellMouseDown(e, vr.row.id, col.id)"
+                >
+                  <template v-if="editing && editing.rowId === vr.row.id && editing.columnId === col.id">
+                    <component
+                      :is="col.editor ?? resolveColumnType(col.type).editor ?? col.cell ?? resolveColumnType(col.type).cell"
+                      :value="editing.draft"
+                      :column="col"
+                      :error="undefined"
+                      :on-change="(v: unknown) => { if (editing) editing = { ...editing, draft: v }; }"
+                      :on-commit="(v?: unknown) => commitEdit(v)"
+                      :on-cancel="cancelEdit"
+                    />
+                  </template>
+                  <template v-else>
+                    <component
+                      :is="col.cell ?? resolveColumnType(col.type).cell"
+                      :value="displayValue(vr.row, col)"
+                      :row="vr.row"
+                      :column="col"
+                      :row-id="vr.row.id"
+                      :error="cellError(vr.row.id, col.id)"
+                      :is-selected="cellSelected(vr.row.id, col.id)"
+                      :is-editing="false"
+                      :on-commit-value="(v: unknown) => commitValue(vr.row.id, col.id, v)"
+                    />
+                  </template>
+                </td>
+                <td
+                  v-if="rightPad > 0"
+                  aria-hidden="true"
+                  class="eg-spacer"
+                  :style="{
+                    width: rightPad + 'px',
+                    minWidth: rightPad + 'px',
+                    maxWidth: rightPad + 'px',
+                    padding: 0,
+                    border: 'none',
+                    height: rowHeight + 'px',
+                  }"
+                />
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
