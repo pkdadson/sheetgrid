@@ -87,6 +87,8 @@ const emit = defineEmits<{
 
 onMounted(() => {
   injectTokens();
+  window.addEventListener("mousemove", onGlobalMouseMove);
+  window.addEventListener("mouseup", onGlobalMouseUp);
 });
 
 function normalize(
@@ -210,6 +212,8 @@ onScopeDispose(() => {
   if (boundEl) boundEl.removeEventListener("scroll", onScroll);
   ro?.disconnect();
   ro = null;
+  window.removeEventListener("mousemove", onGlobalMouseMove);
+  window.removeEventListener("mouseup", onGlobalMouseUp);
 });
 
 const columnIds = computed<ColumnId[]>(() => columns.value.map((c) => c.id));
@@ -252,12 +256,77 @@ const colIndexOf = computed(() => {
   return m;
 });
 
-const widths = computed<Record<string, number>>(() => {
-  return resolveColumnWidths(
+// --- Column resize -----------------------------------------------------------
+
+const widthOverrides = shallowRef<Record<string, number>>({});
+const resizeState = { columnId: null as string | null, startX: 0, startW: 0 };
+
+function onResizeMouseDown(event: MouseEvent, columnId: string) {
+  event.preventDefault();
+  event.stopPropagation();
+  resizeState.columnId = columnId;
+  resizeState.startX = event.clientX;
+  const base = resolveColumnWidths(
     columns.value,
     viewportWidth.value,
     columnIds.value,
   );
+  resizeState.startW = { ...base, ...widthOverrides.value }[columnId] ?? 120;
+}
+
+function onGlobalMouseMove(event: MouseEvent) {
+  if (!resizeState.columnId) return;
+  const next = Math.max(
+    40,
+    resizeState.startW + (event.clientX - resizeState.startX),
+  );
+  widthOverrides.value = {
+    ...widthOverrides.value,
+    [resizeState.columnId]: next,
+  };
+}
+
+function onGlobalMouseUp() {
+  resizeState.columnId = null;
+}
+
+// --- Column reorder ----------------------------------------------------------
+
+const dragColId = shallowRef<string | null>(null);
+
+function onHeaderDragStart(event: DragEvent, columnId: string) {
+  dragColId.value = columnId;
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", columnId);
+  }
+}
+
+function onHeaderDragOver(event: DragEvent) {
+  event.preventDefault();
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+}
+
+function onHeaderDrop(event: DragEvent, targetId: string) {
+  event.preventDefault();
+  const sourceId =
+    dragColId.value ?? event.dataTransfer?.getData("text/plain") ?? "";
+  dragColId.value = null;
+  if (!sourceId || sourceId === targetId) return;
+  const order = store.getColumnOrder();
+  const toIndex = order.indexOf(targetId);
+  if (toIndex < 0) return;
+  store.moveColumn(sourceId, toIndex);
+  emitChange("reorder");
+}
+
+const widths = computed<Record<string, number>>(() => {
+  const base = resolveColumnWidths(
+    columns.value,
+    viewportWidth.value,
+    columnIds.value,
+  );
+  return { ...base, ...widthOverrides.value };
 });
 
 const colSizes = computed<number[]>(() =>
@@ -773,6 +842,10 @@ function onPaste(event: ClipboardEvent): void {
                         maxWidth: (widths[cell.columnIds[0]] ?? 120) + 'px',
                         height: headerHeight + 'px',
                       }"
+                      draggable="true"
+                      @dragstart="(e) => onHeaderDragStart(e, cell.columnIds[0])"
+                      @dragover="onHeaderDragOver"
+                      @drop="(e) => onHeaderDrop(e, cell.columnIds[0])"
                     >
                       <SortHeader
                         v-if="(vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false"
@@ -783,6 +856,11 @@ function onPaste(event: ClipboardEvent): void {
                         @shift-sort="cycleSort(cell.columnIds[0], true)"
                       />
                       <template v-else>{{ cell.header }}</template>
+                      <div
+                        class="eg-col-resizer"
+                        aria-hidden="true"
+                        @mousedown="(e) => onResizeMouseDown(e, cell.columnIds[0])"
+                      />
                     </th>
                   </template>
                 </template>
