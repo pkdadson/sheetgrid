@@ -7,13 +7,13 @@ Excel-class **Vue 3** data grid — virtualized rows & columns, object or 2D dat
 ## Install
 
 ```bash
-pnpm add @sheetgrid/vue
-# npm i @sheetgrid/vue
+pnpm add @sheetgrid/vue@next
+# npm i @sheetgrid/vue@next
 ```
 
-**Peer:** `vue >= 3.4`.
+**Peer:** `vue >= 3.3`. Transitive: `@sheetgrid/core`, `@sheetgrid/tokens`.
 
-Transitive: `@sheetgrid/core`, `@sheetgrid/tokens`.
+> The `@next` tag points at the current pre-release (`0.1.x-alpha`). Drop `@next` once we ship the stable `0.1.0` (until then, `pnpm add @sheetgrid/vue` will fail with "no matching version").
 
 ## Quickstart — `<SheetGrid>`
 
@@ -190,6 +190,131 @@ const v = useVirtualWindow({
 The result is a `reactive({...})` object: `virtualItems`, `padStart`, `padEnd`, `totalSize`, `startIndex`, `endIndex` read as plain values (no `.value` in template or script). `measureElement(el)` and `scrollToIndex(i, align?)` are plain functions. If you destructure, wrap with `toRefs()` first to preserve reactivity.
 
 The composable sets `overflow-anchor: none` on your scroll element while bound, which is required to prevent the browser's native scroll anchoring from fighting the `padStart` spacer. The previous value is restored on unmount — you do not need to set this in CSS yourself.
+
+---
+
+## Custom cells
+
+Register a cell type once, then reference it by name in your columns:
+
+```ts
+// currency-cell.ts
+import { registerCellType, type CellRenderProps } from "@sheetgrid/vue";
+import CurrencyCell from "./CurrencyCell.vue";
+import CurrencyEditor from "./CurrencyEditor.vue";
+
+registerCellType("currency", {
+  cell: CurrencyCell,
+  editor: CurrencyEditor,
+});
+```
+
+```vue
+<!-- CurrencyCell.vue — how a cell renders when NOT editing -->
+<script setup lang="ts">
+import { computed } from "vue";
+import type { CellRenderProps } from "@sheetgrid/vue";
+
+const props = defineProps<CellRenderProps>();
+const formatted = computed(() => {
+  const n = Number(props.value);
+  if (Number.isNaN(n)) return "";
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+});
+</script>
+
+<template>{{ formatted }}</template>
+```
+
+```vue
+<!-- CurrencyEditor.vue — how a cell renders when editing -->
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import type { EditorRenderProps } from "@sheetgrid/vue";
+
+const props = defineProps<EditorRenderProps>();
+const inputRef = ref<HTMLInputElement | null>(null);
+onMounted(() => inputRef.value?.focus());
+</script>
+
+<template>
+  <input
+    ref="inputRef"
+    class="eg-editor"
+    type="number"
+    step="0.01"
+    :value="value ?? ''"
+    @input="(e) => onChange(Number((e.target as HTMLInputElement).value))"
+    @blur="() => onCommit()"
+    @keydown.enter.stop.prevent="() => onCommit()"
+    @keydown.esc.stop.prevent="onCancel"
+  />
+</template>
+```
+
+Then use it in a column:
+
+```vue
+<SheetGrid
+  :rows="rows"
+  :columns="[{ id: 'price', header: 'Price', type: 'currency' }]"
+/>
+```
+
+Or supply per-column overrides without registering globally:
+
+```ts
+{ id: "price", header: "Price", cell: CurrencyCell, editor: CurrencyEditor }
+```
+
+---
+
+## Server-side data
+
+`<SheetGrid>` doesn't fetch data — you fetch, it renders. Wire `@rows-change` to persist edits:
+
+```vue
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
+
+const rows = ref<ObjectRow[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
+  const res = await fetch("/api/rows");
+  rows.value = await res.json();
+  loading.value = false;
+});
+
+async function onRowsChange(next: ObjectRow[], meta: { reason: string }) {
+  rows.value = next;
+  if (meta.reason === "edit" || meta.reason === "paste" || meta.reason === "cut") {
+    await fetch("/api/rows", { method: "PUT", body: JSON.stringify(next) });
+  }
+}
+</script>
+
+<template>
+  <div v-if="loading">Loading…</div>
+  <SheetGrid v-else :rows="rows" :columns="columns" @rows-change="onRowsChange" />
+</template>
+```
+
+For **pagination**, keep only the current page in `rows` and refetch on page change — `<SheetGrid>` renders whatever array you give it. Row and column virtualization means the DOM footprint is constant regardless of page size.
+
+For **server-side sort**, use the controlled `sortBy` prop instead of letting the grid sort locally:
+
+```vue
+<SheetGrid
+  :rows="rows"
+  :columns="columns"
+  :sort-by="serverSort"
+  @sort-change="onSortChange"
+/>
+```
+
+`@sort-change` fires with the new `SortSpec[]`; refetch and update `rows` + `serverSort`.
 
 ---
 
