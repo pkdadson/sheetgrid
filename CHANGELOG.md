@@ -13,6 +13,10 @@
 
 - Document **2D JSON + `useVirtualWindow`** on the root README, recipe 11 (matrix section), FAQ, API, 2D recipe cross-link, and `@sheetgrid/react` package README
 
+### Added
+
+- `@sheetgrid/vue`: new package (0.0.1). Ships `useVirtualWindow` composable — bring-your-own-table virtualization for Vue 3 with the same behavior as `@sheetgrid/react`'s hook. Object rows and 2D JSON matrices supported. SSR-safe.
+
 ## 0.1.2
 
 ### Fixes
