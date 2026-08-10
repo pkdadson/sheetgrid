@@ -53,6 +53,7 @@
     "jsdom": "^25.0.0",
     "tsup": "^8.3.0",
     "typescript": "^5.6.0",
+    "unplugin-vue": "^5.0.0",
     "vitest": "^2.1.0",
     "vue": "^3.4.0"
   }
