@@ -36,6 +36,29 @@
 - **`@sheetgrid/vue`** + **`@sheetgrid/nuxt`**: publish under the `next` dist-tag so `pnpm add @sheetgrid/vue@next` works cleanly (was: users needed `@0.1.0-alpha.0` explicitly).
 - **`@sheetgrid/vue`** README: new "Custom cells" and "Server-side data" recipes.
 
+## 0.2.0
+
+### Packages
+
+| Package | Version |
+|---------|---------|
+| `@sheetgrid/core` | **0.2.0** — new virtualization primitives exported |
+| `@sheetgrid/react` | **0.2.0** — adds `useVirtualWindow` (BYO-table) |
+| `@sheetgrid/vue` | **0.1.0-alpha.1** — republished with pinned core dep |
+| `@sheetgrid/nuxt` | **0.1.0-alpha.1** — republished with pinned vue dep |
+| `@sheetgrid/tokens` | 0.1.0 (unchanged) |
+
+### Fix — broken fresh install for `@sheetgrid/vue@0.1.0-alpha.0`
+
+The first Vue alpha (0.1.0-alpha.0) pinned `@sheetgrid/core@0.1.0` at publish time, but the code called into new core exports (`createSizeCache`, `buildPrefixSums`, `windowFromPrefix`, `expandWindowForPins`, `computePads`, `anchorScrollDelta`, `offsetOf`, `sizeAt`) that were added in the workspace after `@sheetgrid/core@0.1.0` shipped to npm. Fresh `pnpm add @sheetgrid/vue@next` succeeded but any subsequent `vite build` failed with `"createSizeCache" is not exported by "@sheetgrid/core"`.
+
+This release bumps core to 0.2.0 with the new virtualization primitives exported. Vue and Nuxt are republished as `0.1.0-alpha.1` so their pinned core dep resolves to the new version. React is bumped to 0.2.0 to expose the same `useVirtualWindow` hook.
+
+### Added
+
+- `@sheetgrid/core@0.2.0`: `createSizeCache`, `buildPrefixSums`, `windowFromPrefix`, `expandWindowForPins`, `computePads`, `anchorScrollDelta`, `offsetOf`, `sizeAt` — the pure-function virtualization primitives used by both `@sheetgrid/react`'s and `@sheetgrid/vue`'s `useVirtualWindow`.
+- `@sheetgrid/react@0.2.0`: `useVirtualWindow` hook — bring-your-own-table virtualization mirroring the Vue composable.
+
 ## 0.1.2
 
 ### Fixes
