@@ -1,6 +1,6 @@
 import { mount } from "@vue/test-utils";
 import { defineComponent, h, ref } from "vue";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { useVirtualWindow } from "./useVirtualWindow.js";
 
 function makeFixture(props: {
@@ -151,5 +151,29 @@ describe("useVirtualWindow", () => {
     const row = wrapper.get('[data-testid="row-0"]').element as HTMLElement;
     expect(row.style.transform).toBe("");
     expect(scroller.style.transform).toBe("");
+  });
+});
+
+describe("useVirtualWindow — SSR safety", () => {
+  it("module imports without touching window / ResizeObserver", async () => {
+    const originalWindow = globalThis.window;
+    const originalDocument = globalThis.document;
+    const originalRO = globalThis.ResizeObserver;
+    // @ts-expect-error simulate a Node/SSR global scope
+    delete (globalThis as { window?: unknown }).window;
+    // @ts-expect-error same
+    delete (globalThis as { document?: unknown }).document;
+    // @ts-expect-error same
+    delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+    try {
+      // Fresh import to defeat vitest module caching for this file.
+      vi.resetModules();
+      const mod = await import("./useVirtualWindow.js");
+      expect(typeof mod.useVirtualWindow).toBe("function");
+    } finally {
+      globalThis.window = originalWindow;
+      globalThis.document = originalDocument;
+      globalThis.ResizeObserver = originalRO;
+    }
   });
 });
