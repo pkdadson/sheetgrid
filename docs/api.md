@@ -333,6 +333,89 @@ Full recipe: [Bring your own table](recipes/11-bring-your-own-table.md#vue-usevi
 
 ---
 
+## `<SheetGrid>` (Vue)
+
+```ts
+import { SheetGrid } from "@sheetgrid/vue";
+```
+
+Vue 3 port of the React `<Grid>`. Same features, same tokens; Vue-idiomatic props (kebab-case in templates), event handlers via `@event` bindings. SSR-safe. See [`packages/vue/README.md`](../packages/vue/README.md) for the quickstart.
+
+### Props
+
+Object mode uses `rows` + `columns`; matrix mode uses `data` + `headerRow`. Everything else is optional.
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `rows` | `ObjectRow[]` | — | Object rows (`{ id: string, ...values }`). Object mode. |
+| `columns` | `VueColumnDef[]` | — | Column defs; `id` matches keys on `rows`. Object mode. |
+| `data` | `unknown[][]` | — | 2D matrix. Use instead of `rows`/`columns`. |
+| `headerRow` | `boolean` | `false` | Treat the first row of `data` as headers. Matrix mode. |
+| `column-groups` | `ColumnGroupDef[]` | — | Multi-level header bands. |
+| `row-grouping` | `{ columns: string[] }` | — | Group rows by a column value. |
+| `sort-by` | `SortSpec[]` | — | Controlled sort state. |
+| `default-sort-by` | `SortSpec[]` | — | Uncontrolled initial sort. Ignored if `sort-by` provided. |
+| `formulas` | `boolean` | `false` | Enable `@sheetgrid/core`'s formula engine. |
+| `formula-entry` | `"auto-equals" \| "explicit-only"` | `"auto-equals"` | How `=` is treated on commit. |
+| `formula-limits` | `Partial<FormulaLimits>` | — | Overrides for engine limits. |
+| `allow-indirect` | `boolean` | `false` | Allow the `INDIRECT()` function. |
+| `allow-volatile` | `boolean` | `true` | Allow `RAND` / `NOW` / `TODAY`. |
+| `validation-mode` | `"reject" \| "commit-with-error"` | `"reject"` | Behavior on validator failure. |
+| `status-bar` | `boolean` | `true` | Footer status strip showing first error. |
+| `overscan` | `number` | `3` | Extra items outside the viewport (both axes). |
+| `virtualize-columns` | `boolean` | `true` | Set false to render all columns (small grids only). |
+| `density` | `"comfortable" \| "compact"` | `"comfortable"` | Row + header height. |
+| `theme` | `"light" \| "dark"` | inherit | Ancestor `[data-theme]` respected when omitted. |
+| `zebra` | `boolean` | `false` | Alternate row background. |
+| `class-name` | `string` | — | Extra class on the outer frame. |
+| `aria-label` | `string` | — | Accessible name for the grid. |
+
+### Events
+
+Vue emits — bind with `@event-name` in templates:
+
+| Event | Payload | Fires |
+|-------|---------|-------|
+| `rows-change` | `(rows: ObjectRow[], meta: { reason: string })` | After committed data changes (object mode). `meta.reason` = `edit`, `paste`, `cut`, `reorder`, or a custom string. |
+| `data-change` | `(data: unknown[][], meta: { reason: string })` | Matrix mode equivalent of `rows-change`. |
+| `sort-change` | `(next: SortSpec[])` | Fires on any sort interaction (both controlled and uncontrolled). |
+
+### Composables
+
+| Composable | Signature | Purpose |
+|------------|-----------|---------|
+| `useVirtualWindow` | `(options) => reactive({ virtualItems, padStart, padEnd, totalSize, startIndex, endIndex, measureElement, scrollToIndex })` | Bring-your-own table — see the section above. |
+| `useGridStore` | `(input, options?) => { store, rows, columns, errors }` | Reactive wrap of core's `createGridStore`. Pass `{ autoWatch: true }` to auto-replace rows/columns when the reactive input changes. |
+
+### Cell type registry
+
+| Export | Purpose |
+|--------|---------|
+| `registerCellType(name, def)` | Register a Vue component pair (cell + optional editor) under a string key. |
+| `getCellType(name)` | Look up a registered cell type definition. |
+| `resolveColumnType(type)` | Resolve `column.type` to a `CellTypeDefinition`, falling back to `text`. |
+| Built-ins | `TextCell`, `NumberCell`, `BooleanCell`, `SelectCell`, `TextEditor`, `NumberEditor`, `SelectEditor` — exported for reference or extension. |
+
+Per-column overrides also work — pass `cell` and `editor` on the column def to swap the components for one column without touching the registry.
+
+### Nuxt module
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ["@sheetgrid/nuxt"],
+  sheetgrid: {
+    prefix: "V", // optional — renders as <VSheetGrid> / <VSortHeader>
+  },
+});
+```
+
+Auto-imports `useVirtualWindow`, `useGridStore`, `injectTokens`, `registerCellType`, `getCellType`, `resolveColumnType`; registers `<SheetGrid>` and `<SortHeader>` globally.
+
+Full component + composable API: [`packages/vue/README.md`](../packages/vue/README.md). Custom cells + server-side data recipes there too.
+
+---
+
 ## Core store (advanced)
 
 ```ts

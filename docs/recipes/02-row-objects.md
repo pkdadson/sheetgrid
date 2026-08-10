@@ -50,3 +50,45 @@ export function PeopleTable() {
   (e.g. `crypto.randomUUID()`) and store it with the row.
 - `onRowsChange` receives flat objects (`{ id, ...fields }`), not internal `{ values }` shape.
 - Default validation mode is `reject` (invalid edits are not committed).
+
+### Vue
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
+
+type Person = ObjectRow & {
+  name: string;
+  email: string;
+};
+
+const columns = [
+  { id: "name", header: "Name", width: 160, validate: required },
+  {
+    id: "email",
+    header: "Email",
+    width: 220,
+    validate: (v: unknown) =>
+      String(v).includes("@")
+        ? { ok: true as const }
+        : { ok: false as const, message: "Invalid email" },
+  },
+];
+
+const rows = ref<Person[]>([
+  { id: "1", name: "Ada", email: "ada@example.com" },
+]);
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    @rows-change="(next, meta) => { rows = next as Person[]; }"
+    style="height: 360px"
+  />
+</template>
+```
+
+`@rows-change` receives flat `{ id, ...fields }` objects — same shape as the React `onRowsChange` callback. Import `required` from `@sheetgrid/core` (validators are framework-agnostic).

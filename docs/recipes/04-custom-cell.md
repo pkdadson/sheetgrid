@@ -91,3 +91,75 @@ cell: ({ value, onCommitValue }) => (
   </button>
 )
 ```
+
+### Vue
+
+Register a reusable type with `registerCellType` from `@sheetgrid/vue`, passing Vue SFC components instead of JSX:
+
+```ts
+import { registerCellType } from "@sheetgrid/vue";
+import MyCellComponent from "./MyCell.vue";
+import MyEditorComponent from "./MyEditor.vue";
+
+registerCellType("my-type", {
+  cell: MyCellComponent,
+  editor: MyEditorComponent,
+});
+// then: { id: "col", header: "Col", type: "my-type" }
+```
+
+**MyCell.vue** — renderer component:
+
+```vue
+<script setup lang="ts">
+import type { CellRenderProps } from "@sheetgrid/vue";
+
+const props = defineProps<CellRenderProps>();
+</script>
+
+<template>
+  <span class="badge">{{ String(props.value ?? "") }}</span>
+</template>
+```
+
+**MyEditor.vue** — editor component (focus on mount, Enter commits, Escape cancels):
+
+```vue
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import type { EditorRenderProps } from "@sheetgrid/vue";
+
+const props = defineProps<EditorRenderProps>();
+const inputRef = ref<HTMLInputElement | null>(null);
+
+onMounted(() => inputRef.value?.focus());
+
+function onKeyDown(e: KeyboardEvent) {
+  e.stopPropagation(); // prevent grid from consuming the key
+  if (e.key === "Enter") props.onCommit();
+  if (e.key === "Escape") props.onCancel();
+}
+</script>
+
+<template>
+  <input
+    ref="inputRef"
+    :value="String(props.value ?? '')"
+    @input="(e) => props.onChange((e.target as HTMLInputElement).value)"
+    @blur="props.onCommit"
+    @keydown="onKeyDown"
+  />
+</template>
+```
+
+For a full worked example (currency formatting, number input) see [`packages/vue/README.md` — Custom cells](../../packages/vue/README.md#editable-cells--cell-type-registry).
+
+Interactive cells work the same way — `onCommitValue` is part of `CellRenderProps`:
+
+```vue
+<template>
+  <button type="button" @click="props.onCommitValue(!(props.value as boolean))">
+    {{ props.value ? "Yes" : "No" }}
+  </button>
+</template>
+```

@@ -123,3 +123,64 @@ and `onDataChange` also emit source order — apply `sortRows(...)` from
 ```ts
 import { sortRows, type SortSpec } from "@sheetgrid/core";
 ```
+
+### Vue
+
+Sort works identically in Vue. Uncontrolled (initial sort set via `:default-sort-by`):
+
+```vue
+<script setup lang="ts">
+import { SheetGrid } from "@sheetgrid/vue";
+
+const rows = [
+  { id: "1", name: "Ada", age: 36 },
+  { id: "2", name: "Grace", age: 40 },
+];
+const columns = [
+  { id: "name", header: "Name" },
+  { id: "age", header: "Age", type: "number" as const },
+  { id: "actions", header: "", sortable: false },
+];
+</script>
+
+<template>
+  <!-- Uncontrolled: grid owns sort state; initial sort is desc by age -->
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    :default-sort-by="[{ columnId: 'age', direction: 'desc' }]"
+  />
+</template>
+```
+
+Controlled sort (you own the state, grid stays in sync):
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid } from "@sheetgrid/vue";
+import type { SortSpec } from "@sheetgrid/core";
+
+const rows = [
+  { id: "1", name: "Ada", age: 36 },
+  { id: "2", name: "Grace", age: 40 },
+];
+const columns = [
+  { id: "name", header: "Name" },
+  { id: "age", header: "Age", type: "number" as const },
+];
+
+const sortState = ref<SortSpec[]>([]);
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    :sort-by="sortState"
+    @sort-change="(next) => (sortState = next)"
+  />
+</template>
+```
+
+Keyboard: **Enter** or **Space** on a focused sort header triggers the same cycle (asc → desc → none) as a click. **Shift+click** (or **Shift+Enter**) adds a secondary sort key with a numbered priority badge.

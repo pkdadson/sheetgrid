@@ -129,3 +129,62 @@ renderer and read the `error` prop:
   validate: /* ... */,
 }
 ```
+
+### Vue
+
+Validators from `@sheetgrid/core` are framework-agnostic — import and compose them exactly as in the React version:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid } from "@sheetgrid/vue";
+import { required, number, min, max, pattern } from "@sheetgrid/core";
+
+const columns = [
+  {
+    id: "email",
+    header: "Email",
+    validate: (value: unknown) => {
+      const r = required(value);
+      if (!r.ok) return r;
+      return pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email")(value);
+    },
+  },
+  {
+    id: "age",
+    header: "Age",
+    type: "number" as const,
+    validate: (value: unknown) => {
+      const n = number(value);
+      if (!n.ok) return n;
+      const lo = min(0)(value);
+      if (!lo.ok) return lo;
+      return max(120)(value);
+    },
+  },
+];
+
+const rows = ref([
+  { id: "1", email: "ada@example.com", age: 36 },
+]);
+</script>
+
+<template>
+  <!-- reject mode (default): invalid edits are not committed -->
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    :validation-mode="'reject'"
+    @rows-change="(next) => { rows = next; }"
+    style="height: 360px"
+  />
+</template>
+```
+
+Switch to `commit-with-error` to persist values even when validation fails:
+
+```vue
+<SheetGrid :rows="rows" :columns="columns" :validation-mode="'commit-with-error'" />
+```
+
+`aria-invalid` is set on the cell element and the status bar (`:status-bar`) renders the first error message automatically — no extra wiring needed.

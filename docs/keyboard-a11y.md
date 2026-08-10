@@ -1,5 +1,7 @@
 # Keyboard & accessibility
 
+> This guide applies to both `@sheetgrid/react` (`<Grid>`) and `@sheetgrid/vue` (`<SheetGrid>`). Both use the same core keyboard mapping (`mapKeyToCommand`) and the same ARIA roles / states.
+
 SheetGrid is keyboard-first for cell navigation and implements common spreadsheet shortcuts. The scroll root is focusable (`tabIndex={0}`) and exposes ARIA grid roles.
 
 ## Focus

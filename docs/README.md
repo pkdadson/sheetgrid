@@ -23,16 +23,16 @@ Start with the root [README](../README.md) for install and quickstarts, then use
 ## Recipes (task-oriented)
 
 1. [Install](recipes/01-install.md)
-2. [Row objects](recipes/02-row-objects.md)
-3. [2D data](recipes/03-2d-data.md)
-4. [Built-in & custom cells](recipes/04-custom-cell.md)
-5. [Validation](recipes/05-validation.md)
-6. [Column & row groups](recipes/06-groups.md)
-7. [Reorder](recipes/07-reorder.md)
-8. [Theming](recipes/08-theming.md)
-9. [Formulas](recipes/09-formulas.md)
-10. [Sort](recipes/10-sort.md)
-11. [Bring your own table (headless virtualization)](recipes/11-bring-your-own-table.md) — React or Vue, objects or 2D JSON
+2. [Row objects](recipes/02-row-objects.md) — React + Vue
+3. [2D data](recipes/03-2d-data.md) — React + Vue
+4. [Built-in & custom cells](recipes/04-custom-cell.md) — React + Vue
+5. [Validation](recipes/05-validation.md) — React + Vue
+6. [Column & row groups](recipes/06-groups.md) — React + Vue
+7. [Reorder](recipes/07-reorder.md) — React + Vue
+8. [Theming](recipes/08-theming.md) — React + Vue
+9. [Formulas](recipes/09-formulas.md) — React + Vue
+10. [Sort](recipes/10-sort.md) — React + Vue
+11. [Bring your own table (headless virtualization)](recipes/11-bring-your-own-table.md) — React + Vue, objects or 2D JSON
 
 ## Packages
 

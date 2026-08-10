@@ -41,6 +41,10 @@ Yes. Use **`useVirtualWindow`** — available as a React hook (`@sheetgrid/react
 
 Works with **object rows** and **2D JSON** (`count: data.length`, cells via `data[item.index][c]`). The Vue composable ships a `reactive({...})` result and accepts `scrollElement` as a template ref. Recipe: [Bring your own table](recipes/11-bring-your-own-table.md) — includes React and Vue sections plus a matrix walkthrough.
 
+### Does `<SheetGrid>` (Vue) work with SSR / Nuxt?
+
+Yes. The composable side (`useVirtualWindow`, `useGridStore`) doesn't touch `window`, `document`, or `ResizeObserver` at module scope. On the server the grid renders the header + an empty body; on client mount the viewport is measured and virtualized rows populate. Hydration matches — no `<ClientOnly>` wrapper needed. The [`@sheetgrid/nuxt`](../packages/nuxt/README.md) module auto-imports the composables and registers `<SheetGrid>` globally.
+
 ---
 
 ## Data model
@@ -53,6 +57,8 @@ Selection, edit state, validation errors, and reorder tracking key off a **stabl
 // mint once and persist with your data
 { id: crypto.randomUUID(), name: "Ada", age: 36 }
 ```
+
+> **Vue:** same rule. `SheetGrid` in Vue emits `@rows-change` with the flat `{ id, ...values }` shape.
 
 ### Object rows vs matrix — which should I use?
 
@@ -83,6 +89,8 @@ const [rows, setRows] = useState(initial);
 If you omit `onRowsChange` / `onDataChange`, edits still update the **internal** store for the session, but you will not see them in React state (fine for demos; not for saving).
 
 Replacing `rows` / `data` from the parent remounts or resyncs the store from props — keep ids stable across updates.
+
+> **Vue:** use `:sort-by` for controlled and `:default-sort-by` for uncontrolled. Both fire `@sort-change`.
 
 ### Sort does not change my `rows` array — is that a bug?
 
@@ -206,6 +214,10 @@ ancestor `[data-theme="dark"]` on `<html>` or `<body>` (Next.js theme
 providers usually do this before hydration), the grid inherits it
 immediately with no flash. Passing `theme="dark"` on `<Grid>` alone
 runs one paint late.
+
+### Vue: how do I persist edits to a server?
+
+Wire `@rows-change` on `<SheetGrid>` — it fires after every committed change with `(rows, meta)`. Inspect `meta.reason` (`edit`, `paste`, `cut`, `reorder`) to decide whether to PUT back. See the [server-side data recipe](../packages/vue/README.md#server-side-data).
 
 ---
 

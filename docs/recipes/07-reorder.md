@@ -126,6 +126,50 @@ Drag-handle row reorder UI is not shipped; compose a handle column with `onCommi
 - Sort is independent of column reorder — sort uses column **ids**, not positions.
 - After column drag, formula `=A1` may point at a different field than before the drag (A follows visual order).
 
+### Vue
+
+Column reorder is drag-and-drop on the header — no props needed to enable. Row reorder is the same as React: rewrite the `rows` ref.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
+
+const columns = [
+  { id: "name", header: "Name", width: 160 },
+  { id: "role", header: "Role", width: 140 },
+  { id: "score", header: "Score", width: 100, type: "number" as const },
+];
+
+const rows = ref<ObjectRow[]>([
+  { id: "1", name: "Ada", role: "Eng", score: 98 },
+]);
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    @rows-change="(next, meta) => {
+      // meta.reason === 'reorder' when a store-driven column change
+      // propagates through the change path
+      rows = next;
+    }"
+    style="height: 360px"
+  />
+</template>
+```
+
+To persist column order, pass `columns` in the desired order and use a `:key` to re-initialize the store when the order changes — same workaround as React:
+
+```vue
+<SheetGrid
+  :key="columns.map((c) => c.id).join(',')"
+  :rows="rows"
+  :columns="columns"
+/>
+```
+
 ## Related
 
 - [API reference](../api.md)

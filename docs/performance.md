@@ -1,5 +1,7 @@
 # Performance
 
+> This guide applies to both `@sheetgrid/react` (`<Grid>`) and `@sheetgrid/vue` (`<SheetGrid>`). Row + column virtualization uses the same `computeWindow` / `computeVariableWindow` primitives from `@sheetgrid/core`.
+
 SheetGrid virtualizes both rows and columns and keeps the DOM small. The `10k Perf` demo tab (10 000 rows × 50 columns) runs at ~60 fps on a mid-range laptop with ~270 cells in the DOM at any moment.
 
 This page covers the knobs, the trade-offs, and how to measure.
