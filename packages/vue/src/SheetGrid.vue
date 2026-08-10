@@ -2,10 +2,13 @@
 import {
   type CellCoord,
   type ColumnDef,
+  type ColumnGroupDef,
   type ColumnId,
   type GridRow,
+  type HeaderCellSpan,
   type RowId,
   type SelectionState,
+  type SortSpec,
   applyPaste,
   commitCell,
   computeVariableWindow,
@@ -13,6 +16,7 @@ import {
   createSelection,
   extendTo,
   extractRange,
+  flattenColumnGroups,
   fromMatrix,
   fromObjects,
   isCellSelected,
@@ -23,6 +27,7 @@ import {
   selectAll,
   selectCell,
   serializeTsv,
+  sortRows,
   toggleCell,
 } from "@sheetgrid/core";
 import {
@@ -33,6 +38,7 @@ import {
   shallowRef,
   watch,
 } from "vue";
+import SortHeader from "./SortHeader.vue";
 import { resolveColumnType } from "./cells/registry.js";
 import type { ObjectRow, VueColumnDef } from "./column-types.js";
 import { useGridStore } from "./composables/useGridStore.js";
@@ -49,6 +55,9 @@ export interface SheetGridProps {
   className?: string;
   overscan?: number;
   virtualizeColumns?: boolean;
+  columnGroups?: ColumnGroupDef[];
+  sortBy?: SortSpec[];
+  defaultSortBy?: SortSpec[];
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -61,6 +70,7 @@ const props = withDefaults(defineProps<SheetGridProps>(), {
 const emit = defineEmits<{
   (e: "rowsChange", rows: ObjectRow[], meta: { reason: string }): void;
   (e: "dataChange", data: unknown[][], meta: { reason: string }): void;
+  (e: "sortChange", next: SortSpec[]): void;
 }>();
 
 onMounted(() => {
@@ -166,12 +176,37 @@ onScopeDispose(() => {
 });
 
 const columnIds = computed<ColumnId[]>(() => columns.value.map((c) => c.id));
-const rowIds = computed<RowId[]>(() => rows.value.map((r) => r.id));
+const rowIds = computed<RowId[]>(() => sortedRows.value.map((r) => r.id));
 
 const rowIndexOf = computed(() => {
   const m = new Map<RowId, number>();
   rowIds.value.forEach((id, i) => m.set(id, i));
   return m;
+});
+
+const visibleColumnIds = computed<Set<ColumnId>>(
+  () => new Set(visibleColumns.value.map((c) => c.id)),
+);
+
+const headerLevels = computed<HeaderCellSpan[][]>(() => {
+  const leafHeaders = Object.fromEntries(
+    columns.value.map((c) => [c.id, String(c.header ?? c.id)]),
+  );
+  if (!props.columnGroups || props.columnGroups.length === 0) {
+    return [
+      columns.value.map<HeaderCellSpan>((c) => ({
+        id: c.id,
+        header: String(c.header ?? c.id),
+        columnIds: [c.id],
+        colSpan: 1,
+      })),
+    ];
+  }
+  return flattenColumnGroups(
+    props.columnGroups,
+    columns.value.map((c) => c.id),
+    { leafHeaders },
+  );
 });
 
 const colIndexOf = computed(() => {
@@ -199,7 +234,7 @@ const rowWindow = computed(() =>
     scrollOffset: scrollTop.value,
     viewportSize: viewportHeight.value > 0 ? viewportHeight.value : 1,
     itemSize: rowHeight.value,
-    itemCount: rows.value.length,
+    itemCount: sortedRows.value.length,
     overscan: props.overscan,
   }),
 );
@@ -242,12 +277,78 @@ const rightPad = computed(() =>
 
 const visibleRows = computed(() => {
   const { startIndex, endIndex } = rowWindow.value;
-  if (endIndex < startIndex || rows.value.length === 0) return [];
-  return rows.value.slice(startIndex, endIndex + 1);
+  if (endIndex < startIndex || sortedRows.value.length === 0) return [];
+  return sortedRows.value.slice(startIndex, endIndex + 1);
 });
 
 const topPad = computed(() => rowWindow.value.offsetBefore);
 const rowsTotalSize = computed(() => rowWindow.value.totalSize);
+
+// --- Sort --------------------------------------------------------------------
+
+const internalSort = shallowRef<SortSpec[]>(props.defaultSortBy ?? []);
+const effectiveSort = computed<SortSpec[]>(() =>
+  props.sortBy !== undefined ? props.sortBy : internalSort.value,
+);
+
+function applySort(next: SortSpec[]): void {
+  emit("sortChange", next);
+  if (props.sortBy === undefined) internalSort.value = next;
+}
+
+function cycleSort(columnId: string, extend: boolean): void {
+  const current = effectiveSort.value;
+  const idx = current.findIndex((s) => s.columnId === columnId);
+  const entry = idx >= 0 ? current[idx] : null;
+  const next: SortSpec[] = extend ? [...current] : [];
+  if (!extend && idx >= 0) {
+    if (entry?.direction === "asc") {
+      next.push({ columnId, direction: "desc" });
+    } else if (entry?.direction === "desc") {
+      // remove — leave next as []
+    } else {
+      next.push({ columnId, direction: "asc" });
+    }
+  } else if (!extend) {
+    next.push({ columnId, direction: "asc" });
+  } else if (idx >= 0) {
+    const filtered = next.filter((s) => s.columnId !== columnId);
+    if (entry?.direction === "asc") {
+      filtered.push({ columnId, direction: "desc" });
+    }
+    // desc → removed (already filtered out)
+    next.length = 0;
+    next.push(...filtered);
+  } else {
+    next.push({ columnId, direction: "asc" });
+  }
+  applySort(next);
+}
+
+function sortDir(columnId: string): "asc" | "desc" | null {
+  const e = effectiveSort.value.find((s) => s.columnId === columnId);
+  return e ? e.direction : null;
+}
+
+function sortPriority(columnId: string): number | undefined {
+  const idx = effectiveSort.value.findIndex((s) => s.columnId === columnId);
+  return effectiveSort.value.length >= 2 && idx >= 0 ? idx + 1 : undefined;
+}
+
+function ariaSort(
+  columnId: string,
+  sortable: boolean,
+): "ascending" | "descending" | "none" | undefined {
+  if (!sortable) return undefined;
+  const d = sortDir(columnId);
+  return d === "asc" ? "ascending" : d === "desc" ? "descending" : "none";
+}
+
+const sortedRows = computed(() => {
+  const spec = effectiveSort.value;
+  if (spec.length === 0) return rows.value;
+  return sortRows(rows.value, columns.value, spec);
+});
 
 // --- Selection ---------------------------------------------------------------
 
@@ -521,9 +622,14 @@ function onPaste(event: ClipboardEvent): void {
             <col v-if="rightPad > 0" :style="{ width: rightPad + 'px' }" />
           </colgroup>
           <thead>
-            <tr role="row">
+            <tr
+              v-for="(level, levelIndex) in headerLevels"
+              :key="levelIndex"
+              role="row"
+            >
+              <!-- left spacer: only on leaf level -->
               <th
-                v-if="leftPad > 0"
+                v-if="leftPad > 0 && levelIndex === headerLevels.length - 1"
                 aria-hidden="true"
                 class="eg-spacer"
                 :style="{
@@ -535,22 +641,49 @@ function onPaste(event: ClipboardEvent): void {
                   height: headerHeight + 'px',
                 }"
               />
+              <template v-if="levelIndex < headerLevels.length - 1">
+                <!-- non-leaf group header cells -->
+                <th
+                  v-for="cell in level"
+                  :key="cell.id"
+                  class="eg-th eg-th-group"
+                  role="columnheader"
+                  :colspan="Math.max(1, cell.colSpan, cell.columnIds.length)"
+                >
+                  {{ cell.header }}
+                </th>
+              </template>
+              <template v-else>
+                <!-- leaf header cells: only render those visible -->
+                <template v-for="cell in level" :key="cell.id">
+                  <template v-if="visibleColumnIds.has(cell.columnIds[0])">
+                    <th
+                      class="eg-th eg-th-leaf"
+                      role="columnheader"
+                      :aria-sort="ariaSort(cell.columnIds[0], (vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false)"
+                      :style="{
+                        width: (widths[cell.columnIds[0]] ?? 120) + 'px',
+                        minWidth: (widths[cell.columnIds[0]] ?? 120) + 'px',
+                        maxWidth: (widths[cell.columnIds[0]] ?? 120) + 'px',
+                        height: headerHeight + 'px',
+                      }"
+                    >
+                      <SortHeader
+                        v-if="(vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false"
+                        :label="cell.header"
+                        :direction="sortDir(cell.columnIds[0])"
+                        :priority="sortPriority(cell.columnIds[0])"
+                        @sort="cycleSort(cell.columnIds[0], false)"
+                        @shift-sort="cycleSort(cell.columnIds[0], true)"
+                      />
+                      <template v-else>{{ cell.header }}</template>
+                    </th>
+                  </template>
+                </template>
+              </template>
+              <!-- right spacer: only on leaf level -->
               <th
-                v-for="col in visibleColumns"
-                :key="col.id"
-                class="eg-th eg-th-leaf"
-                role="columnheader"
-                :style="{
-                  width: (widths[col.id] ?? 120) + 'px',
-                  minWidth: (widths[col.id] ?? 120) + 'px',
-                  maxWidth: (widths[col.id] ?? 120) + 'px',
-                  height: headerHeight + 'px',
-                }"
-              >
-                {{ col.header ?? col.id }}
-              </th>
-              <th
-                v-if="rightPad > 0"
+                v-if="rightPad > 0 && levelIndex === headerLevels.length - 1"
                 aria-hidden="true"
                 class="eg-spacer"
                 :style="{

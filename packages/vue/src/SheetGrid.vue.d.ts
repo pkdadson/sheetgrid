@@ -12,6 +12,9 @@ export interface SheetGridProps {
   className?: string;
   overscan?: number;
   virtualizeColumns?: boolean;
+  columnGroups?: import("@sheetgrid/core").ColumnGroupDef[];
+  sortBy?: import("@sheetgrid/core").SortSpec[];
+  defaultSortBy?: import("@sheetgrid/core").SortSpec[];
 }
 
 declare const SheetGrid: DefineComponent<SheetGridProps>;

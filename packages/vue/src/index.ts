@@ -38,3 +38,6 @@ export { default as SelectCell } from "./cells/SelectCell.vue";
 export { default as TextEditor } from "./editors/TextEditor.vue";
 export { default as NumberEditor } from "./editors/NumberEditor.vue";
 export { default as SelectEditor } from "./editors/SelectEditor.vue";
+
+export { default as SortHeader } from "./SortHeader.vue";
+export type { SortHeaderProps } from "./SortHeader.vue";
