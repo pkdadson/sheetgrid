@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { required } from "@sheetgrid/core";
 import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
 
 defineProps<{
@@ -8,7 +9,7 @@ defineProps<{
 }>();
 
 const columns = [
-  { id: "name", header: "Name", width: 160 as const },
+  { id: "name", header: "Name", width: 160 as const, validate: required },
   {
     id: "role",
     header: "Role",
