@@ -140,4 +140,16 @@ describe("useVirtualWindow", () => {
     // Natural window is near the end; the pin expands range to include r0.
     expect(wrapper.find('[data-testid="row-0"]').exists()).toBe(true);
   });
+
+  it("does not introduce transform styles on mounted rows", async () => {
+    const Fixture = makeFixture({ count: 20, itemSize: 40 });
+    const wrapper = mount(Fixture, { attachTo: document.body });
+    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    mockScroller(scroller, { clientHeight: 200, scrollTop: 0 });
+    scroller.dispatchEvent(new Event("scroll"));
+    await wrapper.vm.$nextTick();
+    const row = wrapper.get('[data-testid="row-0"]').element as HTMLElement;
+    expect(row.style.transform).toBe("");
+    expect(scroller.style.transform).toBe("");
+  });
 });
