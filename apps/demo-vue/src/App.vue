@@ -1,159 +1,139 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { SheetGrid, useVirtualWindow } from "@sheetgrid/vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import ObjectsDemo from "./pages/ObjectsDemo.vue";
+import MatrixDemo from "./pages/MatrixDemo.vue";
+import PerfDemo from "./pages/PerfDemo.vue";
 
-const rowCount = ref(10_000);
-const colCount = ref(20);
+export type Page = "objects" | "matrix" | "perf";
+export type Theme = "light" | "dark";
+export type Density = "comfortable" | "compact";
 
-const data = computed<string[][]>(() => {
-  const rows: string[][] = new Array(rowCount.value);
-  for (let r = 0; r < rowCount.value; r++) {
-    const row: string[] = new Array(colCount.value);
-    for (let c = 0; c < colCount.value; c++) {
-      row[c] = `R${r}·C${c}`;
-    }
-    rows[r] = row;
+function pageFromHash(): Page {
+  const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
+  if (raw === "matrix" || raw === "perf" || raw === "objects") return raw;
+  return "objects";
+}
+
+function readStoredTheme(): Theme {
+  try {
+    const v = localStorage.getItem("sheetgrid-demo-theme");
+    if (v === "dark" || v === "light") return v;
+  } catch {
+    /* ignore */
   }
-  return rows;
+  if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
+  return "light";
+}
+
+function readStoredDensity(): Density {
+  try {
+    const v = localStorage.getItem("sheetgrid-demo-density");
+    if (v === "compact" || v === "comfortable") return v;
+  } catch {
+    /* ignore */
+  }
+  return "comfortable";
+}
+
+const page = ref<Page>(pageFromHash());
+const theme = ref<Theme>(readStoredTheme());
+const density = ref<Density>(readStoredDensity());
+
+watch(theme, (t) => {
+  document.documentElement.setAttribute("data-theme", t);
+  try {
+    localStorage.setItem("sheetgrid-demo-theme", t);
+  } catch {
+    /* ignore */
+  }
+}, { immediate: true });
+
+watch(density, (d) => {
+  try {
+    localStorage.setItem("sheetgrid-demo-density", d);
+  } catch {
+    /* ignore */
+  }
 });
 
-const scrollerRef = ref<HTMLDivElement | null>(null);
-
-const v = useVirtualWindow({
-  count: () => data.value.length,
-  getItemKey: (i) => String(i),
-  estimateSize: () => 32,
-  scrollElement: scrollerRef,
+watch(page, (p) => {
+  const desired = `#${p}`;
+  if (window.location.hash !== desired) {
+    window.history.replaceState(null, "", desired);
+  }
 });
 
-// SheetGrid — same matrix, with headers derived from column indices
-const sheetColumns = computed(() =>
-  Array.from({ length: colCount.value }, (_, i) => ({
-    id: `c${i}`,
-    header: `C${i}`,
-    width: 96 as const,
-  })),
-);
+function onHash() {
+  page.value = pageFromHash();
+}
 
-const sheetRows = computed(() => {
-  const raw = data.value;
-  return raw.map((row, r) => {
-    const obj: Record<string, unknown> & { id: string } = { id: String(r) };
-    for (let c = 0; c < colCount.value; c++) obj[`c${c}`] = row[c];
-    return obj;
-  });
-});
+onMounted(() => window.addEventListener("hashchange", onHash));
+onUnmounted(() => window.removeEventListener("hashchange", onHash));
+
+function go(next: Page) {
+  page.value = next;
+  window.location.hash = next;
+}
+
+function toggleDensity() {
+  density.value = density.value === "compact" ? "comfortable" : "compact";
+}
+
+function toggleTheme() {
+  theme.value = theme.value === "dark" ? "light" : "dark";
+}
 </script>
 
 <template>
-  <div class="page">
-    <header>
-      <h1>SheetGrid — Vue</h1>
-      <p>
-        {{ rowCount.toLocaleString() }} rows × {{ colCount }} cols.
-      </p>
-    </header>
-
-    <section>
-      <h2><code>useVirtualWindow</code> (bring-your-own table)</h2>
-      <p class="hint">
-        Mounted: <strong>{{ v.virtualItems.length }}</strong> ·
-        total: <strong>{{ Math.round(v.totalSize) }}px</strong>
-      </p>
-      <div ref="scrollerRef" class="scroller">
-        <table>
-          <tbody>
-            <tr v-if="v.padStart > 0" aria-hidden="true" :style="{ height: v.padStart + 'px' }">
-              <td :colspan="colCount" class="spacer" />
-            </tr>
-            <tr
-              v-for="item in v.virtualItems"
-              :key="item.key"
-              :data-index="item.index"
-              :ref="(el) => v.measureElement(el as Element | null)"
-            >
-              <td v-for="(cell, c) in data[item.index]!" :key="c">{{ cell }}</td>
-            </tr>
-            <tr v-if="v.padEnd > 0" aria-hidden="true" :style="{ height: v.padEnd + 'px' }">
-              <td :colspan="colCount" class="spacer" />
-            </tr>
-          </tbody>
-        </table>
+  <div class="app" :data-theme="theme">
+    <a class="skip-link" href="#demo-main">Skip to grid</a>
+    <nav class="nav" data-testid="demo-nav" aria-label="Demo">
+      <h1>SheetGrid</h1>
+      <div class="nav-tabs" role="tablist" aria-label="Demo pages">
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="page === 'objects'"
+          :class="{ active: page === 'objects' }"
+          data-testid="nav-objects"
+          @click="go('objects')"
+        >Objects</button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="page === 'matrix'"
+          :class="{ active: page === 'matrix' }"
+          data-testid="nav-matrix"
+          @click="go('matrix')"
+        >2D Matrix</button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="page === 'perf'"
+          :class="{ active: page === 'perf' }"
+          data-testid="nav-perf"
+          @click="go('perf')"
+        >10k Perf</button>
       </div>
-    </section>
-
-    <section>
-      <h2><code>&lt;SheetGrid&gt;</code> (full component)</h2>
-      <p class="hint">Click a cell to select it. Arrow keys move. Ctrl/Cmd+C copies as TSV.</p>
-      <div class="grid-wrap">
-        <SheetGrid
-          :rows="sheetRows"
-          :columns="sheetColumns"
-          :overscan="3"
-        />
+      <div class="nav-actions">
+        <button
+          type="button"
+          data-testid="toggle-density"
+          :aria-pressed="density === 'compact'"
+          @click="toggleDensity"
+        >{{ density === "compact" ? "Comfortable" : "Compact" }}</button>
+        <button
+          type="button"
+          data-testid="toggle-theme"
+          :aria-pressed="theme === 'dark'"
+          @click="toggleTheme"
+        >{{ theme === "dark" ? "Light" : "Dark" }}</button>
       </div>
-    </section>
+    </nav>
+    <main class="main" data-testid="demo-main" id="demo-main">
+      <ObjectsDemo v-if="page === 'objects'" :density="density" :theme="theme" />
+      <MatrixDemo v-if="page === 'matrix'" :density="density" :theme="theme" />
+      <PerfDemo v-if="page === 'perf'" :density="density" :theme="theme" />
+    </main>
   </div>
 </template>
-
-<style scoped>
-.page {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #0f172a;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-header h1 {
-  margin: 0 0 4px;
-  font-size: 18px;
-}
-header p, .hint {
-  margin: 0 0 8px;
-  color: #475569;
-  font-size: 13px;
-}
-section h2 {
-  font-size: 14px;
-  margin: 0 0 6px;
-  color: #0f172a;
-}
-section h2 code {
-  background: #f1f5f9;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-.scroller {
-  height: 320px;
-  overflow: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background: #ffffff;
-}
-.scroller table {
-  border-collapse: collapse;
-  width: max-content;
-}
-.scroller td {
-  padding: 6px 10px;
-  border-bottom: 1px solid #f1f5f9;
-  border-right: 1px solid #f1f5f9;
-  font-variant-numeric: tabular-nums;
-  font-size: 13px;
-  white-space: nowrap;
-}
-.scroller td.spacer {
-  padding: 0;
-  border: 0;
-  line-height: 0;
-}
-.grid-wrap {
-  height: 380px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  background: #ffffff;
-}
-</style>
