@@ -1,11 +1,13 @@
 # SheetGrid
 
-**Excel-class React data grid** — virtualized, customizable, container-responsive. Built from scratch for developer experience.
+**Excel-class data grid for React and Vue** — virtualized, customizable, container-responsive. Built from scratch for developer experience.
 
 > Independent monorepo at `sheetgrid/`. Not part of canvas-lib / Ananse.
 
 [![CI](https://github.com/pkdadson/sheetgrid/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/pkdadson/sheetgrid/actions/workflows/ci.yml)
-[![npm @sheetgrid/react](https://img.shields.io/npm/v/@sheetgrid/react.svg)](https://www.npmjs.com/package/@sheetgrid/react)
+[![npm @sheetgrid/react](https://img.shields.io/npm/v/@sheetgrid/react.svg?label=%40sheetgrid%2Freact)](https://www.npmjs.com/package/@sheetgrid/react)
+[![npm @sheetgrid/vue](https://img.shields.io/npm/v/@sheetgrid/vue/next.svg?label=%40sheetgrid%2Fvue%40next)](https://www.npmjs.com/package/@sheetgrid/vue)
+[![npm @sheetgrid/nuxt](https://img.shields.io/npm/v/@sheetgrid/nuxt/next.svg?label=%40sheetgrid%2Fnuxt%40next)](https://www.npmjs.com/package/@sheetgrid/nuxt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Published releases are gated on a green CI run (build, unit tests, and Playwright e2e). Local npm publish: `pnpm publish:npm` (refuses if CI is red).
@@ -24,24 +26,38 @@ Published releases are gated on a green CI run (build, unit tests, and Playwrigh
 
 | Need | What you get |
 |------|----------------|
-| Install & render | `@sheetgrid/react` + typed rows or 2D matrices |
+| Install & render | `@sheetgrid/react` or `@sheetgrid/vue@next` — same features, framework-idiomatic API |
 | Scale | DOM virtualization for **rows and columns** (demo: 10k×100) |
 | Excel feel | Selection, keyboard, edit, TSV clipboard, resize, column reorder |
 | Customize | Cell types, validators, `registerCellType`, CSS variable themes |
 | Data shapes | **First-class** object rows **and** 2D matrices |
+| SSR / Nuxt | Vue package is SSR-safe; `@sheetgrid/nuxt` module auto-imports composables |
 
 ## Install
+
+**React**
 
 ```bash
 pnpm add @sheetgrid/react
 # npm i @sheetgrid/react
 ```
 
-**Peers:** `react`, `react-dom` ≥ 18.2 (React 19 supported).
+Peers: `react`, `react-dom` ≥ 18.2 (React 19 supported).
 
-`@sheetgrid/core` and `@sheetgrid/tokens` install as transitive dependencies.
+**Vue 3** (alpha)
+
+```bash
+pnpm add @sheetgrid/vue@next
+# npm i @sheetgrid/vue@next
+```
+
+Peers: `vue` ≥ 3.3. Nuxt 3 users also `pnpm add @sheetgrid/nuxt@next` and add it to `modules` in `nuxt.config.ts`.
+
+`@sheetgrid/core` and `@sheetgrid/tokens` install as transitive dependencies in both.
 
 ## Quickstart — objects
+
+**React**
 
 ```tsx
 import { Grid } from "@sheetgrid/react";
@@ -64,7 +80,32 @@ export function App() {
 }
 ```
 
+**Vue 3**
+
+```vue
+<script setup lang="ts">
+import { SheetGrid } from "@sheetgrid/vue";
+
+const rows = [
+  { id: "1", name: "Ada", age: 36 },
+  { id: "2", name: "Grace", age: 40 },
+];
+const columns = [
+  { id: "name", header: "Name" },
+  { id: "age", header: "Age", type: "number" as const },
+];
+</script>
+
+<template>
+  <div style="height: 400px">
+    <SheetGrid :rows="rows" :columns="columns" />
+  </div>
+</template>
+```
+
 ## Quickstart — 2D data
+
+**React**
 
 ```tsx
 import { Grid } from "@sheetgrid/react";
@@ -80,7 +121,17 @@ import { Grid } from "@sheetgrid/react";
 />
 ```
 
-Row and column virtualization is built into `<Grid />` for both object rows and 2D matrices.
+**Vue 3**
+
+```vue
+<SheetGrid
+  :data="[['Name', 'Age'], ['Ada', 36]]"
+  header-row
+  @data-change="(next) => console.log(next)"
+/>
+```
+
+Row and column virtualization is built into `<Grid />` (React) and `<SheetGrid>` (Vue) for both object rows and 2D matrices.
 
 ### Keep your own table (still virtualize)
 
@@ -180,10 +231,11 @@ Bring-your-own-table use case still available via `useVirtualWindow` — see [Re
 ```bash
 cd sheetgrid
 pnpm install
-pnpm dev:demo
+pnpm dev:demo       # React — http://localhost:5177
+pnpm dev:demo-vue   # Vue    — http://localhost:5178
 ```
 
-Open [http://localhost:5177](http://localhost:5177):
+Both demos ship the same three views:
 
 - **Objects** — types, groups, validation
 - **2D Matrix** — matrix API + paste
@@ -194,7 +246,7 @@ Open [http://localhost:5177](http://localhost:5177):
 | Doc | Description |
 |-----|-------------|
 | **[Docs index](docs/README.md)** | Full map of guides + recipes |
-| [API reference](docs/api.md) | All `<Grid>` props, columns, validators, exports |
+| [API reference](docs/api.md) | All `<Grid>` (React) and `<SheetGrid>` (Vue) props, columns, validators, exports |
 | [Keyboard & accessibility](docs/keyboard-a11y.md) | Shortcuts, ARIA, focus, testing |
 | [FAQ & troubleshooting](docs/faq.md) | Height, IDs, controlled data, perf, SSR |
 | [Core / headless guide](docs/core-guide.md) | `@sheetgrid/core` store & custom renderers |
@@ -243,14 +295,21 @@ pnpm publish:check   # test + build + npm dry-run
 3. Publish in dependency order:
 
 ```bash
+# Stable
 pnpm --filter @sheetgrid/tokens publish --access public
 pnpm --filter @sheetgrid/core publish --access public
 pnpm --filter @sheetgrid/react publish --access public
+
+# Alpha (Vue port + Nuxt module) — published under the `next` dist-tag
+pnpm --filter @sheetgrid/vue publish --tag next --access public
+pnpm --filter @sheetgrid/nuxt publish --tag next --access public
 ```
 
 Or use changesets / a release script when the repo is on GitHub.
 
-Version is currently **0.1.0** for all packages. Bump together for the first release.
+Versions:
+- `@sheetgrid/react`, `@sheetgrid/core`, `@sheetgrid/tokens` — stable `0.1.x`
+- `@sheetgrid/vue`, `@sheetgrid/nuxt` — pre-release `0.1.0-alpha.x` under the `next` tag
 
 ## Roadmap
 
