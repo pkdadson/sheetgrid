@@ -18,6 +18,24 @@
 - `@sheetgrid/vue@0.1.0-alpha.0` — Vue 3 port of `<Grid>`. `<SheetGrid>` component (object rows + 2D matrix, row/column virtualization, mouse selection with shift/ctrl, keyboard nav via `mapKeyToCommand`, TSV clipboard `Ctrl+C/X/V`, editable cells, cell-type registry with `text`/`number`/`boolean`/`select` + `registerCellType`, `SortHeader` with click / shift-click multi-sort / `aria-sort`, column groups via `columnGroups`, opt-in formulas via `formulas` prop). Composables: `useVirtualWindow` (bring-your-own table, `reactive({...})` result, template-ref-friendly `scrollElement`, auto-disable `overflow-anchor`), `useGridStore`. SSR-safe (verified via `renderToString`); no `window`/`ResizeObserver` at module scope. Full parity with `@sheetgrid/react` except the Excel-style formula cell-pick mode (deferred to a follow-up).
 - `@sheetgrid/nuxt@0.1.0-alpha.0` — Nuxt 3 module. Auto-imports composables (`useVirtualWindow`, `useGridStore`, `injectTokens`, `registerCellType`, `getCellType`, `resolveColumnType`) and registers `<SheetGrid>` / `<SortHeader>` globally. Optional `sheetgrid.prefix` config for name-spaced components. Transpiles `@sheetgrid/vue` for the Nuxt build.
 
+### Security
+
+- **`@sheetgrid/core`**: fix O(2ⁿ) DoS in `matchesCriteria` wildcard matcher (`COUNTIF` / `SUMIF` / `AVERAGEIF`). Rewrote `matchAt` as iterative two-pointer with backtracking to the last `*`. Same public API, same behavior on valid inputs, no exponential blowup on pathological patterns like `"*a*a*a*a*a*a*a*a*a*a*b"`. Regression test added.
+
+### Fixes
+
+- **`@sheetgrid/vue`**: `<TextEditor>` / `<NumberEditor>` / `<SelectEditor>` now `stopPropagation` on Enter/Escape so the same event does not bubble to the grid and immediately re-open the editor after commit. Discovered by end-to-end Playwright testing.
+- **`@sheetgrid/vue`**: editor `display` is now a `computed` (was a mount-time constant) so external draft updates — e.g. formula cell-pick mode inserting `=B2` into the current editing draft — reflect in the input.
+- **`@sheetgrid/vue`**: `<component :on-change>` handler on the editor no longer relies on inline template ref-write (which Vue's compiler does not auto-unwrap for writes); replaced with an `onEditorChange(v)` function that uses `editing.value = ...` explicitly.
+- **`apps/demo-vue`**: `styles.css` now targets `#app` (Vue mount ID) instead of `#root` (React). Fixed a case where the Perf demo mounted 150 000 cells instead of 240 because the scroll-parent height didn't cascade.
+
+### DX
+
+- **`@sheetgrid/vue`**: peer dep loosened to `vue >=3.3.0` (was `>=3.4.0`); we don't use `defineModel` anywhere so 3.3 is the honest minimum.
+- **`@sheetgrid/vue`**: `useGridStore(input, { autoWatch: true })` opts into automatic `store.replaceRows` / `replaceColumns` when the reactive input changes. Default remains `false` (backward compatible; `<SheetGrid>` continues to manage replacement explicitly).
+- **`@sheetgrid/vue`** + **`@sheetgrid/nuxt`**: publish under the `next` dist-tag so `pnpm add @sheetgrid/vue@next` works cleanly (was: users needed `@0.1.0-alpha.0` explicitly).
+- **`@sheetgrid/vue`** README: new "Custom cells" and "Server-side data" recipes.
+
 ## 0.1.2
 
 ### Fixes

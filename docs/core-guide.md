@@ -309,3 +309,18 @@ For production, add selection state, `mapKeyToCommand`, virtualization windows, 
 - [API reference](api.md)
 - [Formulas recipe](recipes/09-formulas.md)
 - Package [README](../packages/core/README.md)
+
+## Using `@sheetgrid/core` from Vue
+
+Vue users typically don't need `@sheetgrid/core` directly — `@sheetgrid/vue` re-exports the parts you'd want (`fromObjects`, `fromMatrix`, `sortRows`, formula helpers, virtualization primitives). If you're building a fully custom grid on top of the store:
+
+```ts
+import { useGridStore } from "@sheetgrid/vue";
+
+const { store, rows, columns, errors } = useGridStore(
+  { rows: initialRows, columns: initialColumns },
+  { autoWatch: true },
+);
+```
+
+`useGridStore` wraps `createGridStore` in Vue reactivity: `rows` / `columns` / `errors` are `computed` selectors that update when the store notifies (mutation via `store.setCell`, `store.replaceRows`, etc.). Pass `{ autoWatch: true }` to have the composable watch its reactive input and call `replaceRows` / `replaceColumns` for you.
