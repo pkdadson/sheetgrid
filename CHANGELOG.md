@@ -15,8 +15,8 @@
 
 ### Added
 
-- `@sheetgrid/vue`: `<SheetGrid>` opts into `@sheetgrid/core`'s formula engine via `formulas` prop (+ `formulaEntry`, `formulaLimits`, `allowIndirect`, `allowVolatile`). Editing a cell with a leading `=` commits as a formula; the cell displays the evaluated result; copy on a single formula cell writes the source. The Excel-style cell-pick mode (click cells while editing to insert A1 refs) is deferred to a subsequent release.
-- `@sheetgrid/vue`: new package (0.0.1). Ships `useVirtualWindow` composable — bring-your-own-table virtualization for Vue 3. Vue-idiomatic surface: `MaybeRefOrGetter` inputs, `reactive({...})` result (no `.value` in templates), `scrollElement` accepts a template ref. Object rows and 2D JSON matrices supported. SSR-safe. Documented on root README, docs/README index, docs/api reference, FAQ, and recipes 03 and 11 (Vue section alongside React).
+- `@sheetgrid/vue@0.1.0-alpha.0` — Vue 3 port of `<Grid>`. `<SheetGrid>` component (object rows + 2D matrix, row/column virtualization, mouse selection with shift/ctrl, keyboard nav via `mapKeyToCommand`, TSV clipboard `Ctrl+C/X/V`, editable cells, cell-type registry with `text`/`number`/`boolean`/`select` + `registerCellType`, `SortHeader` with click / shift-click multi-sort / `aria-sort`, column groups via `columnGroups`, opt-in formulas via `formulas` prop). Composables: `useVirtualWindow` (bring-your-own table, `reactive({...})` result, template-ref-friendly `scrollElement`, auto-disable `overflow-anchor`), `useGridStore`. SSR-safe (verified via `renderToString`); no `window`/`ResizeObserver` at module scope. Full parity with `@sheetgrid/react` except the Excel-style formula cell-pick mode (deferred to a follow-up).
+- `@sheetgrid/nuxt@0.1.0-alpha.0` — Nuxt 3 module. Auto-imports composables (`useVirtualWindow`, `useGridStore`, `injectTokens`, `registerCellType`, `getCellType`, `resolveColumnType`) and registers `<SheetGrid>` / `<SortHeader>` globally. Optional `sheetgrid.prefix` config for name-spaced components. Transpiles `@sheetgrid/vue` for the Nuxt build.
 
 ## 0.1.2
 

@@ -2,6 +2,8 @@
 
 Nuxt 3 module for `@sheetgrid/vue`. Auto-imports composables and registers `<SheetGrid>` + `<SortHeader>` globally. SSR-safe.
 
+> For the full `<SheetGrid>` and `useVirtualWindow` API surface, see [`@sheetgrid/vue` README](../vue/README.md).
+
 ## Install
 
 ```bash
