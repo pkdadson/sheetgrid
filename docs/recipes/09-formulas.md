@@ -122,3 +122,46 @@ store.clearFormula(rowId, columnId);
 ```
 
 More: [Core guide — formulas](../core-guide.md#formulas-on-the-store)
+
+### Vue
+
+The `formulas` prop and all formula options are identical in Vue — only the binding syntax changes:
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid } from "@sheetgrid/vue";
+
+const rows = ref([
+  { id: "1", name: "Ada", score: 98, bonus: 0 },
+  { id: "2", name: "Grace", score: 99, bonus: 0 },
+]);
+
+const columns = [
+  { id: "name", header: "Name" },
+  { id: "score", header: "Score", type: "number" as const },
+  { id: "bonus", header: "Bonus", type: "number" as const },
+];
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    :formulas="true"
+    :formula-entry="'auto-equals'"
+    :allow-indirect="false"
+    :allow-volatile="true"
+    @rows-change="(next) => { rows = next; }"
+    style="height: 400px"
+  />
+</template>
+```
+
+Usage: click the **Bonus** cell for Ada, press **Enter**, type `=B1*0.1`, press **Enter** to commit. The cell displays the computed value.
+
+**Cell-pick mode:** type `=` to activate formula entry, then click any other cell to insert its A1 reference into the draft. Drag across cells to insert a range (e.g. `=SUM(B1:E1)`). Press **Escape** to cancel the whole draft.
+
+**Clipboard:** copying a single formula cell writes the formula source string (`=B1*0.1`), not the result — consistent with spreadsheet conventions.
+
+For untrusted paste environments, use `:formula-entry="'explicit-only'"` to prevent `=`-prefixed text from becoming formulas.

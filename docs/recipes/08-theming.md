@@ -163,6 +163,44 @@ Auto-inject still runs by default and is idempotent (`#sheetgrid-tokens` style t
 
 Prefer variables for colors/spacing; use classes for structural overrides.
 
+### Vue
+
+All theming props (`theme`, `density`, `zebra`) are the same as React, bound with Vue's `:prop` syntax:
+
+```vue
+<script setup lang="ts">
+import { SheetGrid } from "@sheetgrid/vue";
+
+const props = defineProps<{ rows: unknown[]; columns: unknown[] }>();
+</script>
+
+<template>
+  <!-- Dark theme via prop -->
+  <SheetGrid :rows="rows" :columns="columns" :theme="'dark'" />
+
+  <!-- Compact density -->
+  <SheetGrid :rows="rows" :columns="columns" :density="'compact'" />
+
+  <!-- Zebra stripes -->
+  <SheetGrid :rows="rows" :columns="columns" :zebra="true" />
+</template>
+```
+
+Alternatively, set `data-theme="dark"` on an ancestor element — `<SheetGrid>` inherits it without the prop.
+
+CSS variable overrides are framework-agnostic: target `.eg-root` or `:root` exactly as shown in the CSS sections above.
+
+If you need to inject the token stylesheet manually (e.g. in an SSR/Nuxt context without automatic injection), `@sheetgrid/vue` exports `injectTokens()`:
+
+```ts
+import { injectTokens } from "@sheetgrid/vue";
+
+// Call once at app startup — idempotent, safe to call multiple times
+injectTokens();
+```
+
+This inserts the same `#sheetgrid-tokens` `<style>` tag that the component injects automatically on mount.
+
 ## Related
 
 - [FAQ — SSR / dark mode](../faq.md#theming--ssr)
