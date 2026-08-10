@@ -92,6 +92,10 @@ html[data-theme="dark"] .eg-root, html[data-theme="dark"] .eg-frame,
      (otherwise scrollTop jumps / “falls” when the window remounts rows). */
   overflow-anchor: none;
 }
+.eg-root:focus-visible {
+  outline: none;
+  box-shadow: inset var(--eg-focus-ring);
+}
 .eg-virt-spacer {
   overflow-anchor: none;
   flex-shrink: 0;
@@ -152,6 +156,7 @@ tbody tr.eg-data-row:hover .eg-td:not([aria-selected="true"]):not([data-active="
   background: var(--eg-bg-hover);
 }
 
+.eg-td { cursor: cell; }
 .eg-td[aria-selected="true"] { background: var(--eg-bg-selected); }
 .eg-td[data-active="true"] {
   outline: var(--eg-focus-ring);
@@ -271,6 +276,61 @@ tbody tr.eg-data-row:hover .eg-td:not([aria-selected="true"]):not([data-active="
   background: var(--eg-accent);
 }
 .eg-col-resizer:hover { background: var(--eg-accent-soft); }
+
+/* Sort header button — override user-agent default button chrome */
+.eg-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 24px;
+  padding: 4px 6px;
+  margin: 0;
+  border: 0;
+  border-radius: var(--eg-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color var(--eg-transition);
+}
+.eg-sort-btn:hover {
+  background: var(--eg-bg-hover);
+}
+.eg-sort-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--eg-focus-ring);
+}
+.eg-sort-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.eg-sort-arrow {
+  flex: 0 0 auto;
+  font-size: 11px;
+  color: var(--eg-text-muted);
+  min-width: 8px;
+}
+.eg-sort-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: var(--eg-accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
 
 .eg-checkbox {
   width: 16px;

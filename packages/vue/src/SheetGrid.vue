@@ -80,6 +80,7 @@ export interface SheetGridProps {
   validationMode?: ValidationMode;
   statusBar?: boolean;
   rowGrouping?: { columns: string[] };
+  ariaLabel?: string;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -906,6 +907,9 @@ function onPaste(event: ClipboardEvent): void {
       class="eg-root"
       role="grid"
       tabindex="0"
+      :aria-rowcount="dataRowIds.length"
+      :aria-colcount="columnIds.length"
+      :aria-label="ariaLabel"
       @keydown="onKeyDown"
       @paste="onPaste"
     >
