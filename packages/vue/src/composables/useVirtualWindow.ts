@@ -9,10 +9,11 @@ import {
   sizeAt,
   windowFromPrefix,
 } from "@sheetgrid/core";
-import type { ComputedRef, MaybeRefOrGetter } from "vue";
+import type { MaybeRefOrGetter } from "vue";
 import {
   computed,
   onScopeDispose,
+  reactive,
   shallowRef,
   toValue,
   watch,
@@ -24,7 +25,8 @@ export interface UseVirtualWindowOptions {
   getItemKey: (index: number) => string;
   estimateSize: (index: number) => number;
   overscan?: MaybeRefOrGetter<number>;
-  getScrollElement: () => HTMLElement | null;
+  /** The scroll parent element — pass a template ref, a getter, or a raw element. SheetGrid never creates a scroller. */
+  scrollElement: MaybeRefOrGetter<HTMLElement | null | undefined>;
   horizontal?: MaybeRefOrGetter<boolean>;
   pinKeys?: MaybeRefOrGetter<readonly string[] | undefined>;
   pinIndexes?: MaybeRefOrGetter<readonly number[] | undefined>;
@@ -39,12 +41,12 @@ export interface VirtualItem {
 }
 
 export interface UseVirtualWindowResult {
-  virtualItems: ComputedRef<VirtualItem[]>;
-  startIndex: ComputedRef<number>;
-  endIndex: ComputedRef<number>;
-  padStart: ComputedRef<number>;
-  padEnd: ComputedRef<number>;
-  totalSize: ComputedRef<number>;
+  virtualItems: VirtualItem[];
+  startIndex: number;
+  endIndex: number;
+  padStart: number;
+  padEnd: number;
+  totalSize: number;
   measureElement: (element: Element | null) => void;
   scrollToIndex: (
     index: number,
@@ -85,12 +87,15 @@ export function useVirtualWindow(
     getItemKey,
     estimateSize,
     overscan: overscanOpt = 3,
-    getScrollElement,
+    scrollElement: scrollElementOpt,
     horizontal: horizontalOpt = false,
     pinKeys: pinKeysOpt,
     pinIndexes: pinIndexesOpt,
     enabled: enabledOpt = true,
   } = options;
+
+  const getScrollElement = (): HTMLElement | null =>
+    toValue(scrollElementOpt) ?? null;
 
   const cache: SizeCache = createSizeCache({ defaultEstimate: 40 });
 
@@ -345,7 +350,7 @@ export function useVirtualWindow(
     else scroller.scrollTop = next;
   };
 
-  return {
+  return reactive({
     virtualItems,
     startIndex: computed(() => range.value.startIndex),
     endIndex: computed(() => range.value.endIndex),
@@ -354,5 +359,5 @@ export function useVirtualWindow(
     totalSize: computed(() => range.value.totalSize),
     measureElement,
     scrollToIndex,
-  };
+  }) as UseVirtualWindowResult;
 }

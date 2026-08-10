@@ -25,7 +25,7 @@ function makeFixture(props: {
         getItemKey: (i) => rows[i]!.id,
         estimateSize: () => itemSize,
         overscan: 1,
-        getScrollElement: () => scrollerRef.value,
+        scrollElement: scrollerRef,
         pinKeys,
       });
       return { scrollerRef, rows, v, itemSize };
@@ -41,9 +41,9 @@ function makeFixture(props: {
         [
           h("div", {
             "data-testid": "pad-start",
-            style: { height: `${this.v.padStart.value}px` },
+            style: { height: `${this.v.padStart}px` },
           }),
-          ...this.v.virtualItems.value.map((item) =>
+          ...this.v.virtualItems.map((item) =>
             h(
               "div",
               {
@@ -60,13 +60,13 @@ function makeFixture(props: {
           ),
           h("div", {
             "data-testid": "pad-end",
-            style: { height: `${this.v.padEnd.value}px` },
+            style: { height: `${this.v.padEnd}px` },
           }),
-          h("div", { "data-testid": "total" }, String(this.v.totalSize.value)),
+          h("div", { "data-testid": "total" }, String(this.v.totalSize)),
           h(
             "div",
             { "data-testid": "mounted-count" },
-            String(this.v.virtualItems.value.length),
+            String(this.v.virtualItems.length),
           ),
         ],
       );

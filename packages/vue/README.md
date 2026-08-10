@@ -31,7 +31,7 @@ const v = useVirtualWindow({
   count: () => props.data.length,
   getItemKey: (i) => String(i),
   estimateSize: () => 32,
-  getScrollElement: () => scrollerRef.value,
+  scrollElement: scrollerRef,
 });
 </script>
 
@@ -39,18 +39,18 @@ const v = useVirtualWindow({
   <div ref="scrollerRef" style="height: 400px; overflow: auto">
     <table>
       <tbody>
-        <tr v-if="v.padStart.value > 0" aria-hidden="true" :style="{ height: v.padStart.value + 'px' }">
+        <tr v-if="v.padStart > 0" aria-hidden="true" :style="{ height: v.padStart + 'px' }">
           <td :colspan="data[0]?.length ?? 0" style="padding: 0; border: 0" />
         </tr>
         <tr
-          v-for="item in v.virtualItems.value"
+          v-for="item in v.virtualItems"
           :key="item.key"
           :data-index="item.index"
           :ref="(el) => v.measureElement(el as Element | null)"
         >
           <td v-for="(cell, c) in data[item.index]!" :key="c">{{ cell }}</td>
         </tr>
-        <tr v-if="v.padEnd.value > 0" aria-hidden="true" :style="{ height: v.padEnd.value + 'px' }">
+        <tr v-if="v.padEnd > 0" aria-hidden="true" :style="{ height: v.padEnd + 'px' }">
           <td :colspan="data[0]?.length ?? 0" style="padding: 0; border: 0" />
         </tr>
       </tbody>
@@ -66,7 +66,7 @@ const v = useVirtualWindow({
 | `count` | `MaybeRefOrGetter<number>` | — | Length of the flattened list (post expand/collapse). |
 | `getItemKey` | `(index) => string` | — | Stable key; include expand state when height depends on it. |
 | `estimateSize` | `(index) => number` | — | Size until measured. |
-| `getScrollElement` | `() => HTMLElement \| null` | — | Their overflow container. |
+| `scrollElement` | `MaybeRefOrGetter<HTMLElement \| null>` | — | Your scroll parent — pass a template ref, a getter, or a raw element. |
 | `overscan` | `MaybeRefOrGetter<number>` | `3` | Extra items outside the viewport. |
 | `horizontal` | `MaybeRefOrGetter<boolean>` | `false` | Column virtualization mode. |
 | `pinKeys` | `MaybeRefOrGetter<readonly string[]>` | `undefined` | Keep these keys mounted (e.g. row with an open dropdown). |
@@ -75,7 +75,7 @@ const v = useVirtualWindow({
 
 ### Returns
 
-`virtualItems`, `padStart`, `padEnd`, `totalSize`, `startIndex`, `endIndex` — all `ComputedRef`. `measureElement(el)` and `scrollToIndex(i, align?)` — plain functions.
+The result is a `reactive({...})` object: `virtualItems`, `padStart`, `padEnd`, `totalSize`, `startIndex`, `endIndex` read as plain values (auto-unwrapped in both script and template — no `.value`). `measureElement(el)` and `scrollToIndex(i, align?)` are plain functions. If you destructure the result, use `toRefs()` first to preserve reactivity.
 
 ## SSR / Nuxt
 
