@@ -20,6 +20,8 @@ export interface SheetGridProps {
   formulaLimits?: Partial<import("@sheetgrid/core").FormulaLimits>;
   allowIndirect?: boolean;
   allowVolatile?: boolean;
+  validationMode?: "reject" | "commit-with-error";
+  statusBar?: boolean;
 }
 
 declare const SheetGrid: DefineComponent<SheetGridProps>;

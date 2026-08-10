@@ -9,7 +9,9 @@ import {
   type RowId,
   type SelectionState,
   type SortSpec,
+  type ValidationMode,
   applyPaste,
+  cellKey,
   commitCell,
   computeVariableWindow,
   computeWindow,
@@ -64,6 +66,8 @@ export interface SheetGridProps {
   formulaLimits?: Partial<import("@sheetgrid/core").FormulaLimits>;
   allowIndirect?: boolean;
   allowVolatile?: boolean;
+  validationMode?: ValidationMode;
+  statusBar?: boolean;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -71,6 +75,8 @@ const props = withDefaults(defineProps<SheetGridProps>(), {
   zebra: false,
   overscan: 3,
   virtualizeColumns: true,
+  validationMode: "reject",
+  statusBar: true,
 });
 
 const emit = defineEmits<{
@@ -97,7 +103,7 @@ function normalize(
 }
 
 const initial = normalize(props);
-const { store, rows, columns } = useGridStore({
+const { store, rows, columns, errors } = useGridStore({
   rows: initial.rows,
   columns: initial.columns,
   formulas: props.formulas,
@@ -113,6 +119,22 @@ const { store, rows, columns } = useGridStore({
 
 // Cast columns to VueColumnDef for access to type/cell/editor/editable fields
 const vueColumns = computed(() => columns.value as VueColumnDef[]);
+
+// --- Validation state --------------------------------------------------------
+
+const rejectedCell = shallowRef<CellCoord | null>(null);
+
+function cellError(rowId: RowId, columnId: ColumnId): string | undefined {
+  const key = cellKey(rowId, columnId);
+  return errors.value.get(key)?.message;
+}
+
+const firstError = computed<string | undefined>(() => {
+  for (const err of errors.value.values()) {
+    return err.message;
+  }
+  return undefined;
+});
 
 watch(
   () => [props.rows, props.columns, props.data, props.headerRow] as const,
@@ -452,7 +474,7 @@ async function pasteSelection(text?: string): Promise<void> {
     }
   }
   const matrix = parseTsv(raw);
-  await applyPaste(store, active, matrix, "reject");
+  await applyPaste(store, active, matrix, props.validationMode);
   emitChange("paste");
 }
 
@@ -512,22 +534,41 @@ async function commitEdit(override?: unknown): Promise<void> {
     rowId,
     columnId,
     value,
-    mode: "reject",
+    mode: props.validationMode,
     reason: "edit",
   });
   if (result.ok) {
     editing.value = null;
+    rejectedCell.value = null;
     emitChange("edit");
     scrollerRef.value?.focus({ preventScroll: true });
   } else {
-    // reject: leave value unchanged, close editor
+    // validation failed: close editor, record rejected cell for Escape-clear
     editing.value = null;
+    if (props.validationMode === "reject") {
+      rejectedCell.value = { rowId, columnId };
+    }
     scrollerRef.value?.focus({ preventScroll: true });
   }
 }
 
 function cancelEdit(): void {
-  editing.value = null;
+  if (editing.value) {
+    editing.value = null;
+    scrollerRef.value?.focus({ preventScroll: true });
+    return;
+  }
+  // No active editor: Escape in reject-mode clears the error on the previously
+  // rejected cell if it matches the currently active cell.
+  if (
+    props.validationMode === "reject" &&
+    rejectedCell.value !== null &&
+    selection.value.active?.rowId === rejectedCell.value.rowId &&
+    selection.value.active?.columnId === rejectedCell.value.columnId
+  ) {
+    store.clearError(rejectedCell.value.rowId, rejectedCell.value.columnId);
+    rejectedCell.value = null;
+  }
   scrollerRef.value?.focus({ preventScroll: true });
 }
 
@@ -540,7 +581,7 @@ async function commitValue(
     rowId,
     columnId,
     value,
-    mode: "reject",
+    mode: props.validationMode,
     reason: "edit",
   });
   if (result.ok) emitChange("edit");
@@ -808,6 +849,8 @@ function onPaste(event: ClipboardEvent): void {
                 class="eg-td"
                 role="cell"
                 :aria-selected="cellSelected(row.id, col.id)"
+                :aria-invalid="cellError(row.id, col.id) ? true : undefined"
+                :title="cellError(row.id, col.id) || undefined"
                 :data-active="cellActive(row.id, col.id) ? 'true' : undefined"
                 @mousedown="(e) => onCellMouseDown(e, row.id, col.id)"
               >
@@ -829,6 +872,7 @@ function onPaste(event: ClipboardEvent): void {
                     :row="row"
                     :column="col"
                     :row-id="row.id"
+                    :error="cellError(row.id, col.id)"
                     :is-selected="cellSelected(row.id, col.id)"
                     :is-editing="false"
                     :on-commit-value="(v: unknown) => commitValue(row.id, col.id, v)"
@@ -852,6 +896,16 @@ function onPaste(event: ClipboardEvent): void {
           </tbody>
         </table>
       </div>
+    </div>
+    <div
+      v-if="statusBar"
+      class="eg-status"
+      :data-has-error="firstError ? 'true' : undefined"
+    >
+      <template v-if="firstError">
+        <span class="eg-status-icon" aria-hidden="true">!</span>
+        <span>{{ firstError }}</span>
+      </template>
     </div>
   </div>
 </template>
