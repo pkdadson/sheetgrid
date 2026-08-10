@@ -17,8 +17,9 @@
     "lint": "biome check .",
     "format": "biome format --write .",
     "dev:demo": "pnpm --filter=demo dev",
+    "dev:demo-vue": "pnpm --filter=demo-vue dev",
     "ci:assert-green": "node scripts/assert-ci-green.mjs",
-    "publish:check": "node scripts/assert-ci-green.mjs && pnpm build && pnpm test && pnpm --filter @sheetgrid/core publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/react publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/tokens publish --dry-run --no-git-checks",
+    "publish:check": "node scripts/assert-ci-green.mjs && pnpm build && pnpm test && pnpm --filter @sheetgrid/core publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/react publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/tokens publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/vue publish --dry-run --no-git-checks",
     "publish:npm": "node scripts/publish-npm.mjs"
   },
   "devDependencies": {

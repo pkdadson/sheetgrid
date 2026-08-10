@@ -219,6 +219,85 @@ function flattenVisible(rows: Row[]): Row[] {
 Spacers: `aria-hidden="true"`.  
 Keyboard: if focus moves to an unmounted index, call `v.scrollToIndex(i)` then focus.
 
+## Vue: `useVirtualWindow`
+
+The same composable, Vue-idiomatic — `MaybeRefOrGetter` inputs, `reactive({...})` result (no `.value` in templates), `scrollElement` accepts a template ref.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { useVirtualWindow } from "@sheetgrid/vue";
+
+const props = defineProps<{ data: unknown[][] }>();
+const scrollerRef = ref<HTMLDivElement | null>(null);
+const colCount = () => props.data[0]?.length ?? 0;
+
+const v = useVirtualWindow({
+  count: () => props.data.length,
+  getItemKey: (i) => String(i),
+  estimateSize: () => 32,
+  scrollElement: scrollerRef,
+});
+</script>
+
+<template>
+  <div ref="scrollerRef" style="height: 400px; overflow: auto">
+    <table>
+      <tbody>
+        <tr v-if="v.padStart > 0" aria-hidden="true" :style="{ height: v.padStart + 'px' }">
+          <td :colspan="colCount()" style="padding: 0; border: 0; line-height: 0" />
+        </tr>
+
+        <tr
+          v-for="item in v.virtualItems"
+          :key="item.key"
+          :data-index="item.index"
+          :ref="(el) => v.measureElement(el as Element | null)"
+        >
+          <td v-for="(cell, c) in data[item.index]!" :key="c">{{ String(cell ?? "") }}</td>
+        </tr>
+
+        <tr v-if="v.padEnd > 0" aria-hidden="true" :style="{ height: v.padEnd + 'px' }">
+          <td :colspan="colCount()" style="padding: 0; border: 0; line-height: 0" />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+```
+
+### Pinning open menus
+
+Pass a reactive `pinKeys` so the row hosting an open dropdown never unmounts under the popup:
+
+```ts
+const openMenuId = ref<string | null>(null);
+const v = useVirtualWindow({
+  count: () => rows.value.length,
+  getItemKey: (i) => rows.value[i]!.id,
+  estimateSize: () => 40,
+  scrollElement: scrollerRef,
+  pinKeys: () => (openMenuId.value ? [openMenuId.value] : []),
+});
+```
+
+### Destructuring
+
+`reactive({...})` results lose reactivity when destructured. Use `toRefs` first:
+
+```ts
+import { toRefs } from "vue";
+const { padStart, virtualItems } = toRefs(v);
+```
+
+### Scroll anchoring
+
+The composable sets `overflow-anchor: none` on your scroll element while it is bound and restores the previous value on unmount. Without this the browser's native scroll anchoring would fight the growing `padStart` spacer and produce runaway scroll as you scroll into the list. You do not need to set this in your own CSS.
+
+### SSR / Nuxt
+
+`useVirtualWindow` never touches `window` at module scope. On the server it returns empty; the client re-runs after mount and populates. Hydration matches. A `@sheetgrid/nuxt` module ships in a later milestone.
+
 ## Headless (no React)
 
 ```ts
@@ -272,4 +351,4 @@ Measurements use `ResizeObserver` on **your** row node. Size changes fully above
 - [2D data](03-2d-data.md) — `<Grid data={matrix} />` when you want full grid chrome  
 - [Core / headless guide](../core-guide.md) — store, selection, keyboard if you adopt more later  
 - [Performance](../performance.md) — full `<Grid />` knobs  
-- API: `useVirtualWindow` in `@sheetgrid/react`; size/window helpers in `@sheetgrid/core`
+- API: `useVirtualWindow` in `@sheetgrid/react` and `@sheetgrid/vue`; size/window helpers in `@sheetgrid/core`

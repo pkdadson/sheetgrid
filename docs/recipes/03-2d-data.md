@@ -62,3 +62,5 @@ const back = toMatrix(rows, columns, { headerRow: true });
 ## Keep your own `<table>`
 
 `<Grid data={…} />` already virtualizes the matrix. If you only need windowing and want to keep existing markup, use **`useVirtualWindow`** with the same 2D array — `count: data.length`, cells via `data[item.index][c]`. See [Bring your own table](11-bring-your-own-table.md#2d-matrix-json).
+
+Vue 3 users get the same primitive via `@sheetgrid/vue`'s `useVirtualWindow` — reactive result, template-ref-friendly `scrollElement`. See [Vue: `useVirtualWindow`](11-bring-your-own-table.md#vue-usevirtualwindow).

@@ -131,6 +131,52 @@ function MatrixTable({ data }: { data: unknown[][] }) {
 
 Full contract (spacers, measure ref, `pinKeys` for menus): [Bring your own table](docs/recipes/11-bring-your-own-table.md).
 
+### Vue
+
+Vue 3 users get the same primitive via **`@sheetgrid/vue`** (0.0.x — full `<SheetGrid>` component lands in a later release).
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { useVirtualWindow } from "@sheetgrid/vue";
+
+const props = defineProps<{ data: unknown[][] }>();
+const scrollerRef = ref<HTMLDivElement | null>(null);
+
+const v = useVirtualWindow({
+  count: () => props.data.length,
+  getItemKey: (i) => String(i),
+  estimateSize: () => 32,
+  scrollElement: scrollerRef,
+});
+</script>
+
+<template>
+  <div ref="scrollerRef" style="height: 400px; overflow: auto">
+    <table>
+      <tbody>
+        <tr v-if="v.padStart > 0" aria-hidden="true" :style="{ height: v.padStart + 'px' }">
+          <td :colspan="data[0]?.length ?? 0" style="padding: 0; border: 0" />
+        </tr>
+        <tr
+          v-for="item in v.virtualItems"
+          :key="item.key"
+          :data-index="item.index"
+          :ref="(el) => v.measureElement(el as Element | null)"
+        >
+          <td v-for="(cell, c) in data[item.index]!" :key="c">{{ cell }}</td>
+        </tr>
+        <tr v-if="v.padEnd > 0" aria-hidden="true" :style="{ height: v.padEnd + 'px' }">
+          <td :colspan="data[0]?.length ?? 0" style="padding: 0; border: 0" />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+```
+
+Reactive result — no `.value` in templates. `scrollElement` accepts a template ref, a getter, or a raw element. Full API: [`@sheetgrid/vue` README](packages/vue/README.md).
+
 ## Features
 
 - Virtualized body rows **and** columns (DOM)
@@ -191,7 +237,8 @@ Open [http://localhost:5177](http://localhost:5177):
 | Package | Role |
 |---------|------|
 | [`@sheetgrid/react`](packages/react/README.md) | Public React `<Grid />` |
-| [`@sheetgrid/core`](packages/core/README.md) | Engine (also published; used by react) |
+| [`@sheetgrid/vue`](packages/vue/README.md) | Public Vue 3 composable (`useVirtualWindow`) — full `<SheetGrid>` next |
+| [`@sheetgrid/core`](packages/core/README.md) | Engine (also published; used by react/vue) |
 | [`@sheetgrid/tokens`](packages/tokens/README.md) | CSS variables |
 
 ## Develop
