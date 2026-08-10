@@ -1,6 +1,6 @@
 import { mount } from "@vue/test-utils";
-import { defineComponent, h, ref } from "vue";
 import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, ref } from "vue";
 import { useVirtualWindow } from "./useVirtualWindow.js";
 
 function makeFixture(props: {
@@ -21,6 +21,7 @@ function makeFixture(props: {
       }));
       const v = useVirtualWindow({
         count: rows.length,
+        // biome-ignore lint/style/noNonNullAssertion: i comes from the composable and is bounded by rows.length
         getItemKey: (i) => rows[i]!.id,
         estimateSize: () => itemSize,
         overscan: 1,
@@ -53,6 +54,7 @@ function makeFixture(props: {
                   this.v.measureElement(el as Element | null),
                 style: { height: `${this.itemSize}px` },
               },
+              // biome-ignore lint/style/noNonNullAssertion: item.index is returned by the composable and bounded by count = rows.length
               this.rows[item.index]!.label,
             ),
           ),
@@ -103,16 +105,15 @@ describe("useVirtualWindow", () => {
   it("mounts only a window of rows, not the full list", async () => {
     const Fixture = makeFixture({ count: 100, itemSize: 40 });
     const wrapper = mount(Fixture, { attachTo: document.body });
-    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    const scroller = wrapper.get('[data-testid="scroller"]')
+      .element as HTMLElement;
     mockScroller(scroller, { clientHeight: 200, scrollTop: 0 });
     scroller.dispatchEvent(new Event("scroll"));
     await wrapper.vm.$nextTick();
 
     expect(wrapper.find('[data-testid="row-0"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="row-99"]').exists()).toBe(false);
-    const mounted = Number(
-      wrapper.get('[data-testid="mounted-count"]').text(),
-    );
+    const mounted = Number(wrapper.get('[data-testid="mounted-count"]').text());
     expect(mounted).toBeLessThan(30);
     expect(wrapper.get('[data-testid="total"]').text()).toBe("4000");
   });
@@ -120,7 +121,8 @@ describe("useVirtualWindow", () => {
   it("updates the window on scroll", async () => {
     const Fixture = makeFixture({ count: 100, itemSize: 40 });
     const wrapper = mount(Fixture, { attachTo: document.body });
-    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    const scroller = wrapper.get('[data-testid="scroller"]')
+      .element as HTMLElement;
     mockScroller(scroller, { clientHeight: 200, scrollTop: 2000 });
     scroller.dispatchEvent(new Event("scroll"));
     await wrapper.vm.$nextTick();
@@ -132,7 +134,8 @@ describe("useVirtualWindow", () => {
   it("keeps pinKeys mounted when outside the natural window", async () => {
     const Fixture = makeFixture({ count: 100, itemSize: 40, pinKeys: ["r0"] });
     const wrapper = mount(Fixture, { attachTo: document.body });
-    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    const scroller = wrapper.get('[data-testid="scroller"]')
+      .element as HTMLElement;
     mockScroller(scroller, { clientHeight: 200, scrollTop: 3000 });
     scroller.dispatchEvent(new Event("scroll"));
     await wrapper.vm.$nextTick();
@@ -144,7 +147,8 @@ describe("useVirtualWindow", () => {
   it("does not introduce transform styles on mounted rows", async () => {
     const Fixture = makeFixture({ count: 20, itemSize: 40 });
     const wrapper = mount(Fixture, { attachTo: document.body });
-    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    const scroller = wrapper.get('[data-testid="scroller"]')
+      .element as HTMLElement;
     mockScroller(scroller, { clientHeight: 200, scrollTop: 0 });
     scroller.dispatchEvent(new Event("scroll"));
     await wrapper.vm.$nextTick();
@@ -159,12 +163,10 @@ describe("useVirtualWindow — SSR safety", () => {
     const originalWindow = globalThis.window;
     const originalDocument = globalThis.document;
     const originalRO = globalThis.ResizeObserver;
-    // @ts-expect-error simulate a Node/SSR global scope
-    delete (globalThis as { window?: unknown }).window;
-    // @ts-expect-error same
-    delete (globalThis as { document?: unknown }).document;
-    // @ts-expect-error same
-    delete (globalThis as { ResizeObserver?: unknown }).ResizeObserver;
+    // simulate a Node/SSR global scope
+    (globalThis as { window?: unknown }).window = undefined;
+    (globalThis as { document?: unknown }).document = undefined;
+    (globalThis as { ResizeObserver?: unknown }).ResizeObserver = undefined;
     try {
       // Fresh import to defeat vitest module caching for this file.
       vi.resetModules();

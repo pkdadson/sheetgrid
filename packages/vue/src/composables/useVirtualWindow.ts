@@ -1,4 +1,5 @@
 import {
+  type SizeCache,
   anchorScrollDelta,
   buildPrefixSums,
   computePads,
@@ -7,7 +8,6 @@ import {
   offsetOf,
   sizeAt,
   windowFromPrefix,
-  type SizeCache,
 } from "@sheetgrid/core";
 import type { ComputedRef, MaybeRefOrGetter } from "vue";
 import {
@@ -170,6 +170,7 @@ export function useVirtualWindow(
     keys,
     (list) => {
       for (let i = 0; i < list.length; i++) {
+        // biome-ignore lint/style/noNonNullAssertion: i is bounded by list.length in the loop condition
         const key = list[i]!;
         if (cache.get(key) === undefined) {
           cache.setEstimate(key, estimateSize(i));
@@ -199,6 +200,7 @@ export function useVirtualWindow(
     if (ks && ks.length > 0) {
       const keyToIndex = new Map<string, number>();
       const list = keys.value;
+      // biome-ignore lint/style/noNonNullAssertion: i is bounded by list.length in the loop condition
       for (let i = 0; i < list.length; i++) keyToIndex.set(list[i]!, i);
       for (const k of ks) {
         const idx = keyToIndex.get(k);
@@ -252,6 +254,7 @@ export function useVirtualWindow(
     for (let i = startIndex; i <= endIndex; i++) {
       items.push({
         index: i,
+        // biome-ignore lint/style/noNonNullAssertion: i is bounded by [startIndex, endIndex] which are within [0, count)
         key: list[i]!,
         start: offsetOf(p, i),
         size: sizeAt(p, i),
@@ -323,7 +326,9 @@ export function useVirtualWindow(
     if (!scroller || index < 0 || index >= n) return;
     const start = offsetOf(prefix.value, index);
     const size = sizeAt(prefix.value, index);
-    const view = horizontal.value ? scroller.clientWidth : scroller.clientHeight;
+    const view = horizontal.value
+      ? scroller.clientWidth
+      : scroller.clientHeight;
     const current = horizontal.value ? scroller.scrollLeft : scroller.scrollTop;
     let next = start;
     if (align === "center") {
