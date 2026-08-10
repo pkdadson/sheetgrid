@@ -116,4 +116,16 @@ describe("useVirtualWindow", () => {
     expect(mounted).toBeLessThan(30);
     expect(wrapper.get('[data-testid="total"]').text()).toBe("4000");
   });
+
+  it("updates the window on scroll", async () => {
+    const Fixture = makeFixture({ count: 100, itemSize: 40 });
+    const wrapper = mount(Fixture, { attachTo: document.body });
+    const scroller = wrapper.get('[data-testid="scroller"]').element as HTMLElement;
+    mockScroller(scroller, { clientHeight: 200, scrollTop: 2000 });
+    scroller.dispatchEvent(new Event("scroll"));
+    await wrapper.vm.$nextTick();
+
+    expect(wrapper.find('[data-testid="row-0"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="row-50"]').exists()).toBe(true);
+  });
 });
