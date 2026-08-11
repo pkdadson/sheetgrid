@@ -33,6 +33,7 @@ import {
   resolveColumnWidths,
   selectAll,
   selectCell,
+  selectRow,
   serializeTsv,
   sortRows,
   toggleCell,
@@ -81,6 +82,18 @@ export interface SheetGridProps {
   statusBar?: boolean;
   rowGrouping?: { columns: string[] };
   ariaLabel?: string;
+  // Customization hooks
+  selection?: SelectionState;
+  selectionMode?: "cell" | "row";
+  rowClassFn?: (
+    row: GridRow,
+    index: number,
+  ) => string | string[] | Record<string, boolean>;
+  cellClassFn?: (
+    row: GridRow,
+    column: ColumnDef,
+  ) => string | string[] | Record<string, boolean>;
+  clipboardEnabled?: boolean;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -90,12 +103,16 @@ const props = withDefaults(defineProps<SheetGridProps>(), {
   virtualizeColumns: true,
   validationMode: "reject",
   statusBar: true,
+  selectionMode: "cell",
+  clipboardEnabled: true,
 });
 
 const emit = defineEmits<{
   (e: "rowsChange", rows: ObjectRow[], meta: { reason: string }): void;
   (e: "dataChange", data: unknown[][], meta: { reason: string }): void;
   (e: "sortChange", next: SortSpec[]): void;
+  (e: "selectionChange", next: SelectionState): void;
+  (e: "columnWidthsChange", widths: Record<string, number>): void;
 }>();
 
 onMounted(() => {
@@ -301,6 +318,9 @@ function onGlobalMouseMove(event: MouseEvent) {
 }
 
 function onGlobalMouseUp() {
+  if (resizeState.columnId !== null) {
+    emit("columnWidthsChange", { ...widthOverrides.value });
+  }
   resizeState.columnId = null;
 }
 
@@ -530,17 +550,26 @@ const dataRowIds = computed<RowId[]>(() =>
 
 // --- Selection ---------------------------------------------------------------
 
-const selection = shallowRef<SelectionState>(createSelection());
+const internalSelection = shallowRef<SelectionState>(createSelection());
+
+const effectiveSelection = computed<SelectionState>(() =>
+  props.selection !== undefined ? props.selection : internalSelection.value,
+);
+
+function setSelection(next: SelectionState): void {
+  internalSelection.value = next;
+  emit("selectionChange", next);
+}
 
 const primaryRange = computed(() => {
-  const s = selection.value;
+  const s = effectiveSelection.value;
   if (s.ranges.length === 0) return null;
   return s.ranges[s.ranges.length - 1] ?? null;
 });
 
 function cellSelected(rowId: RowId, columnId: ColumnId): boolean {
   return isCellSelected(
-    selection.value,
+    effectiveSelection.value,
     { rowId, columnId },
     rowIndexOf.value,
     colIndexOf.value,
@@ -549,8 +578,8 @@ function cellSelected(rowId: RowId, columnId: ColumnId): boolean {
 
 function cellActive(rowId: RowId, columnId: ColumnId): boolean {
   return (
-    selection.value.active?.rowId === rowId &&
-    selection.value.active?.columnId === columnId
+    effectiveSelection.value.active?.rowId === rowId &&
+    effectiveSelection.value.active?.columnId === columnId
   );
 }
 
@@ -601,13 +630,80 @@ function onCellMouseDown(event: MouseEvent, rowId: RowId, columnId: ColumnId) {
   }
 
   // Existing selection branches:
-  const coord: CellCoord = { rowId, columnId };
-  if (event.shiftKey) {
-    selection.value = extendTo(selection.value, coord);
-  } else if (event.ctrlKey || event.metaKey) {
-    selection.value = toggleCell(selection.value, coord);
+  if (props.selectionMode === "row") {
+    if (event.shiftKey) {
+      // Extend rows from active to clicked row
+      const anchorRowId = effectiveSelection.value.active?.rowId ?? rowId;
+      const anchorIdx = rowIds.value.indexOf(anchorRowId);
+      const targetIdx = rowIds.value.indexOf(rowId);
+      const [fromIdx, toIdx] =
+        anchorIdx <= targetIdx
+          ? [anchorIdx, targetIdx]
+          : [targetIdx, anchorIdx];
+      const rangeRowIds = rowIds.value.slice(fromIdx, toIdx + 1);
+      const firstCol = columnIds.value[0];
+      const lastCol = columnIds.value[columnIds.value.length - 1];
+      if (firstCol === undefined || lastCol === undefined) return;
+      const ranges = rangeRowIds.map((rId) => ({
+        start: { rowId: rId, columnId: firstCol },
+        end: { rowId: rId, columnId: lastCol },
+      }));
+      setSelection({
+        active: effectiveSelection.value.active ?? {
+          rowId,
+          columnId: firstCol,
+        },
+        ranges,
+        rowIds: [],
+        columnIds: [],
+      });
+    } else if (event.ctrlKey || event.metaKey) {
+      // Toggle row in/out
+      const current = effectiveSelection.value;
+      const firstCol = columnIds.value[0];
+      const lastCol = columnIds.value[columnIds.value.length - 1];
+      if (firstCol === undefined || lastCol === undefined) return;
+      const alreadySelected = current.ranges.some(
+        (r) => r.start.rowId === rowId && r.end.rowId === rowId,
+      );
+      const filtered = current.ranges.filter(
+        (r) => !(r.start.rowId === rowId && r.end.rowId === rowId),
+      );
+      if (alreadySelected) {
+        setSelection({
+          active: current.active,
+          ranges: filtered,
+          rowIds: [],
+          columnIds: [],
+        });
+      } else {
+        setSelection({
+          active: { rowId, columnId: firstCol },
+          ranges: [
+            ...filtered,
+            {
+              start: { rowId, columnId: firstCol },
+              end: { rowId, columnId: lastCol },
+            },
+          ],
+          rowIds: [],
+          columnIds: [],
+        });
+      }
+    } else {
+      setSelection(
+        selectRow(createSelection(), rowId, rowIds.value, columnIds.value),
+      );
+    }
   } else {
-    selection.value = selectCell(createSelection(), coord);
+    const coord: CellCoord = { rowId, columnId };
+    if (event.shiftKey) {
+      setSelection(extendTo(effectiveSelection.value, coord));
+    } else if (event.ctrlKey || event.metaKey) {
+      setSelection(toggleCell(effectiveSelection.value, coord));
+    } else {
+      setSelection(selectCell(createSelection(), coord));
+    }
   }
   scrollerRef.value?.focus({ preventScroll: true });
 }
@@ -650,7 +746,7 @@ async function cutSelection(): Promise<void> {
 }
 
 async function pasteSelection(text?: string): Promise<void> {
-  const active = selection.value.active ?? primaryRange.value?.start;
+  const active = effectiveSelection.value.active ?? primaryRange.value?.start;
   if (!active) return;
   let raw = text;
   if (raw === undefined) {
@@ -779,8 +875,8 @@ function cancelEdit(): void {
   if (
     props.validationMode === "reject" &&
     rejectedCell.value !== null &&
-    selection.value.active?.rowId === rejectedCell.value.rowId &&
-    selection.value.active?.columnId === rejectedCell.value.columnId
+    effectiveSelection.value.active?.rowId === rejectedCell.value.rowId &&
+    effectiveSelection.value.active?.columnId === rejectedCell.value.columnId
   ) {
     store.clearError(rejectedCell.value.rowId, rejectedCell.value.columnId);
     rejectedCell.value = null;
@@ -833,18 +929,20 @@ async function onKeyDown(event: KeyboardEvent): Promise<void> {
   if (cmd.type === "move") {
     if (editing.value) return; // let editor handle arrows
     event.preventDefault();
-    selection.value = moveActive(
-      selection.value,
-      cmd.dir,
-      rowIds.value,
-      columnIds.value,
-      { extend: cmd.extend },
+    setSelection(
+      moveActive(
+        effectiveSelection.value,
+        cmd.dir,
+        rowIds.value,
+        columnIds.value,
+        { extend: cmd.extend },
+      ),
     );
     return;
   }
-  if (cmd.type === "edit" && selection.value.active) {
+  if (cmd.type === "edit" && effectiveSelection.value.active) {
     event.preventDefault();
-    const active = selection.value.active;
+    const active = effectiveSelection.value.active;
     const col = vueColumns.value.find((c) => c.id === active.columnId);
     if (col?.type === "boolean") return;
     const row = rows.value.find((r) => r.id === active.rowId);
@@ -852,9 +950,9 @@ async function onKeyDown(event: KeyboardEvent): Promise<void> {
     startEdit(active.rowId, active.columnId);
     return;
   }
-  if (cmd.type === "editReplace" && selection.value.active) {
+  if (cmd.type === "editReplace" && effectiveSelection.value.active) {
     event.preventDefault();
-    const active = selection.value.active;
+    const active = effectiveSelection.value.active;
     const col = vueColumns.value.find((c) => c.id === active.columnId);
     if (col?.type === "boolean") return;
     const row = rows.value.find((r) => r.id === active.rowId);
@@ -875,26 +973,30 @@ async function onKeyDown(event: KeyboardEvent): Promise<void> {
   }
   if (cmd.type === "selectAll") {
     event.preventDefault();
-    selection.value = selectAll(rowIds.value, columnIds.value);
+    setSelection(selectAll(rowIds.value, columnIds.value));
     return;
   }
   if (cmd.type === "copy") {
+    if (!props.clipboardEnabled) return;
     event.preventDefault();
     await copySelection();
     return;
   }
   if (cmd.type === "cut") {
+    if (!props.clipboardEnabled) return;
     event.preventDefault();
     await cutSelection();
     return;
   }
   if (cmd.type === "paste") {
+    if (!props.clipboardEnabled) return;
     event.preventDefault();
     await pasteSelection();
   }
 }
 
 function onPaste(event: ClipboardEvent): void {
+  if (!props.clipboardEnabled) return;
   event.preventDefault();
   void pasteSelection(event.clipboardData?.getData("text/plain"));
 }
@@ -908,6 +1010,7 @@ function onPaste(event: ClipboardEvent): void {
     :data-theme="theme"
     :data-zebra="zebra ? 'true' : 'false'"
   >
+    <slot name="toolbar" />
     <div
       ref="scrollerRef"
       class="eg-root"
@@ -1051,7 +1154,12 @@ function onPaste(event: ClipboardEvent): void {
             <col v-if="rightPad > 0" :style="{ width: rightPad + 'px' }" />
           </colgroup>
           <tbody>
-            <template v-for="vr in visibleRows" :key="vr.type === 'group' ? vr.key : vr.row.id">
+            <tr v-if="visibleFlatRows.length === 0 && $slots.empty">
+              <td :colspan="Math.max(1, visibleColumns.length + (leftPad > 0 ? 1 : 0) + (rightPad > 0 ? 1 : 0))" class="eg-empty">
+                <slot name="empty" />
+              </td>
+            </tr>
+            <template v-else v-for="vr in visibleRows" :key="vr.type === 'group' ? vr.key : vr.row.id">
               <!-- Group header row -->
               <tr
                 v-if="vr.type === 'group'"
@@ -1091,7 +1199,7 @@ function onPaste(event: ClipboardEvent): void {
                 v-else
                 :data-index="vr.row.id"
                 role="row"
-                class="eg-data-row"
+                :class="['eg-data-row', rowClassFn ? rowClassFn(vr.row, rowIndexOf.get(vr.row.id) ?? 0) : undefined]"
                 :style="{ height: rowHeight + 'px' }"
               >
                 <td
@@ -1110,7 +1218,7 @@ function onPaste(event: ClipboardEvent): void {
                 <td
                   v-for="col in visibleColumns"
                   :key="col.id"
-                  :class="{ 'eg-td': true, 'eg-formula-ref': cellInFormulaPick(vr.row.id, col.id) }"
+                  :class="['eg-td', cellInFormulaPick(vr.row.id, col.id) ? 'eg-formula-ref' : undefined, cellClassFn ? cellClassFn(vr.row, col) : undefined]"
                   role="cell"
                   :aria-selected="cellSelected(vr.row.id, col.id)"
                   :aria-invalid="cellError(vr.row.id, col.id) ? true : undefined"
@@ -1167,10 +1275,12 @@ function onPaste(event: ClipboardEvent): void {
       class="eg-status"
       :data-has-error="firstError ? 'true' : undefined"
     >
-      <template v-if="firstError">
-        <span class="eg-status-icon" aria-hidden="true">!</span>
-        <span>{{ firstError }}</span>
-      </template>
+      <slot name="status" :error="firstError ?? null">
+        <template v-if="firstError">
+          <span class="eg-status-icon" aria-hidden="true">!</span>
+          <span>{{ firstError }}</span>
+        </template>
+      </slot>
     </div>
   </div>
 </template>

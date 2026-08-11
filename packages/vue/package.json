@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/vue",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "description": "SheetGrid — Excel-class Vue 3 data grid: virtualized, customizable, responsive",
   "license": "MIT",
   "type": "module",

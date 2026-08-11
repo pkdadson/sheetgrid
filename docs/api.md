@@ -369,6 +369,19 @@ Object mode uses `rows` + `columns`; matrix mode uses `data` + `headerRow`. Ever
 | `zebra` | `boolean` | `false` | Alternate row background. |
 | `class-name` | `string` | — | Extra class on the outer frame. |
 | `aria-label` | `string` | — | Accessible name for the grid. |
+| `selection` | `SelectionState` | — | Controlled selection state. Sync back via `@selection-change`. |
+| `selection-mode` | `"cell" \| "row"` | `"cell"` | `"row"` — mousedown selects the full row; shift/ctrl extend rows. |
+| `row-class-fn` | `(row: GridRow, index: number) => string \| string[] \| Record<string, boolean>` | — | Extra classes applied to each data `<tr>`. Vue class binding passthrough. |
+| `cell-class-fn` | `(row: GridRow, column: ColumnDef) => string \| string[] \| Record<string, boolean>` | — | Extra classes applied to each data `<td>`. Vue class binding passthrough. |
+| `clipboard-enabled` | `boolean` | `true` | Set `false` to disable Ctrl/Cmd+C/X/V keyboard handlers and the native `@paste` listener. |
+
+### Slots
+
+| Slot | Slot props | Purpose |
+|------|------------|---------|
+| `#toolbar` | none | Toolbar / filter / action bar above the grid. Wrap in `<div class="eg-toolbar">` for consistent flex behavior. |
+| `#empty` | none | Shown inside `<tbody>` when there are zero rows. Not rendered when data is present. |
+| `#status` | `{ error: string \| null }` | Replaces the built-in footer status strip. Ignored when `:status-bar="false"`. |
 
 ### Events
 
@@ -379,6 +392,8 @@ Vue emits — bind with `@event-name` in templates:
 | `rows-change` | `(rows: ObjectRow[], meta: { reason: string })` | After committed data changes (object mode). `meta.reason` = `edit`, `paste`, `cut`, `reorder`, or a custom string. |
 | `data-change` | `(data: unknown[][], meta: { reason: string })` | Matrix mode equivalent of `rows-change`. |
 | `sort-change` | `(next: SortSpec[])` | Fires on any sort interaction (both controlled and uncontrolled). |
+| `selection-change` | `(next: SelectionState)` | Fires after every selection update. Use with `:selection` for controlled mode. |
+| `column-widths-change` | `(widths: Record<string, number>)` | Fires after each resize drag ends. Payload is a shallow copy of the current width overrides. |
 
 ### Composables
 

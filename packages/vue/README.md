@@ -271,6 +271,143 @@ Or supply per-column overrides without registering globally:
 
 ---
 
+## Customization hooks
+
+### Controlled selection + `@selection-change`
+
+Lift selection state out of the grid by passing `:selection` and listening to `@selection-change`. The grid still manages an internal fallback when the prop is omitted.
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
+import { type SelectionState, createSelection } from "@sheetgrid/core";
+
+const rows: ObjectRow[] = [
+  { id: "1", name: "Ada" },
+  { id: "2", name: "Grace" },
+];
+const columns = [{ id: "name", header: "Name" }];
+const selection = ref<SelectionState>(createSelection());
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    :selection="selection"
+    @selection-change="(next) => (selection = next)"
+  />
+</template>
+```
+
+### Row selection mode
+
+Set `:selection-mode="'row'"` so that a click selects the entire row instead of a single cell. Shift+click extends row-ranges; Ctrl/Cmd+click toggles rows.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns" selection-mode="row" />
+```
+
+### Per-row and per-cell class functions
+
+`:row-class-fn` and `:cell-class-fn` accept a function and apply its return value as a Vue class binding after the base classes — any string, string array, or `{ cls: bool }` object works.
+
+```vue
+<SheetGrid
+  :rows="rows"
+  :columns="columns"
+  :row-class-fn="(row, index) => index % 2 === 0 ? 'even-row' : 'odd-row'"
+  :cell-class-fn="(row, col) => col.id === 'status' ? `status-${row.values.status}` : ''"
+/>
+```
+
+### Persisting column widths (`@column-widths-change`)
+
+`@column-widths-change` fires with a `Record<string, number>` after each resize drag ends. Persist the object and pass it back as `:column-widths` (deferred controlled prop; for now store it yourself and set initial widths via `column.width`).
+
+```vue
+<script setup lang="ts">
+import { ref } from "vue";
+import { SheetGrid } from "@sheetgrid/vue";
+
+const widths = ref<Record<string, number>>({});
+</script>
+
+<template>
+  <SheetGrid
+    :rows="rows"
+    :columns="columns"
+    @column-widths-change="(w) => (widths = w)"
+  />
+</template>
+```
+
+### Disabling clipboard
+
+Set `:clipboard-enabled="false"` to suppress Ctrl/Cmd+C, Ctrl/Cmd+X, Ctrl/Cmd+V, and the native `paste` event handler entirely — useful when the host app owns clipboard access.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns" :clipboard-enabled="false" />
+```
+
+---
+
+## Slots
+
+Three named slots let you compose UI around the grid without wrapping it in another component.
+
+### `#toolbar`
+
+Rendered inside the `.eg-frame`, above the grid. Reserved for toolbars — filter chips, export buttons, add-row action, whatever.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns">
+  <template #toolbar>
+    <div class="eg-toolbar" style="padding: 8px; display: flex; gap: 8px;">
+      <button @click="addRow">+ Add row</button>
+      <input v-model="filter" placeholder="Search…" />
+    </div>
+  </template>
+</SheetGrid>
+```
+
+### `#empty`
+
+Rendered inside `<tbody>` when there are zero rows. Falls back to nothing when omitted.
+
+```vue
+<SheetGrid :rows="[]" :columns="columns">
+  <template #empty>
+    <div>
+      <p>No employees yet.</p>
+      <button @click="addRow">Add the first one</button>
+    </div>
+  </template>
+</SheetGrid>
+```
+
+### `#status`
+
+Replaces the built-in status footer. Receives `error: string | null` (the first validation error, if any).
+
+```vue
+<SheetGrid
+  :rows="rows"
+  :columns="columns"
+  validation-mode="commit-with-error"
+>
+  <template #status="{ error }">
+    <span v-if="error" style="color: red;">⚠ {{ error }}</span>
+    <span v-else>{{ rows.length }} rows loaded</span>
+  </template>
+</SheetGrid>
+```
+
+Set `:status-bar="false"` to disable the footer entirely (slot is ignored in that case).
+
+---
+
 ## Server-side data
 
 `<SheetGrid>` doesn't fetch data — you fetch, it renders. Wire `@rows-change` to persist edits:
