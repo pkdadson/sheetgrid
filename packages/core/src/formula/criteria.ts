@@ -102,12 +102,20 @@ function wildcardMatch(text: string, pattern: string): boolean {
  * Iterative two-pointer wildcard matcher with backtracking to the last '*'.
  * Runs in O(m * n) worst case — no exponential blowup on patterns with
  * multiple stars (see criteria.test.ts). Supports '?', '*', and '~' escape.
+ *
+ * M1: capped at MAX_MATCH_STEPS iterations to prevent DoS on adversarial
+ * inputs. If exceeded the matcher returns false (no match). Increase
+ * `maxRangeCells` if legitimate ranges hit this limit.
  */
+const MAX_MATCH_STEPS = 100_000;
+
 function matchAt(t: string, ti: number, p: string, pi: number): boolean {
   let starPi = -1; // pattern index of the last '*' seen, -1 if none
   let starTi = 0; // text index where the last '*' started matching
+  let steps = 0;
 
   while (ti < t.length) {
+    if (++steps > MAX_MATCH_STEPS) return false;
     // Escape: ~x matches literal x
     if (pi + 1 < p.length && p[pi] === "~") {
       if (t[ti] === p[pi + 1]) {

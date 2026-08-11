@@ -184,7 +184,7 @@ export const textFunctions: FormulaFnDef[] = [
     name: "SUBSTITUTE",
     minArgs: 3,
     maxArgs: 4,
-    impl: (args) => {
+    impl: (args, ctx) => {
       const s = str(args[0]!);
       const oldS = str(args[1]!);
       const newS = str(args[2]!);
@@ -196,16 +196,29 @@ export const textFunctions: FormulaFnDef[] = [
         args[3] !== undefined ? toNumber(args[3]) : null;
       if (instance !== null && isFormulaError(instance)) return instance;
       if (instance === null) {
-        return s.split(oldS).join(newS);
+        // M2: guard against output exceeding maxStringLength before allocating
+        const parts = s.split(oldS);
+        const occurrences = parts.length - 1;
+        const projectedSize =
+          s.length + occurrences * (newS.length - oldS.length);
+        if (projectedSize > ctx.limits.maxStringLength) {
+          return formulaError("VALUE", "SUBSTITUTE result exceeds max string length");
+        }
+        return parts.join(newS);
       }
       let count = 0;
       let out = "";
       let i = 0;
-      const target = Math.trunc(instance);
+      const target = Math.trunc(instance as number);
       while (i < s.length) {
         if (s.startsWith(oldS, i)) {
           count++;
           if (count === target) {
+            // M2: guard instance-specific substitution output
+            const projected = out.length + newS.length + (s.length - i - oldS.length);
+            if (projected > ctx.limits.maxStringLength) {
+              return formulaError("VALUE", "SUBSTITUTE result exceeds max string length");
+            }
             out += newS;
             i += oldS.length;
             out += s.slice(i);

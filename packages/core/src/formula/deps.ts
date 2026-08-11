@@ -17,12 +17,28 @@ export function collectDeps(ast: AstNode, maxRangeCells = 100_000): DepInfo {
         deps.add(cellRefKey(node.row, node.col));
         break;
       case "range": {
-        const cells =
-          (node.r2 - node.r1 + 1) * (node.c2 - node.c1 + 1);
-        if (cells > maxRangeCells) {
-          // still record corners for dependency tracking
+        // M3: guard against huge/non-finite values from oversized range refs
+        // (e.g. A1:ZZZ99999). Compute row/col counts defensively before
+        // multiplying, then fall back to corner-only tracking if overflow.
+        const rows = node.r2 - node.r1 + 1;
+        const cols = node.c2 - node.c1 + 1;
+        const cornerOnly = (): void => {
           deps.add(cellRefKey(node.r1, node.c1));
           deps.add(cellRefKey(node.r2, node.c2));
+        };
+        if (
+          !Number.isFinite(rows) ||
+          !Number.isFinite(cols) ||
+          rows < 0 ||
+          cols < 0
+        ) {
+          cornerOnly();
+          break;
+        }
+        const cells = rows * cols;
+        if (!Number.isFinite(cells) || cells > maxRangeCells) {
+          // still record corners for dependency tracking
+          cornerOnly();
           break;
         }
         for (let r = node.r1; r <= node.r2; r++) {
