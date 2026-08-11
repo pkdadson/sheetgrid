@@ -30,6 +30,12 @@ export interface FormulaLimits {
   maxTokens: number;
   maxAstDepth: number;
   maxRangeCells: number;
+  /**
+   * Maximum number of cells that a single formula evaluation may read.
+   * This budget is **per-formula evaluation**, not per-recalc-batch.
+   * `makeCtx()` resets the counter to 0 for each cell.
+   * For batch-cumulative time limits use `maxEvalMsPerBatch` instead.
+   */
   maxCellsTouched: number;
   maxStringLength: number;
   maxFactN: number;

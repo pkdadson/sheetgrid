@@ -274,7 +274,12 @@ export const mathFunctions: FormulaFnDef[] = [
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
       if (nums.length === 0) return 0;
-      return Math.min(...nums);
+      // L3: avoid V8's ~65k argument-count limit from spread; use a reduce loop
+      let best = nums[0]!;
+      for (let i = 1; i < nums.length; i++) {
+        if (nums[i]! < best) best = nums[i]!;
+      }
+      return best;
     },
   },
   {
@@ -285,7 +290,12 @@ export const mathFunctions: FormulaFnDef[] = [
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
       if (nums.length === 0) return 0;
-      return Math.max(...nums);
+      // L3: avoid V8's ~65k argument-count limit from spread; use a reduce loop
+      let best = nums[0]!;
+      for (let i = 1; i < nums.length; i++) {
+        if (nums[i]! > best) best = nums[i]!;
+      }
+      return best;
     },
   },
   {

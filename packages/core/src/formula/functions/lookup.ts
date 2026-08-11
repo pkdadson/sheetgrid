@@ -293,6 +293,17 @@ export const lookupFunctions: FormulaFnDef[] = [
       const cells =
         (range.r2 - range.r1 + 1) * (range.c2 - range.c1 + 1);
       if (cells > ctx.limits.maxRangeCells) return formulaError("LIMIT");
+      // L1: apply the same four-way bounds check as the cell-ref path above
+      if (
+        range.r1 < 0 ||
+        range.c1 < 0 ||
+        range.r2 >= ctx.rowCount ||
+        range.c2 >= ctx.colCount ||
+        range.r1 > range.r2 ||
+        range.c1 > range.c2
+      ) {
+        return formulaError("REF", "INDIRECT range out of bounds");
+      }
       return ctx.getRange(range.r1, range.c1, range.r2, range.c2);
     },
   },

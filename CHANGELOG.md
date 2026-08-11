@@ -20,6 +20,13 @@
 
 ### Security
 
+- **`@sheetgrid/core@0.2.1`**: formula engine defense-in-depth hardening:
+  - **M1** — `matchAt` wildcard matcher now caps at 100 000 iterations and returns `false` on overrun, preventing DoS on adversarial COUNTIF/SUMIF criteria patterns.
+  - **M2** — `SUBSTITUTE` global-replace path checks projected output size before joining and returns `#VALUE!` if it would exceed `maxStringLength` (32 768 by default); instance-replace path has the same guard.
+  - **M3** — `collectDeps` in `deps.ts` validates row/col counts with `Number.isFinite` before multiplying, falling back to corner-only tracking for oversized ranges like `A1:ZZZ99999`.
+  - **L1** — `INDIRECT` range path now applies the same four-way bounds check (`r1 ≥ 0`, `c1 ≥ 0`, `r2 < rowCount`, `c2 < colCount`) as the cell-ref path; out-of-bounds ranges return `#REF!`.
+  - **L2** — Clarified (docs only) that `maxCellsTouched` is a per-formula-evaluation budget, not per-recalc-batch; updated JSDoc on `FormulaLimits.maxCellsTouched` and added a comment in `recalc.ts`.
+  - **L3** — `MIN` and `MAX` implementations replaced `Math.min(...nums)` / `Math.max(...nums)` spreads with explicit reduce loops, avoiding V8's ~65 k argument-count limit on large ranges.
 - **`@sheetgrid/core`**: fix O(2ⁿ) DoS in `matchesCriteria` wildcard matcher (`COUNTIF` / `SUMIF` / `AVERAGEIF`). Rewrote `matchAt` as iterative two-pointer with backtracking to the last `*`. Same public API, same behavior on valid inputs, no exponential blowup on pathological patterns like `"*a*a*a*a*a*a*a*a*a*a*b"`. Regression test added.
 
 ### Fixes

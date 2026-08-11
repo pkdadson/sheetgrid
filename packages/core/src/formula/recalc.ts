@@ -141,6 +141,10 @@ export function recalcFormulas(input: RecalcInput): void {
     }
   }
 
+  // L2: makeCtx() is called once per formula cell, so `budget.cellsTouched`
+  // resets to 0 for every cell — the `maxCellsTouched` limit is per-formula
+  // evaluation, not cumulative per recalc-batch. For batch-cumulative limits
+  // use the deadline via `maxEvalMsPerBatch`.
   const makeCtx = (): EvalContext => ({
     rowCount: input.rowCount,
     colCount: input.colCount,
