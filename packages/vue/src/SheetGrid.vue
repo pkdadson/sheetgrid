@@ -94,6 +94,8 @@ export interface SheetGridProps {
     column: ColumnDef,
   ) => string | string[] | Record<string, boolean>;
   clipboardEnabled?: boolean;
+  /** When true, render the `#loading` slot in place of tbody content. */
+  loading?: boolean;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -1100,15 +1102,25 @@ function onPaste(event: ClipboardEvent): void {
                       @dragover="onHeaderDragOver"
                       @drop="(e) => onHeaderDrop(e, cell.columnIds[0])"
                     >
-                      <SortHeader
-                        v-if="(vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false"
+                      <slot
+                        name="header"
+                        :column="vueColumns.find(c => c.id === cell.columnIds[0])!"
                         :label="cell.header"
                         :direction="sortDir(cell.columnIds[0])"
                         :priority="sortPriority(cell.columnIds[0])"
-                        @sort="cycleSort(cell.columnIds[0], false)"
-                        @shift-sort="cycleSort(cell.columnIds[0], true)"
-                      />
-                      <template v-else>{{ cell.header }}</template>
+                        :sortable="(vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false"
+                        :cycle-sort="(shift = false) => cycleSort(cell.columnIds[0], shift)"
+                      >
+                        <SortHeader
+                          v-if="(vueColumns.find(c => c.id === cell.columnIds[0])?.sortable ?? true) !== false"
+                          :label="cell.header"
+                          :direction="sortDir(cell.columnIds[0])"
+                          :priority="sortPriority(cell.columnIds[0])"
+                          @sort="cycleSort(cell.columnIds[0], false)"
+                          @shift-sort="cycleSort(cell.columnIds[0], true)"
+                        />
+                        <template v-else>{{ cell.header }}</template>
+                      </slot>
                       <div
                         class="eg-col-resizer"
                         aria-hidden="true"
@@ -1154,7 +1166,12 @@ function onPaste(event: ClipboardEvent): void {
             <col v-if="rightPad > 0" :style="{ width: rightPad + 'px' }" />
           </colgroup>
           <tbody>
-            <tr v-if="visibleFlatRows.length === 0 && $slots.empty">
+            <tr v-if="loading">
+              <td :colspan="Math.max(1, visibleColumns.length + (leftPad > 0 ? 1 : 0) + (rightPad > 0 ? 1 : 0))" class="eg-loading">
+                <slot name="loading">Loading…</slot>
+              </td>
+            </tr>
+            <tr v-else-if="visibleFlatRows.length === 0 && $slots.empty">
               <td :colspan="Math.max(1, visibleColumns.length + (leftPad > 0 ? 1 : 0) + (rightPad > 0 ? 1 : 0))" class="eg-empty">
                 <slot name="empty" />
               </td>
@@ -1215,42 +1232,59 @@ function onPaste(event: ClipboardEvent): void {
                     height: rowHeight + 'px',
                   }"
                 />
-                <td
-                  v-for="col in visibleColumns"
-                  :key="col.id"
-                  :class="['eg-td', cellInFormulaPick(vr.row.id, col.id) ? 'eg-formula-ref' : undefined, cellClassFn ? cellClassFn(vr.row, col) : undefined]"
-                  role="cell"
-                  :aria-selected="cellSelected(vr.row.id, col.id)"
-                  :aria-invalid="cellError(vr.row.id, col.id) ? true : undefined"
-                  :title="cellError(vr.row.id, col.id) || undefined"
-                  :data-active="cellActive(vr.row.id, col.id) ? 'true' : undefined"
-                  @mousedown="(e) => onCellMouseDown(e, vr.row.id, col.id)"
+                <slot
+                  name="row"
+                  :row="vr.row"
+                  :index="rowIndexOf.get(vr.row.id) ?? 0"
+                  :columns="visibleColumns"
                 >
-                  <template v-if="editing && editing.rowId === vr.row.id && editing.columnId === col.id">
-                    <component
-                      :is="col.editor ?? resolveColumnType(col.type).editor ?? col.cell ?? resolveColumnType(col.type).cell"
-                      :value="editing.draft"
-                      :column="col"
-                      :error="undefined"
-                      :on-change="onEditorChange"
-                      :on-commit="(v?: unknown) => commitEdit(v)"
-                      :on-cancel="cancelEdit"
-                    />
-                  </template>
-                  <template v-else>
-                    <component
-                      :is="col.cell ?? resolveColumnType(col.type).cell"
-                      :value="displayValue(vr.row, col)"
-                      :row="vr.row"
-                      :column="col"
-                      :row-id="vr.row.id"
-                      :error="cellError(vr.row.id, col.id)"
-                      :is-selected="cellSelected(vr.row.id, col.id)"
-                      :is-editing="false"
-                      :on-commit-value="(v: unknown) => commitValue(vr.row.id, col.id, v)"
-                    />
-                  </template>
-                </td>
+                  <td
+                    v-for="col in visibleColumns"
+                    :key="col.id"
+                    :class="['eg-td', cellInFormulaPick(vr.row.id, col.id) ? 'eg-formula-ref' : undefined, cellClassFn ? cellClassFn(vr.row, col) : undefined]"
+                    role="cell"
+                    :aria-selected="cellSelected(vr.row.id, col.id)"
+                    :aria-invalid="cellError(vr.row.id, col.id) ? true : undefined"
+                    :title="cellError(vr.row.id, col.id) || undefined"
+                    :data-active="cellActive(vr.row.id, col.id) ? 'true' : undefined"
+                    @mousedown="(e) => onCellMouseDown(e, vr.row.id, col.id)"
+                  >
+                    <template v-if="editing && editing.rowId === vr.row.id && editing.columnId === col.id">
+                      <component
+                        :is="col.editor ?? resolveColumnType(col.type).editor ?? col.cell ?? resolveColumnType(col.type).cell"
+                        :value="editing.draft"
+                        :column="col"
+                        :error="undefined"
+                        :on-change="onEditorChange"
+                        :on-commit="(v?: unknown) => commitEdit(v)"
+                        :on-cancel="cancelEdit"
+                      />
+                    </template>
+                    <template v-else>
+                      <slot
+                        name="cell"
+                        :row="vr.row"
+                        :column="col"
+                        :value="displayValue(vr.row, col)"
+                        :row-id="vr.row.id"
+                        :error="cellError(vr.row.id, col.id)"
+                        :is-selected="cellSelected(vr.row.id, col.id)"
+                      >
+                        <component
+                          :is="col.cell ?? resolveColumnType(col.type).cell"
+                          :value="displayValue(vr.row, col)"
+                          :row="vr.row"
+                          :column="col"
+                          :row-id="vr.row.id"
+                          :error="cellError(vr.row.id, col.id)"
+                          :is-selected="cellSelected(vr.row.id, col.id)"
+                          :is-editing="false"
+                          :on-commit-value="(v: unknown) => commitValue(vr.row.id, col.id, v)"
+                        />
+                      </slot>
+                    </template>
+                  </td>
+                </slot>
                 <td
                   v-if="rightPad > 0"
                   aria-hidden="true"

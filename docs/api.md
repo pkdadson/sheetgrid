@@ -374,6 +374,7 @@ Object mode uses `rows` + `columns`; matrix mode uses `data` + `headerRow`. Ever
 | `row-class-fn` | `(row: GridRow, index: number) => string \| string[] \| Record<string, boolean>` | — | Extra classes applied to each data `<tr>`. Vue class binding passthrough. |
 | `cell-class-fn` | `(row: GridRow, column: ColumnDef) => string \| string[] \| Record<string, boolean>` | — | Extra classes applied to each data `<td>`. Vue class binding passthrough. |
 | `clipboard-enabled` | `boolean` | `true` | Set `false` to disable Ctrl/Cmd+C/X/V keyboard handlers and the native `@paste` listener. |
+| `loading` | `boolean` | `false` | When `true`, replaces tbody body with `#loading` slot (or a default "Loading…" text). Takes precedence over `#empty`. |
 
 ### Slots
 
@@ -382,6 +383,10 @@ Object mode uses `rows` + `columns`; matrix mode uses `data` + `headerRow`. Ever
 | `#toolbar` | none | Toolbar / filter / action bar above the grid. Wrap in `<div class="eg-toolbar">` for consistent flex behavior. |
 | `#empty` | none | Shown inside `<tbody>` when there are zero rows. Not rendered when data is present. |
 | `#status` | `{ error: string \| null }` | Replaces the built-in footer status strip. Ignored when `:status-bar="false"`. |
+| `#cell` | `{ row, column, value, rowId, error, isSelected }` | Per-cell display override. Editor still shows on edit. Access field values via `row.values[column.id]`. |
+| `#header` | `{ column, label, direction, priority, sortable, cycleSort }` | Leaf-column header override. Call `cycleSort(shift?)` to advance sort state. Group headers are unaffected. |
+| `#row` | `{ row, index, columns }` | Replaces the `<td>` cells inside each data `<tr>`. Wrapper `<tr>` (with classes / mouse handlers) still renders around your slot. Loses default cell selection/editing/error UI. |
+| `#loading` | none | Replaces tbody body when `:loading="true"`. Defaults to "Loading…" text if omitted. |
 
 ### Events
 
