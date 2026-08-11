@@ -15,6 +15,8 @@ pnpm add @sheetgrid/react
 
 Transitive: `@sheetgrid/core`, `@sheetgrid/tokens` (tokens auto-inject on first render).
 
+**Try live in StackBlitz** → [stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/react-vite](https://stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/react-vite) — no install needed, opens a Vite + React 18 project with `@sheetgrid/react@^0.2.0` from npm.
+
 ## Quickstart
 
 ```tsx
