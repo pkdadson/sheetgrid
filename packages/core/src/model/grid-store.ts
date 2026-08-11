@@ -1,14 +1,6 @@
 import { cellKey } from "../data/cell-key.js";
 import { toMatrix } from "../data/to-matrix.js";
-import {
-  formulaDisplayValue,
-  type FormulaCellState,
-  type FormulaEngineOptions,
-  type FormulaValue,
-  cellRefKey,
-  recalcFormulas,
-} from "../formula/index.js";
-import { moveItem, swapItems } from "../layout/reorder.js";
+import type { FormulaEngineOptions, FormulaValue } from "../formula/index.js";
 import type {
   CellError,
   ColumnDef,
@@ -17,6 +9,22 @@ import type {
   GridRow,
   RowId,
 } from "../types.js";
+import { ClearFormulaCommand } from "./commands/clear-formula.js";
+import { MoveColumnCommand } from "./commands/move-column.js";
+import { MoveRowCommand } from "./commands/move-row.js";
+import { ReplaceColumnsCommand } from "./commands/replace-columns.js";
+import { ReplaceRowsCommand } from "./commands/replace-rows.js";
+import { SetCellCommand } from "./commands/set-cell.js";
+import { SetColumnOrderCommand } from "./commands/set-column-order.js";
+import { SetErrorCommand } from "./commands/set-error.js";
+import { SetFormulaCommand } from "./commands/set-formula.js";
+import { SwapColumnsCommand } from "./commands/swap-columns.js";
+import { SwapRowsCommand } from "./commands/swap-rows.js";
+import type { EventSource, Snapshot } from "./commands/types.js";
+import { History } from "./history.js";
+import { createInternalStore } from "./internal-store.js";
+import { takeSnapshot } from "./snapshot.js";
+import { RestoreCommand } from "./commands/restore.js";
 
 export type FormulaEntryMode = "auto-equals" | "explicit-only";
 
@@ -27,6 +35,18 @@ export interface CreateGridStoreInput {
   formulas?: boolean;
   formulaOptions?: FormulaEngineOptions;
   formulaEntry?: FormulaEntryMode;
+  historyLimit?: number;
+}
+
+// TODO(M1.13+): "api" reason currently collapses to system:init because EventSource
+// has no explicit "api" variant. Consider adding it if agent-side consumers need to
+// distinguish programmatic mutations from initial-load mutations.
+function sourceFor(reason: CommitReason): EventSource {
+  if (reason === "edit") return { kind: "user", interaction: "edit" };
+  if (reason === "paste") return { kind: "user", interaction: "paste" };
+  if (reason === "cut") return { kind: "user", interaction: "edit" };
+  if (reason === "reorder") return { kind: "user", interaction: "ui" };
+  return { kind: "system", reason: "init" };
 }
 
 export interface GridStore {
@@ -34,12 +54,7 @@ export interface GridStore {
   getColumns(): ColumnDef[];
   getOrderedColumns(): ColumnDef[];
   getCell(rowId: RowId, columnId: ColumnId): unknown;
-  setCell(
-    rowId: RowId,
-    columnId: ColumnId,
-    value: unknown,
-    reason: CommitReason,
-  ): void;
+  setCell(rowId: RowId, columnId: ColumnId, value: unknown, reason: CommitReason): void;
   replaceRows(rows: GridRow[]): void;
   replaceColumns(columns: ColumnDef[]): void;
   setColumnOrder(order: ColumnId[]): void;
@@ -54,428 +69,123 @@ export interface GridStore {
   toMatrix(opts?: { headerRow?: boolean }): unknown[][];
   subscribe(listener: () => void): () => void;
   getLastReason(): CommitReason | null;
-  /** Formula API */
   isFormulasEnabled(): boolean;
   getFormulaEntry(): FormulaEntryMode;
   setFormula(rowId: RowId, columnId: ColumnId, source: string): boolean;
   clearFormula(rowId: RowId, columnId: ColumnId): void;
-  getFormula(
-    rowId: RowId,
-    columnId: ColumnId,
-  ): { source: string; result: FormulaValue } | null;
-}
+  getFormula(rowId: RowId, columnId: ColumnId): { source: string; result: FormulaValue } | null;
 
-function defaultOrder(columns: ColumnDef[]): ColumnId[] {
-  return columns.map((c) => c.id);
-}
-
-function toFormulaValue(v: unknown): FormulaValue {
-  if (v === undefined) return null;
-  if (
-    v === null ||
-    typeof v === "string" ||
-    typeof v === "number" ||
-    typeof v === "boolean" ||
-    v instanceof Date
-  ) {
-    return v;
-  }
-  return String(v);
+  /** New in M1 — exposed for the agent controller. */
+  __history: History;
+  __takeSnapshot(): Snapshot;
+  __restore(snap: Snapshot): void;
 }
 
 export function createGridStore(input: CreateGridStoreInput): GridStore {
-  let rows = input.rows.map((r) => ({
-    id: r.id,
-    values: { ...r.values },
-  }));
-  let columns = input.columns.map((c) => ({ ...c }));
-  let columnOrder = input.columnOrder
-    ? [...input.columnOrder]
-    : defaultOrder(columns);
-  let errors = new Map<string, CellError>();
+  const internal = createInternalStore({
+    rows: input.rows,
+    columns: input.columns,
+    columnOrder: input.columnOrder,
+    formulas: input.formulas,
+    formulaOptions: input.formulaOptions,
+  });
+  const history = new History(internal, { limit: input.historyLimit ?? 100 });
   let lastReason: CommitReason | null = null;
-  const listeners = new Set<() => void>();
 
-  const formulasEnabled = input.formulas === true;
   const formulaEntry: FormulaEntryMode = input.formulaEntry ?? "auto-equals";
-  const formulaOptions = input.formulaOptions;
-  /** key: cellKey(rowId, colId) */
-  const formulasByCellKey = new Map<string, FormulaCellState>();
 
-  const emit = () => {
-    for (const l of listeners) {
-      l();
-    }
-  };
-
-  const findRowIndex = (rowId: RowId) => rows.findIndex((r) => r.id === rowId);
-
-  const getOrderedColumns = (): ColumnDef[] => {
-    const byId = new Map(columns.map((c) => [c.id, c]));
-    return columnOrder
-      .map((id) => byId.get(id))
-      .filter((c): c is ColumnDef => c !== undefined);
-  };
-
-  const indicesOf = (
-    rowId: RowId,
-    columnId: ColumnId,
-  ): { row: number; col: number } | null => {
-    const row = findRowIndex(rowId);
-    if (row < 0) return null;
-    const ordered = getOrderedColumns();
-    const col = ordered.findIndex((c) => c.id === columnId);
-    if (col < 0) return null;
-    return { row, col };
-  };
-
-  const writeComputed = (
-    rowIndex: number,
-    colIndex: number,
-    value: FormulaValue,
-  ) => {
-    const row = rows[rowIndex];
-    const col = getOrderedColumns()[colIndex];
-    if (!row || !col) return;
-    const display = formulaDisplayValue(value);
-    const nextValues = { ...row.values, [col.id]: display };
-    rows = rows.map((r, i) =>
-      i === rowIndex ? { id: r.id, values: nextValues } : r,
-    );
-  };
-
-  const runRecalc = (dirtyRcKeys: string[]) => {
-    if (!formulasEnabled) return;
-
-    // Map cellKey formula store -> "row:col" engine keys
-    const engineMap = new Map<string, FormulaCellState>();
-    const rcToCellKey = new Map<string, string>();
-
-    for (const [ck, state] of formulasByCellKey) {
-      // reverse lookup indices from current grid
-      // parse cell key to rowId/colId
-      const pipe = ck.indexOf("|");
-      if (pipe < 0) continue;
-      const rowId = decodeURIComponent(ck.slice(0, pipe));
-      const columnId = decodeURIComponent(ck.slice(pipe + 1));
-      const idx = indicesOf(rowId, columnId);
-      if (!idx) continue;
-      const rc = cellRefKey(idx.row, idx.col);
-      engineMap.set(rc, state);
-      rcToCellKey.set(rc, ck);
-    }
-
-    const dirty = dirtyRcKeys;
-
-    recalcFormulas({
-      formulas: engineMap,
-      rowCount: rows.length,
-      colCount: getOrderedColumns().length,
-      dirty,
-      options: formulaOptions,
-      getLiteral(r, c) {
-        const row = rows[r];
-        const col = getOrderedColumns()[c];
-        if (!row || !col) return null;
-        // if this cell has a formula, use last result to avoid reading display mid-flight
-        const rc = cellRefKey(r, c);
-        if (engineMap.has(rc)) {
-          return engineMap.get(rc)!.result;
-        }
-        return toFormulaValue(row.values[col.id]);
-      },
-      setResult(r, c, value) {
-        writeComputed(r, c, value);
-        const rc = cellRefKey(r, c);
-        const state = engineMap.get(rc);
-        if (state) {
-          state.result = value;
-          const ck = rcToCellKey.get(rc);
-          if (ck) formulasByCellKey.set(ck, state);
-        }
-      },
-    });
-  };
-
-  const dirtyFromCell = (rowId: RowId, columnId: ColumnId): string[] => {
-    const idx = indicesOf(rowId, columnId);
-    if (!idx) return [];
-    return [cellRefKey(idx.row, idx.col)];
-  };
-
-  const setCellInternal = (
-    rowId: RowId,
-    columnId: ColumnId,
-    value: unknown,
-    reason: CommitReason,
-    opts?: { clearFormula?: boolean; skipRecalc?: boolean },
-  ) => {
-    const idx = findRowIndex(rowId);
-    if (idx < 0) return;
-    if (opts?.clearFormula !== false && formulasEnabled) {
-      formulasByCellKey.delete(cellKey(rowId, columnId));
-    }
-    const prev = rows[idx]!;
-    const nextValues = { ...prev.values, [columnId]: value };
-    rows = rows.map((r, i) =>
-      i === idx ? { id: r.id, values: nextValues } : r,
-    );
-    lastReason = reason;
-    if (formulasEnabled && !opts?.skipRecalc) {
-      runRecalc(dirtyFromCell(rowId, columnId));
-    }
-    emit();
+  const dispatchAndTrack = (cmd: Parameters<History["dispatch"]>[0], reason: CommitReason) => {
+    const res = history.dispatch(cmd);
+    if (res.ok) lastReason = reason;
+    return res;
   };
 
   return {
-    getRows() {
-      return rows;
+    getRows: () => internal.getRowsRef(),
+    getColumns: () => internal.getColumnsRef(),
+    getOrderedColumns: () => {
+      const byId = new Map(internal.getColumnsRef().map((c) => [c.id, c]));
+      return internal
+        .getColumnOrderRef()
+        .map((id) => byId.get(id))
+        .filter((c): c is ColumnDef => c !== undefined);
     },
-    getColumns() {
-      return columns;
-    },
-    getOrderedColumns,
-    getCell(rowId, columnId) {
-      const row = rows.find((r) => r.id === rowId);
-      if (!row) return undefined;
-      return row.values[columnId];
-    },
+    getCell: (rowId, columnId) =>
+      internal.getRowsRef().find((r) => r.id === rowId)?.values[columnId],
     setCell(rowId, columnId, value, reason) {
-      setCellInternal(rowId, columnId, value, reason, { clearFormula: true });
+      dispatchAndTrack(new SetCellCommand(rowId, columnId, value, sourceFor(reason)), reason);
     },
     replaceRows(next) {
-      rows = next.map((r) => ({ id: r.id, values: { ...r.values } }));
-      // drop formulas for missing rows
-      if (formulasEnabled) {
-        const rowIds = new Set(rows.map((r) => r.id));
-        for (const ck of [...formulasByCellKey.keys()]) {
-          const rowId = decodeURIComponent(ck.slice(0, ck.indexOf("|")));
-          if (!rowIds.has(rowId)) formulasByCellKey.delete(ck);
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rowId = decodeURIComponent(ck.slice(0, pipe));
-          const columnId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rowId, columnId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        runRecalc(all);
-      }
-      lastReason = "api";
-      emit();
+      dispatchAndTrack(new ReplaceRowsCommand(next, sourceFor("api")), "api");
     },
     replaceColumns(next) {
-      columns = next.map((c) => ({ ...c }));
-      const ids = new Set(columns.map((c) => c.id));
-      columnOrder = columnOrder.filter((id) => ids.has(id));
-      for (const c of columns) {
-        if (!columnOrder.includes(c.id)) {
-          columnOrder.push(c.id);
-        }
-      }
-      if (formulasEnabled) {
-        for (const ck of [...formulasByCellKey.keys()]) {
-          const columnId = decodeURIComponent(ck.slice(ck.indexOf("|") + 1));
-          if (!ids.has(columnId)) formulasByCellKey.delete(ck);
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rowId = decodeURIComponent(ck.slice(0, pipe));
-          const columnId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rowId, columnId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        runRecalc(all);
-      }
-      lastReason = "api";
-      emit();
+      dispatchAndTrack(new ReplaceColumnsCommand(next, sourceFor("api")), "api");
     },
     setColumnOrder(order) {
-      columnOrder = [...order];
-      lastReason = "reorder";
-      if (formulasEnabled) {
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rowId = decodeURIComponent(ck.slice(0, pipe));
-          const columnId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rowId, columnId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        // Invalidate ASTs that reference columns by index — deps are index-based
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        runRecalc(all);
-      }
-      emit();
+      dispatchAndTrack(new SetColumnOrderCommand(order, sourceFor("reorder")), "reorder");
     },
-    getColumnOrder() {
-      return columnOrder;
-    },
+    getColumnOrder: () => internal.getColumnOrderRef(),
     moveColumn(columnId, toIndex) {
-      columnOrder = moveItem(columnOrder, columnId, toIndex);
-      lastReason = "reorder";
-      if (formulasEnabled) {
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rowId = decodeURIComponent(ck.slice(0, pipe));
-          const colId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rowId, colId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        runRecalc(all);
-      }
-      emit();
+      dispatchAndTrack(new MoveColumnCommand(columnId, toIndex, sourceFor("reorder")), "reorder");
     },
     swapColumns(a, b) {
-      columnOrder = swapItems(columnOrder, a, b);
-      lastReason = "reorder";
-      if (formulasEnabled) {
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rowId = decodeURIComponent(ck.slice(0, pipe));
-          const colId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rowId, colId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        runRecalc(all);
-      }
-      emit();
+      dispatchAndTrack(new SwapColumnsCommand(a, b, sourceFor("reorder")), "reorder");
     },
     moveRow(rowId, toIndex) {
-      const ids = rows.map((r) => r.id);
-      const nextIds = moveItem(ids, rowId, toIndex);
-      const byId = new Map(rows.map((r) => [r.id, r]));
-      rows = nextIds
-        .map((id) => byId.get(id))
-        .filter((r): r is GridRow => r !== undefined);
-      lastReason = "reorder";
-      if (formulasEnabled) {
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rid = decodeURIComponent(ck.slice(0, pipe));
-          const colId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rid, colId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        runRecalc(all);
-      }
-      emit();
+      dispatchAndTrack(new MoveRowCommand(rowId, toIndex, sourceFor("reorder")), "reorder");
     },
     swapRows(a, b) {
-      const ids = rows.map((r) => r.id);
-      const nextIds = swapItems(ids, a, b);
-      const byId = new Map(rows.map((r) => [r.id, r]));
-      rows = nextIds
-        .map((id) => byId.get(id))
-        .filter((r): r is GridRow => r !== undefined);
-      lastReason = "reorder";
-      if (formulasEnabled) {
-        for (const state of formulasByCellKey.values()) {
-          state.ast = undefined;
-        }
-        const all: string[] = [];
-        for (const [ck] of formulasByCellKey) {
-          const pipe = ck.indexOf("|");
-          const rid = decodeURIComponent(ck.slice(0, pipe));
-          const colId = decodeURIComponent(ck.slice(pipe + 1));
-          const idx = indicesOf(rid, colId);
-          if (idx) all.push(cellRefKey(idx.row, idx.col));
-        }
-        runRecalc(all);
-      }
-      emit();
+      dispatchAndTrack(new SwapRowsCommand(a, b, sourceFor("reorder")), "reorder");
     },
-    getErrors() {
-      return errors;
-    },
+    getErrors: () => internal.errors.getMap(),
     setError(rowId, columnId, error) {
-      const key = cellKey(rowId, columnId);
-      if (error === null) {
-        errors.delete(key);
-      } else {
-        errors.set(key, error);
-      }
-      errors = new Map(errors);
-      emit();
+      dispatchAndTrack(new SetErrorCommand(rowId, columnId, error, sourceFor("api")), "api");
     },
     clearError(rowId, columnId) {
       this.setError(rowId, columnId, null);
     },
     toMatrix(opts) {
-      return toMatrix(rows, this.getOrderedColumns(), opts);
+      return toMatrix(internal.getRowsRef(), this.getOrderedColumns(), opts);
     },
     subscribe(listener) {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
+      return internal.subscribe(listener);
     },
     getLastReason() {
       return lastReason;
     },
-    isFormulasEnabled() {
-      return formulasEnabled;
-    },
-    getFormulaEntry() {
-      return formulaEntry;
-    },
+    isFormulasEnabled: () => internal.formulas.isEnabled(),
+    getFormulaEntry: () => formulaEntry,
     setFormula(rowId, columnId, source) {
-      if (!formulasEnabled) return false;
-      const idx = indicesOf(rowId, columnId);
-      if (!idx) return false;
-
-      let src = source.trim();
+      if (!internal.formulas.isEnabled()) return false;
+      const src = source.trim();
       if (!src || src === "=") {
         this.clearFormula(rowId, columnId);
         return true;
       }
-      if (!src.startsWith("=")) src = `=${src}`;
-
-      const ck = cellKey(rowId, columnId);
-      formulasByCellKey.set(ck, {
-        source: src,
-        deps: [],
-        volatile: false,
-        result: null,
-        ast: undefined,
-      });
-      lastReason = "edit";
-      runRecalc([cellRefKey(idx.row, idx.col)]);
-      emit();
-      return true;
+      const res = dispatchAndTrack(
+        new SetFormulaCommand(rowId, columnId, src, sourceFor("edit")),
+        "edit",
+      );
+      return res.ok;
     },
     clearFormula(rowId, columnId) {
-      if (!formulasEnabled) return;
-      const ck = cellKey(rowId, columnId);
-      if (!formulasByCellKey.has(ck)) return;
-      formulasByCellKey.delete(ck);
-      setCellInternal(rowId, columnId, null, "edit", {
-        clearFormula: false,
-      });
+      dispatchAndTrack(
+        new ClearFormulaCommand(rowId, columnId, sourceFor("edit")),
+        "edit",
+      );
     },
     getFormula(rowId, columnId) {
-      const state = formulasByCellKey.get(cellKey(rowId, columnId));
-      if (!state) return null;
-      return { source: state.source, result: state.result };
+      const src = internal.formulas.getRaw(rowId, columnId);
+      if (src === null) return null;
+      const state = internal.getFormulasMap().get(cellKey(rowId, columnId));
+      return state ? { source: state.source, result: state.result } : null;
+    },
+    __history: history,
+    __takeSnapshot() {
+      return takeSnapshot(internal);
+    },
+    __restore(snap) {
+      dispatchAndTrack(new RestoreCommand(snap, sourceFor("api")), "api");
     },
   };
 }
