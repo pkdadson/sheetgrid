@@ -89,7 +89,7 @@ importers:
         specifier: ^3.10.0
         version: 3.21.11(magicast@0.5.4)
       '@sheetgrid/vue':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../vue
     devDependencies:
       '@nuxt/module-builder':
@@ -108,10 +108,10 @@ importers:
   packages/react:
     dependencies:
       '@sheetgrid/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@sheetgrid/tokens':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../tokens
     devDependencies:
       '@testing-library/react':
@@ -150,10 +150,10 @@ importers:
   packages/vue:
     dependencies:
       '@sheetgrid/core':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../core
       '@sheetgrid/tokens':
-        specifier: workspace:*
+        specifier: workspace:^
         version: link:../tokens
     devDependencies:
       '@vitejs/plugin-vue':

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Fix — downstream packages now accept core patch upgrades
+
+`@sheetgrid/react`, `@sheetgrid/vue`, `@sheetgrid/nuxt` previously used `"@sheetgrid/core": "workspace:*"` which pnpm transformed to an EXACT version on publish. Downstream consumers never auto-upgraded to `@sheetgrid/core` patch releases (would miss e.g. 0.2.1 security fixes). Switched to `workspace:^`, which transforms to `^X.Y.Z`. New patch versions:
+
+| Package | Old | New |
+|---------|-----|-----|
+| `@sheetgrid/react` | 0.2.0 | **0.2.1** |
+| `@sheetgrid/vue` | 0.1.0-alpha.1 | **0.1.0-alpha.2** |
+| `@sheetgrid/nuxt` | 0.1.0-alpha.1 | **0.1.0-alpha.2** |
+
+Consumers of these upgraded versions will pick up `@sheetgrid/core@0.2.1` (with the M1-M3, L1-L3 security fixes from #13) via pnpm/npm's normal caret resolution.
+
 ### Features
 
 - **Bring-your-own-table virtualization** — adopt windowing without mounting `<Grid />` or wrapping cells:
