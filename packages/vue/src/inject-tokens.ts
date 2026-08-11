@@ -351,6 +351,14 @@ tbody tr.eg-data-row:hover .eg-td:not([aria-selected="true"]):not([data-active="
   pointer-events: none;
 }
 
+.eg-toolbar { flex: 0 0 auto; }
+
+.eg-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--eg-text-muted);
+}
+
 .eg-status {
   flex: 0 0 auto;
   display: flex;

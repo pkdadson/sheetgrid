@@ -353,6 +353,61 @@ Set `:clipboard-enabled="false"` to suppress Ctrl/Cmd+C, Ctrl/Cmd+X, Ctrl/Cmd+V,
 
 ---
 
+## Slots
+
+Three named slots let you compose UI around the grid without wrapping it in another component.
+
+### `#toolbar`
+
+Rendered inside the `.eg-frame`, above the grid. Reserved for toolbars — filter chips, export buttons, add-row action, whatever.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns">
+  <template #toolbar>
+    <div class="eg-toolbar" style="padding: 8px; display: flex; gap: 8px;">
+      <button @click="addRow">+ Add row</button>
+      <input v-model="filter" placeholder="Search…" />
+    </div>
+  </template>
+</SheetGrid>
+```
+
+### `#empty`
+
+Rendered inside `<tbody>` when there are zero rows. Falls back to nothing when omitted.
+
+```vue
+<SheetGrid :rows="[]" :columns="columns">
+  <template #empty>
+    <div>
+      <p>No employees yet.</p>
+      <button @click="addRow">Add the first one</button>
+    </div>
+  </template>
+</SheetGrid>
+```
+
+### `#status`
+
+Replaces the built-in status footer. Receives `error: string | null` (the first validation error, if any).
+
+```vue
+<SheetGrid
+  :rows="rows"
+  :columns="columns"
+  validation-mode="commit-with-error"
+>
+  <template #status="{ error }">
+    <span v-if="error" style="color: red;">⚠ {{ error }}</span>
+    <span v-else>{{ rows.length }} rows loaded</span>
+  </template>
+</SheetGrid>
+```
+
+Set `:status-bar="false"` to disable the footer entirely (slot is ignored in that case).
+
+---
+
 ## Server-side data
 
 `<SheetGrid>` doesn't fetch data — you fetch, it renders. Wire `@rows-change` to persist edits:

@@ -1010,6 +1010,7 @@ function onPaste(event: ClipboardEvent): void {
     :data-theme="theme"
     :data-zebra="zebra ? 'true' : 'false'"
   >
+    <slot name="toolbar" />
     <div
       ref="scrollerRef"
       class="eg-root"
@@ -1153,7 +1154,12 @@ function onPaste(event: ClipboardEvent): void {
             <col v-if="rightPad > 0" :style="{ width: rightPad + 'px' }" />
           </colgroup>
           <tbody>
-            <template v-for="vr in visibleRows" :key="vr.type === 'group' ? vr.key : vr.row.id">
+            <tr v-if="visibleFlatRows.length === 0 && $slots.empty">
+              <td :colspan="Math.max(1, visibleColumns.length + (leftPad > 0 ? 1 : 0) + (rightPad > 0 ? 1 : 0))" class="eg-empty">
+                <slot name="empty" />
+              </td>
+            </tr>
+            <template v-else v-for="vr in visibleRows" :key="vr.type === 'group' ? vr.key : vr.row.id">
               <!-- Group header row -->
               <tr
                 v-if="vr.type === 'group'"
@@ -1269,10 +1275,12 @@ function onPaste(event: ClipboardEvent): void {
       class="eg-status"
       :data-has-error="firstError ? 'true' : undefined"
     >
-      <template v-if="firstError">
-        <span class="eg-status-icon" aria-hidden="true">!</span>
-        <span>{{ firstError }}</span>
-      </template>
+      <slot name="status" :error="firstError ?? null">
+        <template v-if="firstError">
+          <span class="eg-status-icon" aria-hidden="true">!</span>
+          <span>{{ firstError }}</span>
+        </template>
+      </slot>
     </div>
   </div>
 </template>

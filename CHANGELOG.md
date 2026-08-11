@@ -9,6 +9,7 @@
 - `:row-class-fn(row, index)` and `:cell-class-fn(row, column)` — per-row / per-cell class overrides.
 - `@column-widths-change(widths)` — fires after each resize drag; persist widths yourself.
 - `:clipboard-enabled` (default true) — set false to disable Ctrl/Cmd+C/X/V + native paste event.
+- Three named `<template>` slots: `#toolbar` (above grid), `#empty` (no-data body), `#status` ({ error } scoped, replaces footer).
 
 ### Fix — downstream packages now accept core patch upgrades
 

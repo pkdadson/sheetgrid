@@ -375,6 +375,14 @@ Object mode uses `rows` + `columns`; matrix mode uses `data` + `headerRow`. Ever
 | `cell-class-fn` | `(row: GridRow, column: ColumnDef) => string \| string[] \| Record<string, boolean>` | — | Extra classes applied to each data `<td>`. Vue class binding passthrough. |
 | `clipboard-enabled` | `boolean` | `true` | Set `false` to disable Ctrl/Cmd+C/X/V keyboard handlers and the native `@paste` listener. |
 
+### Slots
+
+| Slot | Slot props | Purpose |
+|------|------------|---------|
+| `#toolbar` | none | Toolbar / filter / action bar above the grid. Wrap in `<div class="eg-toolbar">` for consistent flex behavior. |
+| `#empty` | none | Shown inside `<tbody>` when there are zero rows. Not rendered when data is present. |
+| `#status` | `{ error: string \| null }` | Replaces the built-in footer status strip. Ignored when `:status-bar="false"`. |
+
 ### Events
 
 Vue emits — bind with `@event-name` in templates:
