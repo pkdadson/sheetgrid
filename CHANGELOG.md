@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added — `@sheetgrid/vue@0.1.0-alpha.4` additional scoped slots
+
+- `#cell` scoped slot — per-cell display override; payload `{ row, column, value, rowId, error, isSelected }`. Editor still shows on edit.
+- `#header` scoped slot — leaf-header override; payload `{ column, label, direction, priority, sortable, cycleSort }`.
+- `#row` scoped slot — replaces the default `<td>` cells inside each data `<tr>`; payload `{ row, index, columns }`. Wrapper `<tr>` still rendered around slot content.
+- `#loading` slot + `:loading` boolean prop — replaces tbody body when loading (falls back to a plain "Loading…" text if slot omitted). Takes precedence over `#empty`.
+
 ### Added — `@sheetgrid/vue@0.1.0-alpha.3` customization hooks
 
 - `:selection` prop (controlled) + `@selection-change` emit — sync selection state with parent.
@@ -18,7 +25,7 @@
 | Package | Old | New |
 |---------|-----|-----|
 | `@sheetgrid/react` | 0.2.0 | **0.2.1** |
-| `@sheetgrid/vue` | 0.1.0-alpha.1 | **0.1.0-alpha.3** |
+| `@sheetgrid/vue` | 0.1.0-alpha.1 | **0.1.0-alpha.4** |
 | `@sheetgrid/nuxt` | 0.1.0-alpha.1 | **0.1.0-alpha.2** |
 
 Consumers of these upgraded versions will pick up `@sheetgrid/core@0.2.1` (with the M1-M3, L1-L3 security fixes from #13) via pnpm/npm's normal caret resolution.

@@ -353,7 +353,8 @@ tbody tr.eg-data-row:hover .eg-td:not([aria-selected="true"]):not([data-active="
 
 .eg-toolbar { flex: 0 0 auto; }
 
-.eg-empty {
+.eg-empty,
+.eg-loading {
   padding: 32px 16px;
   text-align: center;
   color: var(--eg-text-muted);

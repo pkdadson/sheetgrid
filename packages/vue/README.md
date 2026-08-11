@@ -355,7 +355,7 @@ Set `:clipboard-enabled="false"` to suppress Ctrl/Cmd+C, Ctrl/Cmd+X, Ctrl/Cmd+V,
 
 ## Slots
 
-Three named slots let you compose UI around the grid without wrapping it in another component.
+Named slots let you compose UI around the grid, override cells or headers, or replace the tbody entirely — no wrapper component needed.
 
 ### `#toolbar`
 
@@ -405,6 +405,63 @@ Replaces the built-in status footer. Receives `error: string | null` (the first 
 ```
 
 Set `:status-bar="false"` to disable the footer entirely (slot is ignored in that case).
+
+### `#cell` (scoped)
+
+Overrides the display rendering of every body cell. Editors still show through the editor registry when the cell enters edit mode. Payload: `{ row, column, value, rowId, error, isSelected }`.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns">
+  <template #cell="{ row, column, value }">
+    <span v-if="column.id === 'status'" :class="'badge ' + value">{{ value }}</span>
+    <span v-else>{{ value }}</span>
+  </template>
+</SheetGrid>
+```
+
+For per-column control, use the `cell:` component in the column definition instead; use `#cell` when a single slot can dispatch based on `column.id`.
+
+### `#header` (scoped)
+
+Overrides the leaf-column header content (group-header bands are unaffected). Payload: `{ column, label, direction, priority, sortable, cycleSort }` — call `cycleSort(false)` or `cycleSort(true)` (shift-multi-sort) to advance sort.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns">
+  <template #header="{ column, label, direction, cycleSort }">
+    <button @click="cycleSort(false)">
+      {{ label }} <span v-if="direction === 'asc'">▲</span><span v-else-if="direction === 'desc'">▼</span>
+    </button>
+  </template>
+</SheetGrid>
+```
+
+### `#row` (scoped)
+
+Replaces the default `<td>` cells inside each data `<tr>`. The `<tr>` wrapper (with selection/keyboard handling classes) still renders around your slot — but virtualization spacer `<td>`s do NOT wrap your content. Include a full-width `<td colspan="N">` if you want a single-cell row. Payload: `{ row, index, columns }`.
+
+```vue
+<SheetGrid :rows="rows" :columns="columns">
+  <template #row="{ row, columns }">
+    <td v-for="col in columns" :key="col.id">
+      {{ row.values[col.id] }}
+    </td>
+  </template>
+</SheetGrid>
+```
+
+Use sparingly — you lose default cell selection, editing, click handling, and error chrome. Prefer `#cell` unless you need full row control (e.g., a single "loading row" placeholder).
+
+### `#loading`
+
+Replaces the tbody body with a loading state when `:loading="true"`. Falls back to a plain "Loading…" text if the slot is omitted. Takes precedence over `#empty`.
+
+```vue
+<SheetGrid :loading="isFetching" :rows="rows" :columns="columns">
+  <template #loading>
+    <div class="my-spinner">Fetching rows…</div>
+  </template>
+</SheetGrid>
+```
 
 ---
 

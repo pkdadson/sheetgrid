@@ -92,4 +92,114 @@ describe("SheetGrid slots", () => {
     // slot props signature works with a fresh mount showing the "clean" state.
     // A more thorough test lives in validation.test.ts.
   });
+
+  it("#cell scoped slot overrides default cell rendering", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        rows: [
+          { id: "1", name: "Ada", score: 98 },
+          { id: "2", name: "Grace", score: 99 },
+        ],
+        columns: [
+          { id: "name", header: "Name" },
+          { id: "score", header: "Score" },
+        ],
+      },
+      slots: {
+        cell: (props: {
+          row: { id: string; name: string; score: number };
+          column: { id: string };
+          value: unknown;
+        }) =>
+          h(
+            "span",
+            { class: `cell-${props.column.id}-${props.row.id}` },
+            `[${String(props.value)}]`,
+          ),
+      },
+      attachTo: document.body,
+    });
+    const el = wrapper.element as HTMLElement;
+    expect(el.querySelector(".cell-name-1")?.textContent).toBe("[Ada]");
+    expect(el.querySelector(".cell-score-2")?.textContent).toBe("[99]");
+  });
+
+  it("#header scoped slot overrides default header rendering", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        rows: [{ id: "1", name: "Ada" }],
+        columns: [{ id: "name", header: "Name" }],
+      },
+      slots: {
+        header: (props: { column: { id: string }; label: string }) =>
+          h("span", { class: `hdr-${props.column.id}` }, `<<${props.label}>>`),
+      },
+      attachTo: document.body,
+    });
+    const el = wrapper.element as HTMLElement;
+    expect(el.querySelector(".hdr-name")?.textContent).toBe("<<Name>>");
+  });
+
+  it("#row scoped slot replaces default cell rendering inside <tr>", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        rows: [{ id: "1", name: "Ada", score: 98 }],
+        columns: [
+          { id: "name", header: "Name" },
+          { id: "score", header: "Score" },
+        ],
+      },
+      slots: {
+        row: (props: {
+          row: { id: string; values: Record<string, unknown> };
+          index: number;
+        }) =>
+          h(
+            "td",
+            { class: `custom-row-${props.row.id}`, colspan: 2 },
+            `row#${props.index}: ${String(props.row.values.name)}`,
+          ),
+      },
+      attachTo: document.body,
+    });
+    const el = wrapper.element as HTMLElement;
+    const custom = el.querySelector(".custom-row-1");
+    expect(custom).toBeTruthy();
+    expect(custom?.textContent).toBe("row#0: Ada");
+    // Default cell TDs should NOT be present
+    expect(el.querySelector(".eg-td")).toBeFalsy();
+  });
+
+  it("#loading slot replaces tbody content when :loading is true", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        loading: true,
+        rows: [{ id: "1", name: "Ada" }],
+        columns: [{ id: "name", header: "Name" }],
+      },
+      slots: {
+        loading: '<div class="my-spinner">Fetching…</div>',
+      },
+      attachTo: document.body,
+    });
+    const el = wrapper.element as HTMLElement;
+    expect(el.querySelector(".my-spinner")?.textContent).toBe("Fetching…");
+    // Data row should NOT be rendered
+    expect(el.querySelector('[data-index="1"]')).toBeFalsy();
+  });
+
+  it("default 'Loading…' text when :loading=true but no slot provided", () => {
+    const wrapper = mount(SheetGrid, {
+      props: {
+        loading: true,
+        rows: [{ id: "1", name: "Ada" }],
+        columns: [{ id: "name", header: "Name" }],
+      },
+      attachTo: document.body,
+    });
+    expect(wrapper.text()).toContain("Loading");
+    expect(
+      (wrapper.element as HTMLElement).querySelector(".eg-loading"),
+    ).toBeTruthy();
+  });
 });
