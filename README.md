@@ -44,6 +44,8 @@ pnpm add @sheetgrid/react
 
 Peers: `react`, `react-dom` ≥ 18.2 (React 19 supported).
 
+**Try live in StackBlitz** → [stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/react-vite](https://stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/react-vite) — opens a Vite + React 18 project with `@sheetgrid/react@^0.2.0` from npm, no local install needed.
+
 **Vue 3** (alpha)
 
 ```bash
