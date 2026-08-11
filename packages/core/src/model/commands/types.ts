@@ -79,6 +79,8 @@ export interface InternalStore {
 export interface Command {
   readonly kind: string;
   readonly source: EventSource;
+  /** If 'skip', dispatch will not push the inverse onto the history stack. */
+  readonly history?: "skip";
   apply(internal: InternalStore): CommandResult;
 }
 
