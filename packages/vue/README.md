@@ -15,6 +15,8 @@ pnpm add @sheetgrid/vue@next
 
 > The `@next` tag points at the current pre-release (`0.1.x-alpha`). Drop `@next` once we ship the stable `0.1.0` (until then, `pnpm add @sheetgrid/vue` will fail with "no matching version").
 
+**Try live in StackBlitz** → [stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/vue-vite](https://stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/vue-vite) — no install needed, opens a Vite + Vue 3 project with `@sheetgrid/vue@next` from npm.
+
 ## Quickstart — `<SheetGrid>`
 
 ```vue

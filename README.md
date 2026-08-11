@@ -53,6 +53,8 @@ pnpm add @sheetgrid/vue@next
 
 Peers: `vue` ≥ 3.3. Nuxt 3 users also `pnpm add @sheetgrid/nuxt@next` and add it to `modules` in `nuxt.config.ts`.
 
+**Try live in StackBlitz** → [stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/vue-vite](https://stackblitz.com/github/pkdadson/sheetgrid/tree/main/starters/vue-vite) — opens a Vite + Vue 3 project with `@sheetgrid/vue@next` from npm, no local install needed.
+
 `@sheetgrid/core` and `@sheetgrid/tokens` install as transitive dependencies in both.
 
 ## Quickstart — objects
