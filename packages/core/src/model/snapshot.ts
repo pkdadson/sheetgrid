@@ -8,6 +8,8 @@ export function takeSnapshot(s: FullInternalStore): Snapshot {
     columns: s.getColumnsRef().map((c) => ({ ...c })),
     columnOrder: [...s.getColumnOrderRef()],
     formulas: s.formulas.serialize(),
+    sort: [...s.getSortRef()],
+    filter: s.getFilterRef(),
   };
 }
 
@@ -16,5 +18,7 @@ export function applySnapshot(s: FullInternalStore, snap: Snapshot): void {
   s.setColumns(snap.columns.map((c) => ({ ...c })));
   s.setColumnOrder([...snap.columnOrder]);
   s.formulas.restore(snap.formulas);
+  s.setSort(snap.sort ?? []);
+  s.setFilter(snap.filter ?? null);
   s.notify();
 }

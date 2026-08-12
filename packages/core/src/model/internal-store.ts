@@ -55,6 +55,8 @@ export function createInternalStore(
     ? [...input.columnOrder]
     : columns.map((c) => c.id);
   let errors = new Map<string, CellError>();
+  let sort: import("../types.js").SortSpec[] = [];
+  let filter: import("../types.js").FilterClause | null = null;
   const listeners = new Set<() => void>();
 
   const formulasEnabled = input.formulas === true;
@@ -223,6 +225,14 @@ export function createInternalStore(
         else errors.set(key, err);
         errors = new Map(errors);
       },
+    },
+    getSortRef: () => sort,
+    setSort: (next) => {
+      sort = [...next];
+    },
+    getFilterRef: () => filter,
+    setFilter: (next) => {
+      filter = next;
     },
     subscribe(listener) {
       listeners.add(listener);

@@ -1,8 +1,10 @@
 import type {
   ColumnDef,
   ColumnId,
+  FilterClause,
   GridRow,
   RowId,
+  SortSpec,
 } from "../../types.js";
 
 /**
@@ -35,14 +37,12 @@ export interface Snapshot {
   columnOrder: ColumnId[];
   /** Serialized formula sources: [rowId, columnId, source] triples. */
   formulas: Array<[RowId, ColumnId, string]>;
-  sort?: SnapshotSortEntry[];
-  filter?: unknown; // shape defined in M2
+  sort: SortSpec[];
+  filter: FilterClause | null;
 }
 
-export interface SnapshotSortEntry {
-  columnId: ColumnId;
-  direction: "asc" | "desc";
-}
+/** @deprecated Use SortSpec from core types instead. */
+export type SnapshotSortEntry = SortSpec;
 
 /** Handle passed to Command.apply(). Kept internal — not exported from index.ts. */
 export interface InternalStore {
@@ -74,6 +74,10 @@ export interface InternalStore {
       err: import("../../types.js").CellError | null,
     ): void;
   };
+  getSortRef(): SortSpec[];
+  setSort(next: SortSpec[]): void;
+  getFilterRef(): FilterClause | null;
+  setFilter(next: FilterClause | null): void;
 }
 
 export interface Command {
@@ -158,5 +162,59 @@ export type GridEvent =
       columnId: ColumnId;
       prev: import("../../types.js").CellError | null;
       next: import("../../types.js").CellError | null;
+      source: EventSource;
+    }
+  | {
+      type: "row.added";
+      rowId: RowId;
+      index: number;
+      values: Record<ColumnId, unknown>;
+      source: EventSource;
+    }
+  | {
+      type: "row.removed";
+      rowId: RowId;
+      index: number;
+      values: Record<ColumnId, unknown>;
+      source: EventSource;
+    }
+  | {
+      type: "row.updated";
+      rowId: RowId;
+      patch: Record<ColumnId, unknown>;
+      prev: Record<ColumnId, unknown>;
+      source: EventSource;
+    }
+  | {
+      type: "column.added";
+      columnId: ColumnId;
+      index: number;
+      def: ColumnDef;
+      source: EventSource;
+    }
+  | {
+      type: "column.removed";
+      columnId: ColumnId;
+      index: number;
+      def: ColumnDef;
+      source: EventSource;
+    }
+  | {
+      type: "column.updated";
+      columnId: ColumnId;
+      patch: Partial<ColumnDef>;
+      prev: ColumnDef;
+      source: EventSource;
+    }
+  | {
+      type: "sort.changed";
+      prev: SortSpec[];
+      next: SortSpec[];
+      source: EventSource;
+    }
+  | {
+      type: "filter.changed";
+      prev: FilterClause | null;
+      next: FilterClause | null;
       source: EventSource;
     };
