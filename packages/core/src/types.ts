@@ -82,3 +82,24 @@ export type Comparator = (
   b: unknown,
   ctx: { rowA: GridRow; rowB: GridRow; direction: SortDirection },
 ) => number;
+
+export type FilterOp =
+  | "eq"
+  | "neq"
+  | "lt"
+  | "lte"
+  | "gt"
+  | "gte"
+  | "contains"
+  | "starts_with"
+  | "ends_with"
+  | "in"
+  | "not_in"
+  | "is_null"
+  | "is_not_null";
+
+export type FilterClause =
+  | { column: ColumnId; op: FilterOp; value?: unknown }
+  | { and: FilterClause[] }
+  | { or: FilterClause[] }
+  | { not: FilterClause };

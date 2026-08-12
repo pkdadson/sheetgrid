@@ -26,6 +26,7 @@ export { fromObjects, toObjects } from "./data/from-objects.js";
 export { sortRows } from "./sort/sort-rows.js";
 export { pickDefaultComparator, withNullsLast } from "./sort/comparators.js";
 export type { SortSpec, SortDirection, Comparator } from "./types.js";
+export type { FilterOp, FilterClause } from "./types.js";
 
 export { createGridStore } from "./model/grid-store.js";
 export type {
