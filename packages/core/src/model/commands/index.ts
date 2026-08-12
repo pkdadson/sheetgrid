@@ -11,6 +11,14 @@ export { ClearFormulaCommand } from "./clear-formula.js";
 export { SetErrorCommand } from "./set-error.js";
 export { CompoundCommand } from "./compound.js";
 export { RestoreCommand } from "./restore.js";
+export { AddRowCommand } from "./add-row.js";
+export { UpdateRowCommand } from "./update-row.js";
+export { DeleteRowCommand } from "./delete-row.js";
+export { AddColumnCommand } from "./add-column.js";
+export { UpdateColumnCommand } from "./update-column.js";
+export { DeleteColumnCommand } from "./delete-column.js";
+export { SetSortCommand } from "./set-sort.js";
+export { SetFilterCommand } from "./set-filter.js";
 export type {
   Command,
   CommandResult,

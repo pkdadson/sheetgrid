@@ -144,3 +144,4 @@ export type {
   InternalStore,
 } from "./model/commands/types.js";
 export { takeSnapshot, applySnapshot } from "./model/snapshot.js";
+export { evaluateFilter, filterRowIds } from "./model/filter/evaluate.js";

@@ -25,6 +25,14 @@ import { History } from "./history.js";
 import { createInternalStore } from "./internal-store.js";
 import { takeSnapshot } from "./snapshot.js";
 import { RestoreCommand } from "./commands/restore.js";
+import { AddRowCommand, generateRowId } from "./commands/add-row.js";
+import { UpdateRowCommand } from "./commands/update-row.js";
+import { DeleteRowCommand } from "./commands/delete-row.js";
+import { AddColumnCommand } from "./commands/add-column.js";
+import { UpdateColumnCommand } from "./commands/update-column.js";
+import { DeleteColumnCommand } from "./commands/delete-column.js";
+import { SetSortCommand } from "./commands/set-sort.js";
+import { SetFilterCommand } from "./commands/set-filter.js";
 
 export type FormulaEntryMode = "auto-equals" | "explicit-only";
 
@@ -74,6 +82,31 @@ export interface GridStore {
   setFormula(rowId: RowId, columnId: ColumnId, source: string): boolean;
   clearFormula(rowId: RowId, columnId: ColumnId): void;
   getFormula(rowId: RowId, columnId: ColumnId): { source: string; result: FormulaValue } | null;
+
+  // New in M2.
+  addRow(
+    values: Record<ColumnId, unknown>,
+    opts?: { at?: number | "end"; id?: RowId },
+  ): { ok: boolean; rowId?: RowId; error?: string };
+  updateRow(rowId: RowId, patch: Record<ColumnId, unknown>): { ok: boolean; error?: string };
+  deleteRow(rowId: RowId): { ok: boolean; error?: string };
+  addColumn(
+    def: ColumnDef,
+    opts?: { at?: number | "end" },
+  ): { ok: boolean; error?: string };
+  updateColumn(
+    columnId: ColumnId,
+    patch: Partial<ColumnDef>,
+  ): { ok: boolean; error?: string };
+  deleteColumn(columnId: ColumnId): { ok: boolean; error?: string };
+  setSort(specs: import("../types.js").SortSpec[]): { ok: boolean; error?: string };
+  clearSort(): void;
+  getSort(): import("../types.js").SortSpec[];
+  setFilter(
+    filter: import("../types.js").FilterClause,
+  ): { ok: boolean; error?: string };
+  clearFilter(): void;
+  getFilter(): import("../types.js").FilterClause | null;
 
   /** New in M1 — exposed for the agent controller. */
   __history: History;
@@ -179,6 +212,72 @@ export function createGridStore(input: CreateGridStoreInput): GridStore {
       if (src === null) return null;
       const state = internal.getFormulasMap().get(cellKey(rowId, columnId));
       return state ? { source: state.source, result: state.result } : null;
+    },
+    addRow(values, opts) {
+      const id = opts?.id ?? generateRowId();
+      const res = dispatchAndTrack(
+        new AddRowCommand(values, { ...opts, id }, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true, rowId: id } : { ok: false, error: res.message };
+    },
+    updateRow(rowId, patch) {
+      const res = dispatchAndTrack(
+        new UpdateRowCommand(rowId, patch, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    deleteRow(rowId) {
+      const res = dispatchAndTrack(
+        new DeleteRowCommand(rowId, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    addColumn(def, opts) {
+      const res = dispatchAndTrack(
+        new AddColumnCommand(def, opts ?? {}, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    updateColumn(columnId, patch) {
+      const res = dispatchAndTrack(
+        new UpdateColumnCommand(columnId, patch, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    deleteColumn(columnId) {
+      const res = dispatchAndTrack(
+        new DeleteColumnCommand(columnId, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    setSort(specs) {
+      const res = dispatchAndTrack(new SetSortCommand(specs, sourceFor("api")), "api");
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    clearSort() {
+      dispatchAndTrack(new SetSortCommand([], sourceFor("api")), "api");
+    },
+    getSort() {
+      return [...internal.getSortRef()];
+    },
+    setFilter(filter) {
+      const res = dispatchAndTrack(
+        new SetFilterCommand(filter, sourceFor("api")),
+        "api",
+      );
+      return res.ok ? { ok: true } : { ok: false, error: res.message };
+    },
+    clearFilter() {
+      dispatchAndTrack(new SetFilterCommand(null, sourceFor("api")), "api");
+    },
+    getFilter() {
+      return internal.getFilterRef();
     },
     __history: history,
     __takeSnapshot() {
