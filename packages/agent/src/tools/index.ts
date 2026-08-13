@@ -2,6 +2,7 @@ import type { GridController } from "../types/controller.js";
 import type { OpResult } from "../types/op-result.js";
 import type { JSONSchema } from "./json-schema.js";
 import { buildReadTools } from "./read-tools.js";
+import { buildRowTools } from "./row-tools.js";
 import { buildWriteCellTools } from "./write-cell-tools.js";
 
 export interface ToolDescriptor {
@@ -28,7 +29,8 @@ export function describeGridTools(
   const all: ToolDescriptor[] = [
     ...buildReadTools(controller),
     ...buildWriteCellTools(controller),
-    // rows/cols/view/formula/history in Tasks 6.4–6.6
+    ...buildRowTools(controller),
+    // cols/view/formula/history in Tasks 6.5–6.6
   ];
 
   return applyFilters(all, options);
