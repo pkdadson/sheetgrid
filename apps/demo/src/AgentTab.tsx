@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Grid, useGridController } from "@sheetgrid/react";
-import { describeGridTools } from "@sheetgrid/agent";
+import { useMemo } from "react";
+import { Grid, useGridController, AgentChat } from "@sheetgrid/react";
+import type { SendInput, SendOutput } from "@sheetgrid/agent";
 
 const seedRows = [
   { id: "r1", name: "Ada", age: 36, active: true, note: "" },
@@ -15,82 +15,89 @@ const columns = [
   { id: "note", header: "Note", type: "text" as const, description: "Free-text customer note" },
 ];
 
-export function AgentTab() {
-  const controller = useGridController();
-  const [log, setLog] = useState<string[]>([]);
-  const [command, setCommand] = useState("");
-  const [wired, setWired] = useState(false);
-
-  if (!wired) {
-    controller.on("*", (event) => {
-      setLog((prev) => [...prev.slice(-19), `${new Date().toLocaleTimeString()}  ${event.type}`]);
-    });
-    setWired(true);
+/**
+ * Mock LLM: recognizes a handful of phrases and returns matching tool_use blocks.
+ * Real consumers would replace this with an Anthropic / OpenAI / Vercel AI call.
+ */
+async function mockSend(input: SendInput): Promise<SendOutput> {
+  // If the last message is a tool_result from get_data, summarize.
+  const last = input.messages[input.messages.length - 1];
+  if (last && last.role === "tool") {
+    for (const r of last.content) {
+      const output: any = r.output;
+      if (output.ok && Array.isArray(output.value?.rows)) {
+        const names = output.value.rows.map((row: any) => row.values?.name).filter(Boolean);
+        return {
+          content: [{ type: "text", text: `You have ${names.length} rows: ${names.join(", ")}.` }],
+          stop_reason: "end_turn",
+        };
+      }
+    }
+    return { content: [{ type: "text", text: "done." }], stop_reason: "end_turn" };
   }
 
-  const runCommand = (raw: string) => {
-    const cmd = raw.trim().toLowerCase();
-    if (cmd === "fill") {
-      controller.setCells([
-        { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" },
-        { rowId: "r2", columnId: "note", value: "Follow-up scheduled" },
-        { rowId: "r3", columnId: "note", value: "Retired" },
-      ]);
-    } else if (cmd === "undo") {
-      controller.undo();
-    } else if (cmd === "snapshot") {
-      const snap = controller.snapshot();
-      (window as any).__snap = snap;
-      setLog((prev) => [...prev, `snapshot saved → window.__snap`]);
-    } else if (cmd === "restore") {
-      const snap = (window as any).__snap;
-      if (!snap) {
-        setLog((prev) => [...prev, `no snapshot`]);
-        return;
-      }
-      controller.restore(snap);
-    } else if (cmd === "tools") {
-      const tools = describeGridTools(controller);
-      setLog((prev) => [...prev, `${tools.length} tools available: ${tools.map((t) => t.name).join(", ")}`]);
-    } else {
-      setLog((prev) => [...prev, `unknown: ${raw} (try: fill, undo, snapshot, restore, tools)`]);
-    }
-    setCommand("");
+  const lastUser = [...input.messages].reverse().find((m) => m.role === "user");
+  const text = (lastUser && lastUser.role === "user" ? lastUser.content : "").toLowerCase();
+
+  if (text.includes("fill")) {
+    return {
+      content: [
+        { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" } },
+        { type: "tool_use", id: "t2", name: "grid_set_cell", input: { rowId: "r2", columnId: "note", value: "Follow-up scheduled" } },
+        { type: "tool_use", id: "t3", name: "grid_set_cell", input: { rowId: "r3", columnId: "note", value: "Retired" } },
+      ],
+      stop_reason: "tool_use",
+    };
+  }
+  if (text.includes("undo")) {
+    return {
+      content: [{ type: "tool_use", id: "u", name: "grid_undo", input: {} }],
+      stop_reason: "tool_use",
+    };
+  }
+  if (text.includes("sort by age")) {
+    return {
+      content: [
+        {
+          type: "tool_use", id: "s", name: "grid_set_sort",
+          input: { specs: [{ columnId: "age", direction: text.includes("desc") ? "desc" : "asc" }] },
+        },
+      ],
+      stop_reason: "tool_use",
+    };
+  }
+  if (text.includes("clear sort")) {
+    return { content: [{ type: "tool_use", id: "cs", name: "grid_clear_sort", input: {} }], stop_reason: "tool_use" };
+  }
+  if (text.includes("who")) {
+    return { content: [{ type: "tool_use", id: "g", name: "grid_get_data", input: {} }], stop_reason: "tool_use" };
+  }
+
+  return {
+    content: [{
+      type: "text",
+      text: `I know: "fill notes", "undo", "sort by age" (add "desc"), "clear sort", "who is in the grid".`
+    }],
+    stop_reason: "end_turn",
   };
+}
+
+export function AgentTab() {
+  const controller = useGridController();
+  const send = useMemo(() => mockSend, []);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "600px", gap: "12px" }}>
-      <div style={{ height: 300, border: "1px solid #ccc" }}>
+      <div style={{ height: 300, border: "1px solid var(--sg-border, #e5e7eb)" }}>
         <Grid controller={controller} rows={seedRows} columns={columns} />
       </div>
-      <div style={{ display: "flex", gap: "8px" }}>
-        <input
-          data-testid="agent-input"
-          value={command}
-          onChange={(e) => setCommand(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") runCommand(command);
-          }}
-          placeholder='try: "fill" — "undo" — "snapshot" — "restore" — "tools"'
-          style={{ flex: 1, padding: "6px" }}
+      <div style={{ flex: 1, minHeight: 0, border: "1px solid var(--sg-border, #e5e7eb)", borderRadius: 6 }}>
+        <AgentChat
+          controller={controller}
+          send={send}
+          placeholder='try: "fill notes" — "sort by age desc" — "undo" — "who is in the grid"'
         />
-        <button data-testid="agent-run" onClick={() => runCommand(command)}>
-          Run
-        </button>
       </div>
-      <pre
-        data-testid="agent-log"
-        style={{
-          flex: 1,
-          margin: 0,
-          padding: "8px",
-          background: "#f7f7f7",
-          overflow: "auto",
-          fontSize: 12,
-        }}
-      >
-        {log.join("\n")}
-      </pre>
     </div>
   );
 }
