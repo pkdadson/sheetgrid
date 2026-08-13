@@ -52,3 +52,5 @@ export {
   computePads,
   anchorScrollDelta,
 } from "@sheetgrid/core";
+
+export { useGridController } from "./useGridController.js";
