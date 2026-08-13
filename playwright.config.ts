@@ -35,10 +35,18 @@ export default defineConfig({
       use: { ...devices["Pixel 5"], screenshot: "off" },
     },
   ],
-  webServer: {
-    command: "pnpm --filter demo dev",
-    url: baseURL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: "pnpm --filter demo dev",
+      url: baseURL,
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+    {
+      command: "pnpm --filter demo-vue dev",
+      url: "http://127.0.0.1:5178",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
+  ],
 });
