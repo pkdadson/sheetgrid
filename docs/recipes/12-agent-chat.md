@@ -199,6 +199,119 @@ Differences from Anthropic: `input_schema` → `parameters`; tool_calls are sepa
 
 ---
 
+## Adapter — OpenAI-compatible endpoints (xAI, Groq, DeepSeek, Ollama, LiteLLM, etc.)
+
+The `openai` SDK works against any endpoint that speaks the OpenAI `chat.completions` shape — which is most third-party providers. Same adapter as OpenAI, just override `baseURL`.
+
+```ts
+import OpenAI from "openai";
+import type { SendInput, SendOutput } from "@sheetgrid/agent";
+
+const client = new OpenAI({
+  apiKey: import.meta.env.VITE_LLM_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",   // or xAI, DeepSeek, Ollama, etc.
+  dangerouslyAllowBrowser: true,
+});
+
+export async function mySend(input: SendInput): Promise<SendOutput> {
+  // Body identical to the OpenAI adapter above — just change the model.
+  // Groq: "llama-3.3-70b-versatile"
+  // xAI:  "grok-2-latest"
+  // DeepSeek: "deepseek-chat"
+  // Ollama: "llama3.1:8b"
+  ...
+}
+```
+
+Provider endpoints (double-check current URLs in each provider's docs):
+
+| Provider | baseURL | Typical model |
+|---|---|---|
+| xAI | `https://api.x.ai/v1` | `grok-2-latest` |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.3-70b-versatile` |
+| DeepSeek | `https://api.deepseek.com/v1` | `deepseek-chat` |
+| Together | `https://api.together.xyz/v1` | `meta-llama/Llama-3.3-70B-Instruct-Turbo` |
+| Fireworks | `https://api.fireworks.ai/inference/v1` | `accounts/fireworks/models/llama-v3p3-70b-instruct` |
+| Ollama (local) | `http://localhost:11434/v1` | any pulled model |
+| LM Studio (local) | `http://localhost:1234/v1` | any loaded model |
+| LiteLLM proxy | your proxy URL | any routed model |
+
+Tool-use support varies by provider — verify your chosen model returns `tool_calls` in the response.
+
+---
+
+## Adapter — Google Gemini
+
+```bash
+pnpm add @google/genai
+```
+
+```ts
+import { GoogleGenAI } from "@google/genai";
+import type { SendInput, SendOutput } from "@sheetgrid/agent";
+
+const client = new GoogleGenAI({ apiKey: import.meta.env.VITE_GOOGLE_API_KEY });
+
+export async function mySend(input: SendInput): Promise<SendOutput> {
+  // Convert our neutral messages to Gemini's `contents` shape.
+  const contents: Array<{ role: "user" | "model"; parts: any[] }> = [];
+  for (const m of input.messages) {
+    if (m.role === "user") {
+      contents.push({ role: "user", parts: [{ text: m.content }] });
+    } else if (m.role === "assistant") {
+      const parts: any[] = [];
+      for (const b of m.content) {
+        if (b.type === "text") parts.push({ type: undefined as never, text: b.text });
+        else parts.push({ functionCall: { name: b.name, args: b.input } });
+      }
+      contents.push({ role: "model", parts });
+    } else {
+      const parts = m.content.map((r) => ({
+        functionResponse: { name: "", response: r.output },
+      }));
+      contents.push({ role: "user", parts });
+    }
+  }
+
+  const tools = [{
+    functionDeclarations: input.tools.map((t) => ({
+      name: t.name,
+      description: t.description,
+      parameters: t.input_schema as any,
+    })),
+  }];
+
+  const res = await client.models.generateContent({
+    model: "gemini-2.0-flash",
+    contents,
+    config: { systemInstruction: input.systemPrompt, tools },
+  });
+
+  const content: SendOutput["content"] = [];
+  const parts = res.candidates?.[0]?.content?.parts ?? [];
+  let sawFunctionCall = false;
+  for (const p of parts) {
+    if (typeof p.text === "string" && p.text) content.push({ type: "text", text: p.text });
+    if (p.functionCall) {
+      sawFunctionCall = true;
+      content.push({
+        type: "tool_use",
+        id: `gemini-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: p.functionCall.name ?? "",
+        input: p.functionCall.args ?? {},
+      });
+    }
+  }
+  return { content, stop_reason: sawFunctionCall ? "tool_use" : "end_turn" };
+}
+```
+
+**Gemini caveats:**
+- The SDK doesn't currently expose `AbortSignal` on `generateContent`. Consumer's `cancel()` still marks the loop as idle, but the in-flight HTTP request won't abort.
+- Gemini requires the function name on `functionResponse` parts. Our neutral `tool_result` doesn't carry it. For production use, thread the tool name through by looking up the corresponding `tool_use` in prior messages by `tool_use_id`.
+
+---
+
 ## Adapter — Vercel AI SDK
 
 ```bash
@@ -261,6 +374,30 @@ export async function mySend(input: SendInput): Promise<SendOutput> {
 ```
 
 Vercel AI SDK provides its own model providers (`@ai-sdk/openai`, `@ai-sdk/anthropic`, etc). The `tool()` helper wraps schema + optional executor — we pass a placeholder `execute` because `<AgentChat>`'s own loop handles execution.
+
+**Swap providers by importing a different `@ai-sdk/*`:**
+
+```bash
+pnpm add @ai-sdk/anthropic @ai-sdk/google @ai-sdk/mistral @ai-sdk/xai
+```
+
+```ts
+import { createAnthropic } from "@ai-sdk/anthropic";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { createMistral } from "@ai-sdk/mistral";
+import { createXai } from "@ai-sdk/xai";
+
+// Then pick one based on user config or feature flag:
+const anthropic = createAnthropic({ apiKey })(modelName);
+const google = createGoogleGenerativeAI({ apiKey })(modelName);
+const mistral = createMistral({ apiKey })(modelName);
+const xai = createXai({ apiKey })(modelName);
+
+// Same generateText() call works with any of them:
+const res = await generateText({ model: anthropic, messages, tools, abortSignal });
+```
+
+The demo apps ship a Vercel sub-provider dropdown in the BYOK panel — one Vercel option, five providers under it.
 
 ---
 
