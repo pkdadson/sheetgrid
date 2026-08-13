@@ -29,3 +29,18 @@ export type {
 export { describeGridTools } from "./tools/index.js";
 export type { ToolDescriptor, DescribeToolsOptions } from "./tools/index.js";
 export type { JSONSchema } from "./tools/json-schema.js";
+
+// AgentChat loop (framework-agnostic)
+export { createAgentLoop } from "./loop/create.js";
+export { defaultSystemPrompt } from "./loop/system-prompt.js";
+export type {
+  AgentMessage,
+  ToolCall,
+  AgentError,
+  AgentEvent,
+  AgentState,
+  SendInput,
+  SendOutput,
+  AgentLoopOptions,
+  AgentLoop,
+} from "./loop/types.js";
