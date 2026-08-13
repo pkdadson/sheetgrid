@@ -40,12 +40,14 @@ import {
 } from "@sheetgrid/core";
 import {
   computed,
+  onBeforeUnmount,
   onMounted,
   onScopeDispose,
   ref,
   shallowRef,
   watch,
 } from "vue";
+import type { GridController } from "@sheetgrid/agent";
 import SortHeader from "./SortHeader.vue";
 import { resolveColumnType } from "./cells/registry.js";
 import type { ObjectRow, VueColumnDef } from "./column-types.js";
@@ -96,6 +98,8 @@ export interface SheetGridProps {
   clipboardEnabled?: boolean;
   /** When true, render the `#loading` slot in place of tbody content. */
   loading?: boolean;
+  /** Optional agentic controller. Attach on mount, detach on unmount. */
+  controller?: GridController;
 }
 
 const props = withDefaults(defineProps<SheetGridProps>(), {
@@ -150,6 +154,22 @@ const { store, rows, columns, errors } = useGridStore({
       }
     : undefined,
 });
+
+// --- Controller attach/detach ------------------------------------------------
+
+onMounted(() => {
+  if (props.controller) props.controller.__attach(store);
+});
+onBeforeUnmount(() => {
+  if (props.controller?.isAttached()) props.controller.__detach();
+});
+watch(
+  () => props.controller,
+  (next, prev) => {
+    if (prev?.isAttached()) prev.__detach();
+    if (next) next.__attach(store);
+  },
+);
 
 // Cast columns to VueColumnDef for access to type/cell/editor/editable fields
 const vueColumns = computed(() => columns.value as VueColumnDef[]);

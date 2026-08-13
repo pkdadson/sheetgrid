@@ -23,6 +23,9 @@ importers:
 
   apps/demo:
     dependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@sheetgrid/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -51,6 +54,9 @@ importers:
 
   apps/demo-vue:
     dependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@sheetgrid/vue':
         specifier: workspace:*
         version: link:../../packages/vue
@@ -70,6 +76,21 @@ importers:
       vue-tsc:
         specifier: ^2.1.0
         version: 2.2.12(typescript@5.9.3)
+
+  packages/agent:
+    devDependencies:
+      '@sheetgrid/core':
+        specifier: workspace:*
+        version: link:../core
+      tsup:
+        specifier: ^8.3.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.25)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.6.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.0
+        version: 2.1.9(jsdom@25.0.1)(terser@5.49.2)
 
   packages/core:
     devDependencies:
@@ -114,6 +135,9 @@ importers:
         specifier: workspace:^
         version: link:../tokens
     devDependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../agent
       '@testing-library/react':
         specifier: ^16.0.0
         version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@18.3.7(@types/react@18.3.31))(@types/react@18.3.31)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -156,6 +180,9 @@ importers:
         specifier: workspace:^
         version: link:../tokens
     devDependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../agent
       '@vitejs/plugin-vue':
         specifier: ^5.2.0
         version: 5.2.4(vite@7.3.6(jiti@2.7.0)(terser@5.49.2)(yaml@2.9.0))(vue@3.5.41(typescript@5.9.3))

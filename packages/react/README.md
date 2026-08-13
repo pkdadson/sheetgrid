@@ -80,3 +80,24 @@ Matrix mode:
 ## License
 
 MIT
+
+## Agent controller (optional)
+
+Install `@sheetgrid/agent` to give an in-app agent structured access to the grid:
+
+```tsx
+import { Grid, useGridController } from "@sheetgrid/react";
+
+function App() {
+  const controller = useGridController();
+  return (
+    <Grid
+      controller={controller}
+      rows={rows}
+      columns={columns}
+    />
+  );
+}
+```
+
+The controller exposes `getSchema`, `getData`, `setCell`, `setCells`, `addRow`, `undo`, `snapshot`, and more — see [@sheetgrid/agent README](../agent/README.md).

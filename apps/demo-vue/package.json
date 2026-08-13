@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@sheetgrid/vue": "workspace:*",
+    "@sheetgrid/agent": "workspace:*",
     "vue": "^3.4.0"
   },
   "devDependencies": {

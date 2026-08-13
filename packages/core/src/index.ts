@@ -26,6 +26,7 @@ export { fromObjects, toObjects } from "./data/from-objects.js";
 export { sortRows } from "./sort/sort-rows.js";
 export { pickDefaultComparator, withNullsLast } from "./sort/comparators.js";
 export type { SortSpec, SortDirection, Comparator } from "./types.js";
+export type { FilterOp, FilterClause } from "./types.js";
 
 export { createGridStore } from "./model/grid-store.js";
 export type {
@@ -131,3 +132,16 @@ export {
 
 export { mapKeyToCommand } from "./keyboard/map.js";
 export type { GridCommand, KeyLike } from "./keyboard/map.js";
+
+export { History } from "./model/history.js";
+export type { HistoryEvent, HistoryListener, HistoryOptions } from "./model/history.js";
+export type {
+  Command,
+  CommandResult,
+  EventSource,
+  GridEvent,
+  Snapshot,
+  InternalStore,
+} from "./model/commands/types.js";
+export { takeSnapshot, applySnapshot } from "./model/snapshot.js";
+export { evaluateFilter, filterRowIds } from "./model/filter/evaluate.js";

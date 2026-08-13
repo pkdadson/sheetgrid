@@ -41,3 +41,5 @@ export { default as SelectEditor } from "./editors/SelectEditor.vue";
 
 export { default as SortHeader } from "./SortHeader.vue";
 export type { SortHeaderProps } from "./SortHeader.vue";
+
+export { useGridController } from "./composables/useGridController.js";
