@@ -12,9 +12,9 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
   const statusLabel =
     config.provider === "mock"
       ? "Mock (scripted responses)"
-      : `${config.provider}: ${config.model || "(no model)"} · key ${
-          config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"
-        }`;
+      : config.provider === "openai-compatible"
+        ? `openai-compatible: ${config.model || "(no model)"} @ ${config.baseURL || "(no url)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`
+        : `${config.provider}: ${config.model || "(no model)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`;
 
   if (collapsed) {
     return (
@@ -74,6 +74,8 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
             <option value="mock">Mock (scripted)</option>
             <option value="anthropic">Anthropic</option>
             <option value="openai">OpenAI</option>
+            <option value="openai-compatible">OpenAI-compatible endpoint</option>
+            <option value="gemini">Google Gemini</option>
             <option value="vercel">Vercel AI SDK</option>
           </select>
         </label>
@@ -88,6 +90,18 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
             style={{ padding: "4px 6px", fontSize: 12, flex: 1 }}
           />
         </label>
+        {config.provider === "openai-compatible" && (
+          <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 2 }}>
+            baseURL
+            <input
+              type="text"
+              value={config.baseURL ?? ""}
+              onChange={(e) => onChange({ baseURL: e.target.value })}
+              placeholder="https://api.groq.com/openai/v1"
+              style={{ padding: "4px 6px", fontSize: 12, flex: 1 }}
+            />
+          </label>
+        )}
         <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 2 }}>
           API key
           <input
@@ -118,11 +132,8 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
       {config.provider !== "mock" && (
         <div style={{ fontSize: 11, color: "var(--sg-muted, #6b7280)", lineHeight: 1.4 }}>
           🔒 <strong>Dev testing only.</strong> Your key stays in <code>sessionStorage</code>{" "}
-          and is sent directly from your browser to the provider (
-          {config.provider === "anthropic"
-            ? "Anthropic requires dangerouslyAllowBrowser=true"
-            : "OpenAI/Vercel via dangerouslyAllowBrowser"}
-          ). <strong>Production apps must proxy through a backend</strong> — never ship a key in
+          and is sent directly from your browser to the provider.
+          {" "}<strong>Production apps must proxy through a backend</strong> — never ship a key in
           your bundle.
         </div>
       )}

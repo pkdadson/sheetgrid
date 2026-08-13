@@ -4,19 +4,24 @@ import { mockSend } from "../adapters/mock.js";
 import { makeAnthropicSend } from "../adapters/anthropic.js";
 import { makeOpenAISend } from "../adapters/openai.js";
 import { makeVercelAISend } from "../adapters/vercel.js";
+import { makeGeminiSend } from "../adapters/gemini.js";
+import { makeOpenAICompatibleSend } from "../adapters/openai-compatible.js";
 
-export type ProviderId = "mock" | "anthropic" | "openai" | "vercel";
+export type ProviderId = "mock" | "anthropic" | "openai" | "openai-compatible" | "gemini" | "vercel";
 
 export interface ProviderConfig {
   provider: ProviderId;
   apiKey: string;
   model: string;
+  baseURL?: string;
 }
 
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
   mock: "",
   anthropic: "claude-opus-4-7",
   openai: "gpt-4o",
+  "openai-compatible": "gpt-4o",
+  gemini: "gemini-2.0-flash",
   vercel: "gpt-4o",
 };
 
@@ -31,6 +36,7 @@ function readConfig(): ProviderConfig {
       provider: (parsed.provider ?? "mock") as ProviderId,
       apiKey: String(parsed.apiKey ?? ""),
       model: String(parsed.model ?? DEFAULT_MODELS[parsed.provider ?? "mock"] ?? ""),
+      baseURL: parsed.baseURL ? String(parsed.baseURL) : undefined,
     };
   } catch {
     return { provider: "mock", apiKey: "", model: "" };
@@ -84,6 +90,22 @@ export function useProviderSend() {
     }
     if (c.provider === "vercel") {
       return makeVercelAISend({ apiKey: c.apiKey, model: c.model });
+    }
+    if (c.provider === "openai-compatible") {
+      if (!c.baseURL) {
+        return async (): Promise<SendOutput> => ({
+          content: [{ type: "text", text: "Missing baseURL for openai-compatible provider (e.g. https://api.groq.com/openai/v1). Fill it in above." }],
+          stop_reason: "end_turn",
+        });
+      }
+      return makeOpenAICompatibleSend({
+        apiKey: c.apiKey,
+        model: c.model,
+        baseURL: c.baseURL,
+      });
+    }
+    if (c.provider === "gemini") {
+      return makeGeminiSend({ apiKey: c.apiKey, model: c.model });
     }
     return mockSend;
   });

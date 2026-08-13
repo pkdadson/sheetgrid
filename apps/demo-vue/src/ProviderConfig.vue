@@ -14,6 +14,11 @@ const collapsed = ref<boolean>(true);
 
 const statusLabel = computed(() => {
   if (props.config.provider === "mock") return "Mock (scripted responses)";
+  if (props.config.provider === "openai-compatible") {
+    const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
+    const url = props.config.baseURL || "(no url)";
+    return `openai-compatible: ${props.config.model || "(no model)"} @ ${url} · key ${key}`;
+  }
   const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
   return `${props.config.provider}: ${props.config.model || "(no model)"} · key ${key}`;
 });
@@ -26,6 +31,9 @@ function onModelChange(e: Event) {
 }
 function onKeyChange(e: Event) {
   emit("change", { apiKey: (e.target as HTMLInputElement).value });
+}
+function onBaseURLChange(e: Event) {
+  emit("change", { baseURL: (e.target as HTMLInputElement).value });
 }
 </script>
 
@@ -45,6 +53,8 @@ function onKeyChange(e: Event) {
           <option value="mock">Mock (scripted)</option>
           <option value="anthropic">Anthropic</option>
           <option value="openai">OpenAI</option>
+          <option value="openai-compatible">OpenAI-compatible endpoint</option>
+          <option value="gemini">Google Gemini</option>
           <option value="vercel">Vercel AI SDK</option>
         </select>
       </label>
@@ -56,6 +66,15 @@ function onKeyChange(e: Event) {
           @input="onModelChange"
           :placeholder="config.provider === 'mock' ? '(unused)' : 'model name'"
           :disabled="config.provider === 'mock'"
+        />
+      </label>
+      <label v-if="config.provider === 'openai-compatible'" class="sg-provider-strip__field sg-provider-strip__field--grow-2">
+        baseURL
+        <input
+          type="text"
+          :value="config.baseURL ?? ''"
+          @input="onBaseURLChange"
+          placeholder="https://api.groq.com/openai/v1"
         />
       </label>
       <label class="sg-provider-strip__field sg-provider-strip__field--grow-2">
@@ -75,9 +94,8 @@ function onKeyChange(e: Event) {
     </div>
     <div v-if="config.provider !== 'mock'" class="sg-provider-strip__notice">
       🔒 <strong>Dev testing only.</strong> Your key stays in <code>sessionStorage</code>
-      and is sent directly from your browser to the provider (using
-      <code>dangerouslyAllowBrowser</code>). <strong>Production apps must proxy through a
-      backend</strong> — never ship a key in your bundle.
+      and is sent directly from your browser to the provider.
+      <strong>Production apps must proxy through a backend</strong> — never ship a key in your bundle.
     </div>
   </div>
 </template>
