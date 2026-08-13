@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { SheetGrid, useGridController } from "@sheetgrid/vue";
-import { describeGridTools } from "@sheetgrid/agent";
+import { SheetGrid, useGridController, AgentChat } from "@sheetgrid/vue";
+import type { SendInput, SendOutput } from "@sheetgrid/agent";
 
 const controller = useGridController();
-const log = ref<string[]>([]);
-const command = ref("");
 const rows = ref([
   { id: "r1", name: "Ada", age: 36, active: true, note: "" },
   { id: "r2", name: "Grace", age: 40, active: false, note: "" },
@@ -18,58 +16,74 @@ const columns = ref([
   { id: "note", header: "Note", type: "text" as const, description: "Free-text customer note" },
 ]);
 
-controller.on("*", (event) => {
-  log.value = [...log.value.slice(-19), `${new Date().toLocaleTimeString()}  ${event.type}`];
-});
-
-function runCommand(raw: string) {
-  const cmd = raw.trim().toLowerCase();
-  if (cmd === "fill") {
-    controller.setCells([
-      { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" },
-      { rowId: "r2", columnId: "note", value: "Follow-up scheduled" },
-      { rowId: "r3", columnId: "note", value: "Retired" },
-    ]);
-  } else if (cmd === "undo") {
-    controller.undo();
-  } else if (cmd === "snapshot") {
-    (window as any).__snap = controller.snapshot();
-    log.value = [...log.value, "snapshot saved → window.__snap"];
-  } else if (cmd === "restore") {
-    const snap = (window as any).__snap;
-    if (!snap) {
-      log.value = [...log.value, "no snapshot"];
-      return;
+async function mockSend(input: SendInput): Promise<SendOutput> {
+  const last = input.messages[input.messages.length - 1];
+  if (last && last.role === "tool") {
+    for (const r of last.content) {
+      const output: any = r.output;
+      if (output.ok && Array.isArray(output.value?.rows)) {
+        const names = output.value.rows.map((row: any) => row.values?.name).filter(Boolean);
+        return {
+          content: [{ type: "text", text: `You have ${names.length} rows: ${names.join(", ")}.` }],
+          stop_reason: "end_turn",
+        };
+      }
     }
-    controller.restore(snap);
-  } else if (cmd === "tools") {
-    const tools = describeGridTools(controller);
-    log.value = [...log.value, `${tools.length} tools: ${tools.map((t) => t.name).join(", ")}`];
-  } else {
-    log.value = [...log.value, `unknown: ${raw} (try: fill, undo, snapshot, restore, tools)`];
+    return { content: [{ type: "text", text: "done." }], stop_reason: "end_turn" };
   }
-  command.value = "";
+
+  const lastUser = [...input.messages].reverse().find((m) => m.role === "user");
+  const text = (lastUser && lastUser.role === "user" ? lastUser.content : "").toLowerCase();
+
+  if (text.includes("fill")) {
+    return {
+      content: [
+        { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" } },
+        { type: "tool_use", id: "t2", name: "grid_set_cell", input: { rowId: "r2", columnId: "note", value: "Follow-up scheduled" } },
+        { type: "tool_use", id: "t3", name: "grid_set_cell", input: { rowId: "r3", columnId: "note", value: "Retired" } },
+      ],
+      stop_reason: "tool_use",
+    };
+  }
+  if (text.includes("undo")) {
+    return { content: [{ type: "tool_use", id: "u", name: "grid_undo", input: {} }], stop_reason: "tool_use" };
+  }
+  if (text.includes("sort by age")) {
+    return {
+      content: [
+        {
+          type: "tool_use", id: "s", name: "grid_set_sort",
+          input: { specs: [{ columnId: "age", direction: text.includes("desc") ? "desc" : "asc" }] },
+        },
+      ],
+      stop_reason: "tool_use",
+    };
+  }
+  if (text.includes("clear sort")) {
+    return { content: [{ type: "tool_use", id: "cs", name: "grid_clear_sort", input: {} }], stop_reason: "tool_use" };
+  }
+  if (text.includes("who")) {
+    return { content: [{ type: "tool_use", id: "g", name: "grid_get_data", input: {} }], stop_reason: "tool_use" };
+  }
+
+  return {
+    content: [{ type: "text", text: `I know: "fill notes", "undo", "sort by age" (add "desc"), "clear sort", "who is in the grid".` }],
+    stop_reason: "end_turn",
+  };
 }
 </script>
 
 <template>
   <div style="display: flex; flex-direction: column; height: 600px; gap: 12px">
-    <div style="height: 300px; border: 1px solid #ccc">
+    <div style="height: 300px; border: 1px solid var(--sg-border, #e5e7eb)">
       <SheetGrid :controller="controller" :rows="rows" :columns="columns" />
     </div>
-    <div style="display: flex; gap: 8px">
-      <input
-        data-testid="agent-input"
-        v-model="command"
-        @keydown.enter="runCommand(command)"
-        placeholder='try: "fill" — "undo" — "snapshot" — "restore" — "tools"'
-        style="flex: 1; padding: 6px"
+    <div style="flex: 1; min-height: 0; border: 1px solid var(--sg-border, #e5e7eb); border-radius: 6px">
+      <AgentChat
+        :controller="controller"
+        :send="mockSend"
+        placeholder='try: &quot;fill notes&quot; — &quot;sort by age desc&quot; — &quot;undo&quot; — &quot;who is in the grid&quot;'
       />
-      <button data-testid="agent-run" @click="runCommand(command)">Run</button>
     </div>
-    <pre
-      data-testid="agent-log"
-      style="flex: 1; margin: 0; padding: 8px; background: #f7f7f7; overflow: auto; font-size: 12px"
-    >{{ log.join("\n") }}</pre>
   </div>
 </template>
