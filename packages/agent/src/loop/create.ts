@@ -136,6 +136,36 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
         for (const use of toolUses) {
           const call = { id: use.id, name: use.name, input: use.input };
           emit({ type: "tool.called", call });
+
+          // Interceptor: onBeforeTool.
+          if (opts.onBeforeTool) {
+            let allowed = false;
+            let denyReason = "denied by onBeforeTool";
+            try {
+              const decision = await opts.onBeforeTool(call);
+              allowed = decision !== false;
+              if (!allowed) denyReason = "denied by onBeforeTool";
+            } catch (err) {
+              allowed = false;
+              denyReason = err instanceof Error ? err.message : String(err);
+            }
+            if (!allowed) {
+              const denyResult = {
+                ok: false as const,
+                code: "read_only" as const,
+                message: denyReason,
+              };
+              toolResults.push({
+                type: "tool_result" as const,
+                tool_use_id: use.id,
+                output: denyResult,
+              });
+              emit({ type: "tool.denied", call, reason: denyReason });
+              continue;
+            }
+          }
+
+          // Execute.
           const tool = tools.find((t) => t.name === call.name);
           let result;
           if (!tool) {
@@ -160,6 +190,16 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
             tool_use_id: use.id,
             output: result,
           });
+
+          // Interceptor: onAfterTool.
+          if (opts.onAfterTool) {
+            try {
+              await opts.onAfterTool(call, result);
+            } catch (err) {
+              console.error("AgentLoop: onAfterTool threw", err);
+            }
+          }
+
           emit({ type: "tool.result", call, result });
         }
 
