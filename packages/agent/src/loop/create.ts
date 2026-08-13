@@ -90,27 +90,95 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
 
     setThinking(true);
     currentAbort = new AbortController();
-    try {
-      const schema = opts.controller.getSchema();
-      const systemPrompt = promptFn(schema);
-      const tools = describeGridTools(opts.controller, opts.toolFilter);
-      const output = await opts.send({
-        messages,
-        tools,
-        signal: currentAbort.signal,
-        systemPrompt,
-      });
+    const maxIter = opts.maxIterations ?? DEFAULT_MAX_ITERATIONS;
 
-      // Text-only path — Task 4 extends this with tool_use handling.
-      const textBlocks = output.content.filter((b) => b.type === "text");
-      if (textBlocks.length > 0) {
+    try {
+      for (let iter = 0; iter < maxIter; iter++) {
+        const schema = opts.controller.getSchema();
+        const systemPrompt = promptFn(schema);
+        const tools = describeGridTools(opts.controller, opts.toolFilter);
+        const output = await opts.send({
+          messages,
+          tools,
+          signal: currentAbort.signal,
+          systemPrompt,
+        });
+
+        // Append any assistant content (text + tool_use blocks) as one message.
+        const assistantContent = output.content.map((b) => {
+          if (b.type === "text") return { type: "text" as const, text: b.text };
+          return {
+            type: "tool_use" as const,
+            id: b.id,
+            name: b.name,
+            input: b.input,
+          };
+        });
+        if (assistantContent.length > 0) {
+          addMessage({
+            id: nextId("m"),
+            role: "assistant",
+            content: assistantContent,
+          });
+        }
+
+        // Collect tool_use blocks; execute in declaration order.
+        const toolUses = output.content.filter(
+          (b): b is Extract<typeof b, { type: "tool_use" }> => b.type === "tool_use",
+        );
+
+        if (toolUses.length === 0 || output.stop_reason !== "tool_use") {
+          emit({ type: "done" });
+          return;
+        }
+
+        const toolResults = [];
+        for (const use of toolUses) {
+          const call = { id: use.id, name: use.name, input: use.input };
+          emit({ type: "tool.called", call });
+          const tool = tools.find((t) => t.name === call.name);
+          let result;
+          if (!tool) {
+            result = {
+              ok: false as const,
+              code: "not_found" as const,
+              message: `unknown tool "${call.name}"`,
+            };
+          } else {
+            try {
+              result = await tool.execute(call.input);
+            } catch (err) {
+              result = {
+                ok: false as const,
+                code: "internal" as const,
+                message: err instanceof Error ? err.message : String(err),
+              };
+            }
+          }
+          toolResults.push({
+            type: "tool_result" as const,
+            tool_use_id: use.id,
+            output: result,
+          });
+          emit({ type: "tool.result", call, result });
+        }
+
         addMessage({
           id: nextId("m"),
-          role: "assistant",
-          content: textBlocks.map((b) => ({ type: "text", text: b.type === "text" ? b.text : "" })),
+          role: "tool",
+          content: toolResults,
         });
+        // Loop back — the assistant sees the tool_results and continues.
       }
-      emit({ type: "done" });
+
+      // Iteration cap exceeded.
+      const wrapped = {
+        code: "loop_limit" as const,
+        message: `agent loop exceeded ${maxIter} iterations`,
+      };
+      opts.onError?.(wrapped);
+      setError(wrapped);
+      emit({ type: "error", error: wrapped });
     } catch (err) {
       const wrapped = {
         code: "llm_error" as const,
