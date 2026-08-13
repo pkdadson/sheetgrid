@@ -9,15 +9,19 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@sheetgrid/react": "workspace:*",
     "@sheetgrid/agent": "workspace:*",
+    "@sheetgrid/react": "workspace:*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"
   },
   "devDependencies": {
-    "@google/genai": "^1.0.0",
+    "@ai-sdk/anthropic": "^4.0.0",
+    "@ai-sdk/google": "^4.0.0",
+    "@ai-sdk/mistral": "^4.0.0",
     "@ai-sdk/openai": "^4.0.0",
+    "@ai-sdk/xai": "^4.0.0",
     "@anthropic-ai/sdk": "^0.32.0",
+    "@google/genai": "^1.0.0",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",

@@ -1,30 +1,53 @@
 import type { SendInput, SendOutput } from "@sheetgrid/agent";
 
-export function makeVercelAISend(opts: { apiKey: string; model: string }) {
-  return async (input: SendInput): Promise<SendOutput> => {
-    const [{ generateText, tool }, { createOpenAI }] = await Promise.all([
-      import("ai"),
-      import("@ai-sdk/openai"),
-    ]);
+export type VercelSubProvider = "openai" | "anthropic" | "google" | "mistral" | "xai";
 
-    const openai = createOpenAI({ apiKey: opts.apiKey });
+/**
+ * Vercel AI SDK adapter with sub-provider selection. Dynamically imports
+ * @ai-sdk/{provider} so only the picked provider's code ends up in the bundle.
+ */
+export function makeVercelAISend(opts: {
+  apiKey: string;
+  model: string;
+  subProvider: VercelSubProvider;
+}) {
+  return async (input: SendInput): Promise<SendOutput> => {
+    const { generateText, tool } = await import("ai");
+
+    // Dynamic import per sub-provider.
+    let model: any;
+    if (opts.subProvider === "openai") {
+      const { createOpenAI } = await import("@ai-sdk/openai");
+      model = createOpenAI({ apiKey: opts.apiKey })(opts.model);
+    } else if (opts.subProvider === "anthropic") {
+      const { createAnthropic } = await import("@ai-sdk/anthropic");
+      model = createAnthropic({ apiKey: opts.apiKey })(opts.model);
+    } else if (opts.subProvider === "google") {
+      const { createGoogleGenerativeAI } = await import("@ai-sdk/google");
+      model = createGoogleGenerativeAI({ apiKey: opts.apiKey })(opts.model);
+    } else if (opts.subProvider === "mistral") {
+      const { createMistral } = await import("@ai-sdk/mistral");
+      model = createMistral({ apiKey: opts.apiKey })(opts.model);
+    } else if (opts.subProvider === "xai") {
+      const { createXai } = await import("@ai-sdk/xai");
+      model = createXai({ apiKey: opts.apiKey })(opts.model);
+    } else {
+      throw new Error(`Unknown Vercel sub-provider: ${opts.subProvider}`);
+    }
 
     // Build Vercel tools map from our descriptors.
     const tools: Record<string, unknown> = {};
     for (const t of input.tools) {
       tools[t.name] = tool({
         description: t.description,
-        // Vercel prefers Zod schemas; JSON Schema pass-through requires their
-        // `jsonSchema` helper if available. For a dev-mode demo, cast through any.
         parameters: t.input_schema as any,
         execute: async () => {
-          // Not used here — our loop executes tools, not the SDK.
-          throw new Error("unreachable");
+          throw new Error("unreachable — loop owns execution");
         },
       });
     }
 
-    // Convert messages to Vercel format (mirrors OpenAI's shape).
+    // Convert messages to Vercel's shape.
     const messages: any[] = [
       { role: "system", content: input.systemPrompt },
     ];
@@ -51,7 +74,7 @@ export function makeVercelAISend(opts: { apiKey: string; model: string }) {
     }
 
     const res = await generateText({
-      model: openai(opts.model),
+      model,
       messages: messages as any,
       tools: tools as any,
       abortSignal: input.signal,

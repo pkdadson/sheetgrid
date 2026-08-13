@@ -4,16 +4,19 @@ import { mockSend } from "./adapters/mock.js";
 import { makeAnthropicSend } from "./adapters/anthropic.js";
 import { makeOpenAISend } from "./adapters/openai.js";
 import { makeVercelAISend } from "./adapters/vercel.js";
+import type { VercelSubProvider } from "./adapters/vercel.js";
 import { makeGeminiSend } from "./adapters/gemini.js";
 import { makeOpenAICompatibleSend } from "./adapters/openai-compatible.js";
 
 export type ProviderId = "mock" | "anthropic" | "openai" | "openai-compatible" | "gemini" | "vercel";
+export type { VercelSubProvider };
 
 export interface ProviderConfig {
   provider: ProviderId;
   apiKey: string;
   model: string;
   baseURL?: string;
+  vercelSubProvider?: VercelSubProvider;
 }
 
 const DEFAULT_MODELS: Record<ProviderId, string> = {
@@ -23,6 +26,14 @@ const DEFAULT_MODELS: Record<ProviderId, string> = {
   "openai-compatible": "gpt-4o",
   gemini: "gemini-2.0-flash",
   vercel: "gpt-4o",
+};
+
+export const DEFAULT_VERCEL_MODELS: Record<VercelSubProvider, string> = {
+  openai: "gpt-4o",
+  anthropic: "claude-opus-4-7",
+  google: "gemini-2.0-flash",
+  mistral: "mistral-large-latest",
+  xai: "grok-2-latest",
 };
 
 const STORAGE_KEY = "sheetgrid-demo-provider-config";
@@ -37,6 +48,7 @@ function readConfig(): ProviderConfig {
       apiKey: String(parsed.apiKey ?? ""),
       model: String(parsed.model ?? DEFAULT_MODELS[parsed.provider ?? "mock"] ?? ""),
       baseURL: parsed.baseURL ? String(parsed.baseURL) : undefined,
+      vercelSubProvider: parsed.vercelSubProvider as VercelSubProvider | undefined,
     };
   } catch {
     return { provider: "mock", apiKey: "", model: "" };
@@ -65,6 +77,20 @@ export function useProviderSend() {
       ) {
         merged.model = DEFAULT_MODELS[merged.provider];
       }
+      // Default vercelSubProvider when switching to vercel.
+      if (next.provider === "vercel" && !merged.vercelSubProvider) {
+        merged.vercelSubProvider = "openai";
+        if (!merged.model) merged.model = DEFAULT_VERCEL_MODELS.openai;
+      }
+      // Auto-fill model when vercel + sub-provider changes.
+      if (
+        (next.provider === "vercel" && merged.vercelSubProvider) ||
+        (next.vercelSubProvider !== undefined && merged.provider === "vercel")
+      ) {
+        const sub = merged.vercelSubProvider ?? "openai";
+        const currentIsDefault = merged.model === "" || Object.values(DEFAULT_VERCEL_MODELS).includes(merged.model);
+        if (currentIsDefault) merged.model = DEFAULT_VERCEL_MODELS[sub];
+      }
       writeConfig(merged);
       return merged;
     });
@@ -91,7 +117,11 @@ export function useProviderSend() {
       return makeOpenAISend({ apiKey: config.apiKey, model: config.model });
     }
     if (config.provider === "vercel") {
-      return makeVercelAISend({ apiKey: config.apiKey, model: config.model });
+      return makeVercelAISend({
+        apiKey: config.apiKey,
+        model: config.model,
+        subProvider: config.vercelSubProvider ?? "openai",
+      });
     }
     if (config.provider === "openai-compatible") {
       if (!config.baseURL) {
@@ -110,7 +140,7 @@ export function useProviderSend() {
       return makeGeminiSend({ apiKey: config.apiKey, model: config.model });
     }
     return mockSend;
-  }, [config.provider, config.apiKey, config.model, config.baseURL]);
+  }, [config.provider, config.apiKey, config.model, config.baseURL, config.vercelSubProvider]);
 
   return { config, setConfig, send };
 }

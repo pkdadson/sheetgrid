@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ProviderConfig, ProviderId } from "./useProviderSend.js";
+import type { ProviderConfig, ProviderId, VercelSubProvider } from "./useProviderSend.js";
 
 interface ProviderConfigProps {
   config: ProviderConfig;
@@ -14,7 +14,9 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
       ? "Mock (scripted responses)"
       : config.provider === "openai-compatible"
         ? `openai-compatible: ${config.model || "(no model)"} @ ${config.baseURL || "(no url)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`
-        : `${config.provider}: ${config.model || "(no model)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`;
+        : config.provider === "vercel"
+          ? `vercel (${config.vercelSubProvider ?? "openai"}): ${config.model || "(no model)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`
+          : `${config.provider}: ${config.model || "(no model)"} · key ${config.apiKey ? `••••${config.apiKey.slice(-4)}` : "missing"}`;
 
   if (collapsed) {
     return (
@@ -90,6 +92,22 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
             style={{ padding: "4px 6px", fontSize: 12, flex: 1 }}
           />
         </label>
+        {config.provider === "vercel" && (
+          <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+            Sub-provider
+            <select
+              value={config.vercelSubProvider ?? "openai"}
+              onChange={(e) => onChange({ vercelSubProvider: e.target.value as VercelSubProvider })}
+              style={{ padding: "4px 6px", fontSize: 12 }}
+            >
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+              <option value="google">Google</option>
+              <option value="mistral">Mistral</option>
+              <option value="xai">xAI</option>
+            </select>
+          </label>
+        )}
         {config.provider === "openai-compatible" && (
           <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 2 }}>
             baseURL

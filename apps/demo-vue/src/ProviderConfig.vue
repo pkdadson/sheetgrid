@@ -19,6 +19,10 @@ const statusLabel = computed(() => {
     const url = props.config.baseURL || "(no url)";
     return `openai-compatible: ${props.config.model || "(no model)"} @ ${url} · key ${key}`;
   }
+  if (props.config.provider === "vercel") {
+    const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
+    return `vercel (${props.config.vercelSubProvider ?? "openai"}): ${props.config.model || "(no model)"} · key ${key}`;
+  }
   const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
   return `${props.config.provider}: ${props.config.model || "(no model)"} · key ${key}`;
 });
@@ -67,6 +71,19 @@ function onBaseURLChange(e: Event) {
           :placeholder="config.provider === 'mock' ? '(unused)' : 'model name'"
           :disabled="config.provider === 'mock'"
         />
+      </label>
+      <label v-if="config.provider === 'vercel'" class="sg-provider-strip__field">
+        Sub-provider
+        <select
+          :value="config.vercelSubProvider ?? 'openai'"
+          @change="(e) => emit('change', { vercelSubProvider: (e.target as HTMLSelectElement).value as any })"
+        >
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="google">Google</option>
+          <option value="mistral">Mistral</option>
+          <option value="xai">xAI</option>
+        </select>
       </label>
       <label v-if="config.provider === 'openai-compatible'" class="sg-provider-strip__field sg-provider-strip__field--grow-2">
         baseURL
