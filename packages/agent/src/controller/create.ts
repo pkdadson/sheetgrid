@@ -6,6 +6,10 @@ import type {
   RowId,
   SortSpec,
 } from "@sheetgrid/core";
+import {
+  CompoundCommand,
+  SetCellCommand,
+} from "@sheetgrid/core/commands";
 import { fail, ok, type OpResult } from "../types/op-result.js";
 import type {
   GridController,
@@ -23,6 +27,8 @@ import { createEventBus } from "./event-bus.js";
 import { createSelectionState } from "./selection-state.js";
 import { buildSchema } from "./schema.js";
 import { doGetData, doGetCell, doQueryRows, doDescribe } from "./reads.js";
+import { createDispatcher } from "./dispatch.js";
+import { agentSource } from "./write-source.js";
 
 export interface CreateGridControllerOptions {
   readOnly?: boolean;
@@ -106,6 +112,17 @@ export function createGridController(
     return fail("unsupported", `${label} is not implemented until M5`);
   };
 
+  const dispatch = createDispatcher({
+    getStore: requireStore,
+    bus,
+    notify,
+    auth: (op) => {
+      const s = requireStore();
+      if (!s) return fail("detached", "detached");
+      return runAuthCheck(op, s.getColumns(), opts);
+    },
+  });
+
   const controller: GridController = {
     // ── Reads ──
     getSchema(): GridSchema {
@@ -148,14 +165,64 @@ export function createGridController(
 
     // ── Writes (M5) ──
     setCell(rowId, columnId, value) {
-      const auth = authOrFail({ type: "grid.set_cell", rowId, columnId, value });
-      if (!auth.ok) return auth;
-      return unsupported("setCell");
+      const op: AgentOp = { type: "grid.set_cell", rowId, columnId, value };
+      const s = requireStore();
+      if (!s) return fail("detached", "detached");
+      const col = s.getColumns().find((c) => c.id === columnId);
+      if (col?.validate) {
+        const rows = s.getRows();
+        const row = rows.find((r) => r.id === rowId) ?? { id: rowId, values: {} };
+        const r = col.validate(value, { rowId, columnId, row, rows });
+        if (r instanceof Promise) {
+          return fail(
+            "invalid_argument",
+            `column "${columnId}" has an async validator; run validation upstream before controller.setCell`,
+          );
+        }
+        if (!r.ok) return fail("validation_failed", r.message, { code: r.code });
+      }
+      return dispatch(op, new SetCellCommand(rowId, columnId, value, agentSource(op)));
     },
     setCells(patches) {
-      const auth = authOrFail({ type: "grid.set_cells", patches });
+      const op: AgentOp = { type: "grid.set_cells", patches };
+      const auth = authOrFail(op);
       if (!auth.ok) return auth as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
-      return unsupported("setCells") as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
+      const s = requireStore();
+      if (!s) return fail("detached", "detached") as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
+      const rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> = [];
+      const commands: SetCellCommand[] = [];
+      let applied = 0;
+      for (const p of patches) {
+        const col = s.getColumns().find((c) => c.id === p.columnId);
+        if (!col) {
+          rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "not_found", message: `column "${p.columnId}"` });
+          continue;
+        }
+        const row = s.getRows().find((r) => r.id === p.rowId);
+        if (!row) {
+          rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "not_found", message: `row "${p.rowId}"` });
+          continue;
+        }
+        if (col.validate) {
+          const r = col.validate(p.value, { rowId: p.rowId, columnId: p.columnId, row, rows: s.getRows() });
+          if (r instanceof Promise) {
+            rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "invalid_argument", message: "async validators not supported on controller writes" });
+            continue;
+          }
+          if (!r.ok) {
+            rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "validation_failed", message: r.message });
+            continue;
+          }
+        }
+        commands.push(new SetCellCommand(p.rowId, p.columnId, p.value, agentSource(op)));
+        applied++;
+      }
+      if (commands.length > 0) {
+        const compound = new CompoundCommand(commands, agentSource(op));
+        const dres = dispatch(op, compound);
+        if (!dres.ok) return dres as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
+      }
+      return { ok: true, value: { applied, rejected } };
     },
     addRow(values, ropts) {
       const auth = authOrFail({ type: "grid.add_row", values, opts: ropts });
