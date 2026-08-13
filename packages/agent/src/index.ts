@@ -24,3 +24,8 @@ export type {
   GridSchema,
   Unsubscribe,
 } from "./types/controller.js";
+
+// Tools / describe API
+export { describeGridTools } from "./tools/index.js";
+export type { ToolDescriptor, DescribeToolsOptions } from "./tools/index.js";
+export type { JSONSchema } from "./tools/json-schema.js";
