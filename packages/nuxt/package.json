@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/nuxt",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.5",
   "description": "Nuxt 3 module for @sheetgrid/vue — auto-imports composables and registers <SheetGrid> globally.",
   "license": "MIT",
   "type": "module",
