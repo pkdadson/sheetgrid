@@ -43,3 +43,7 @@ export { default as SortHeader } from "./SortHeader.vue";
 export type { SortHeaderProps } from "./SortHeader.vue";
 
 export { useGridController } from "./composables/useGridController.js";
+
+export { useAgent } from "./composables/useAgent.js";
+export type { UseAgentResult } from "./composables/useAgent.js";
+export { default as AgentChat } from "./AgentChat.vue";
