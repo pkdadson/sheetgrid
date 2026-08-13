@@ -15,6 +15,7 @@ import {
   DeleteRowCommand,
   MoveColumnCommand,
   MoveRowCommand,
+  RestoreCommand,
   SetCellCommand,
   SetFilterCommand,
   SetFormulaCommand,
@@ -375,10 +376,9 @@ export function createGridController(
       }
       return s.__takeSnapshot();
     },
-    restore(_snap) {
-      const auth = authOrFail({ type: "grid.restore", snapshot: _snap });
-      if (!auth.ok) return auth;
-      return unsupported("restore");
+    restore(snap) {
+      const op: AgentOp = { type: "grid.restore", snapshot: snap };
+      return dispatch(op, new RestoreCommand(snap, agentSource(op)));
     },
 
     // ── Events ──
