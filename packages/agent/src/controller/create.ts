@@ -111,6 +111,26 @@ export function createGridController(
     }
   });
 
+  // Forward core-history events onto the controller bus.
+  let historyUnsub: (() => void) | null = null;
+  attached.onChange((kind) => {
+    if (kind === "attached") {
+      const s = attached.getStore();
+      if (!s) return;
+      historyUnsub = s.__history.on((e) => {
+        // Translate core kind into an AgentOp for the event payload.
+        // Minimal shape — richer op reconstruction not needed here.
+        const op = { type: `grid.${e.kind.replace(/\./g, "_")}` } as AgentOp;
+        if (e.type === "history.pushed") bus.emit({ type: "history.pushed", op });
+        else if (e.type === "history.undone") bus.emit({ type: "history.undone", op });
+        else if (e.type === "history.redone") bus.emit({ type: "history.redone", op });
+      });
+    } else if (historyUnsub) {
+      historyUnsub();
+      historyUnsub = null;
+    }
+  });
+
   const requireStore = (): GridStore | null => attached.getStore();
 
   const authOrFail = (op: AgentOp): OpResult => {
@@ -307,14 +327,30 @@ export function createGridController(
 
     // ── History (M5) ──
     undo() {
-      const auth = authOrFail({ type: "grid.undo" });
+      const op: AgentOp = { type: "grid.undo" };
+      const auth = authOrFail(op);
       if (!auth.ok) return auth as OpResult<{ op: AgentOp }>;
-      return unsupported("undo") as OpResult<{ op: AgentOp }>;
+      bus.checkReentrancy();
+      const s = requireStore();
+      if (!s) return fail("detached", "detached") as OpResult<{ op: AgentOp }>;
+      const res = s.__history.undo();
+      if (res === null) return fail("not_found", "nothing to undo") as OpResult<{ op: AgentOp }>;
+      if (!res.ok) return { ok: false, code: res.code as any, message: res.message } as OpResult<{ op: AgentOp }>;
+      notify();
+      return { ok: true, value: { op } };
     },
     redo() {
-      const auth = authOrFail({ type: "grid.redo" });
+      const op: AgentOp = { type: "grid.redo" };
+      const auth = authOrFail(op);
       if (!auth.ok) return auth as OpResult<{ op: AgentOp }>;
-      return unsupported("redo") as OpResult<{ op: AgentOp }>;
+      bus.checkReentrancy();
+      const s = requireStore();
+      if (!s) return fail("detached", "detached") as OpResult<{ op: AgentOp }>;
+      const res = s.__history.redo();
+      if (res === null) return fail("not_found", "nothing to redo") as OpResult<{ op: AgentOp }>;
+      if (!res.ok) return { ok: false, code: res.code as any, message: res.message } as OpResult<{ op: AgentOp }>;
+      notify();
+      return { ok: true, value: { op } };
     },
     canUndo() {
       const s = requireStore();
