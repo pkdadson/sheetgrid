@@ -270,6 +270,10 @@ Both demos ship the same three views:
 10. [Sort](docs/recipes/10-sort.md)
 11. [Bring your own table](docs/recipes/11-bring-your-own-table.md) — virtualize existing markup (objects or 2D JSON) without `<Grid />`
 
+### AI / agentic apps
+
+- [`@sheetgrid/agent`](packages/agent/README.md) — Give your app's agent a typed handle on the grid: `getSchema`, `setCell`, `undo`, `snapshot`, LLM tool descriptors. Works with `<Grid />` (React) and `<SheetGrid />` (Vue).
+
 ## Packages
 
 | Package | Role |
@@ -277,6 +281,7 @@ Both demos ship the same three views:
 | [`@sheetgrid/react`](packages/react/README.md) | Public React `<Grid />` |
 | [`@sheetgrid/vue`](packages/vue/README.md) | Vue 3 `<SheetGrid>` + `useVirtualWindow` (alpha) |
 | [`@sheetgrid/nuxt`](packages/nuxt/README.md) | Nuxt 3 module (auto-imports + global registration) |
+| [`@sheetgrid/agent`](packages/agent/README.md) | Framework-agnostic controller + LLM tool descriptors (alpha) |
 | [`@sheetgrid/core`](packages/core/README.md) | Engine (also published; used by react/vue) |
 | [`@sheetgrid/tokens`](packages/tokens/README.md) | CSS variables |
 
