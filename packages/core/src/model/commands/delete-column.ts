@@ -10,13 +10,17 @@ class RestoreColumnCommand implements Command {
     public readonly index: number,
     public readonly formulas: Array<[RowId, string]>,
     public readonly source: EventSource,
+    public readonly defIndex: number = -1,
   ) {}
   apply(internal: InternalStore): CommandResult {
     const cols = internal.getColumnsRef();
     if (cols.some((c) => c.id === this.def.id)) {
       return { ok: false, code: "conflict", message: `column "${this.def.id}" exists` };
     }
-    internal.setColumns([...cols, { ...this.def }]);
+    const nextCols = [...cols];
+    const insertAt = this.defIndex >= 0 && this.defIndex <= nextCols.length ? this.defIndex : nextCols.length;
+    nextCols.splice(insertAt, 0, { ...this.def });
+    internal.setColumns(nextCols);
     const order = internal.getColumnOrderRef();
     const nextOrder = [...order];
     nextOrder.splice(this.index, 0, this.def.id);
@@ -77,7 +81,7 @@ export class DeleteColumnCommand implements Command {
 
     return {
       ok: true,
-      inverse: new RestoreColumnCommand(def, idxInOrder, formulas, this.source),
+      inverse: new RestoreColumnCommand(def, idxInOrder, formulas, this.source, idxInCols),
       events: [
         {
           type: "column.removed",

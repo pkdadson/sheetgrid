@@ -7,11 +7,15 @@ import type {
   SortSpec,
 } from "@sheetgrid/core";
 import {
+  AddColumnCommand,
   AddRowCommand,
   CompoundCommand,
+  DeleteColumnCommand,
   DeleteRowCommand,
+  MoveColumnCommand,
   MoveRowCommand,
   SetCellCommand,
+  UpdateColumnCommand,
   UpdateRowCommand,
 } from "@sheetgrid/core/commands";
 import { fail, ok, type OpResult } from "../types/op-result.js";
@@ -249,24 +253,20 @@ export function createGridController(
       return dispatch(op, new MoveRowCommand(rowId, toIndex, agentSource(op)));
     },
     addColumn(def, copts) {
-      const auth = authOrFail({ type: "grid.add_column", def, opts: copts });
-      if (!auth.ok) return auth;
-      return unsupported("addColumn");
+      const op: AgentOp = { type: "grid.add_column", def, opts: copts };
+      return dispatch(op, new AddColumnCommand(def, copts ?? {}, agentSource(op)));
     },
     deleteColumn(columnId) {
-      const auth = authOrFail({ type: "grid.delete_column", columnId });
-      if (!auth.ok) return auth;
-      return unsupported("deleteColumn");
+      const op: AgentOp = { type: "grid.delete_column", columnId };
+      return dispatch(op, new DeleteColumnCommand(columnId, agentSource(op)));
     },
     moveColumn(columnId, toIndex) {
-      const auth = authOrFail({ type: "grid.move_column", columnId, toIndex });
-      if (!auth.ok) return auth;
-      return unsupported("moveColumn");
+      const op: AgentOp = { type: "grid.move_column", columnId, toIndex };
+      return dispatch(op, new MoveColumnCommand(columnId, toIndex, agentSource(op)));
     },
     updateColumn(columnId, patch) {
-      const auth = authOrFail({ type: "grid.update_column", columnId, patch });
-      if (!auth.ok) return auth;
-      return unsupported("updateColumn");
+      const op: AgentOp = { type: "grid.update_column", columnId, patch };
+      return dispatch(op, new UpdateColumnCommand(columnId, patch, agentSource(op)));
     },
     setSort(specs) {
       const auth = authOrFail({ type: "grid.set_sort", specs });
