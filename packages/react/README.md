@@ -80,3 +80,42 @@ Matrix mode:
 ## License
 
 MIT
+
+## Agent controller (optional)
+
+Install `@sheetgrid/agent` to give an in-app agent structured access to the grid:
+
+```tsx
+import { Grid, useGridController } from "@sheetgrid/react";
+
+function App() {
+  const controller = useGridController();
+  return (
+    <Grid
+      controller={controller}
+      rows={rows}
+      columns={columns}
+    />
+  );
+}
+```
+
+The controller exposes `getSchema`, `getData`, `setCell`, `setCells`, `addRow`, `undo`, `snapshot`, and more — see [@sheetgrid/agent README](../agent/README.md).
+
+### Chat UI with `<AgentChat>`
+
+```tsx
+import { AgentChat, useGridController, Grid } from "@sheetgrid/react";
+
+const controller = useGridController();
+
+<AgentChat
+  controller={controller}
+  send={async ({ messages, tools, systemPrompt, signal }) => {
+    // Call your LLM (Anthropic, OpenAI, Vercel AI, or your backend).
+    // Return { content: [{ type: 'text' | 'tool_use' }], stop_reason }.
+  }}
+/>
+```
+
+See [@sheetgrid/agent README](../agent/README.md) for full API + SDK adapters.

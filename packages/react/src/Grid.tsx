@@ -52,6 +52,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from "react";
+import type { GridController } from "@sheetgrid/agent";
 import { resolveColumnType } from "./cells/registry.js";
 import type { ObjectRow, ReactColumnDef } from "./column-types.js";
 import { NumberEditor } from "./editors/NumberEditor.js";
@@ -135,6 +136,8 @@ export interface GridProps {
   defaultSortBy?: SortSpec[];
   /** Fires whenever the effective sort state changes (both modes). */
   onSortChange?: (next: SortSpec[]) => void;
+  /** Optional GridController for agent-driven mutations. Attaches on mount, detaches on unmount. */
+  controller?: GridController;
 }
 
 /** Subscribe to row data and validation errors (errors alone must re-render). */
@@ -203,6 +206,17 @@ export function Grid(props: GridProps) {
     });
   }
   const store = storeRef.current;
+
+  // Attach controller on mount; detach on unmount. Store is created once via useRef
+  // so this effect fires exactly once per mount.
+  useEffect(() => {
+    if (!props.controller) return;
+    props.controller.__attach(store);
+    return () => {
+      props.controller?.__detach();
+    };
+  }, [props.controller, store]);
+
   const { rows: bodyRows, errors } = useStore(store);
 
   useEffect(() => {

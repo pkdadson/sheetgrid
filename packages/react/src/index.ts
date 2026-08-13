@@ -52,3 +52,10 @@ export {
   computePads,
   anchorScrollDelta,
 } from "@sheetgrid/core";
+
+export { useGridController } from "./useGridController.js";
+
+export { useAgent } from "./useAgent.js";
+export type { UseAgentResult } from "./useAgent.js";
+export { AgentChat } from "./AgentChat.js";
+export type { AgentChatProps } from "./AgentChat.js";

@@ -1,5 +1,70 @@
 # Changelog
 
+## 2026-08-13 (agent chat — docs)
+
+- `docs/recipes/12-agent-chat.md`: added Known limitations, Production deployment (complete Next.js Route Handler + Cloudflare Worker with auth / rate limit / audit / error handling), Adding your own (non-grid) tools, Props reference tables (`<AgentChat>` + `useAgent`), Performance for large grids, Security considerations (prompt injection, PII, keys, authorization), Troubleshooting (9 common issues).
+- `packages/agent/README.md`: added "Try live in 60 seconds" callout, table of contents, and comparison table vs AG Grid / TanStack Table / Handsontable.
+
+## 2026-08-13 (agent chat)
+
+### `@sheetgrid/agent@0.1.0-alpha.1`
+
+- New: `createAgentLoop` — framework-agnostic tool-loop engine. Runs the send→tool_use→execute→tool_result cycle until the LLM stops calling tools.
+- New: `defaultSystemPrompt(schema)` — derives a system prompt from `controller.describe()`.
+- Interceptors: `onBeforeTool` (return false / throw to deny), `onAfterTool`, `onError`.
+- Bounds: `maxHistory` (default 20 turns), `maxIterations` (default 25 loop iterations).
+- Cancellation via `AbortSignal` propagated to consumer's `send`.
+- Zero LLM SDK dependencies. Consumer supplies `send(input): Promise<SendOutput>` — the only LLM-facing code.
+
+### `@sheetgrid/react@0.4.0`
+
+- New: `useAgent(controller, options)` hook — reactive AgentLoop via `useSyncExternalStore` with snapshot caching.
+- New: `<AgentChat>` component — default chat UI, with `className` / render-prop / callback escape hatches.
+
+### `@sheetgrid/vue@0.1.0-alpha.6`
+
+- New: `useAgent(controller, options)` composable — reactive AgentLoop via `shallowRef` + `triggerRef`, auto-cancels on scope disposal.
+- New: `<AgentChat>` SFC — default chat UI, with named slots + emits.
+
+### `@sheetgrid/nuxt@0.1.0-alpha.6`
+
+- `useAgent` auto-imported alongside `useGridController`.
+
+## 2026-08-13
+
+### `@sheetgrid/agent@0.1.0-alpha.0` (new package)
+
+- Framework-agnostic `GridController` for agent-driven grid access.
+- `describeGridTools(controller)` returns SDK-agnostic LLM tool descriptors (24 tools).
+- Full read/write/history/snapshot/batch surface with structured `OpResult` returns.
+- Three-layer safety: `readOnly`, per-column `agentWritable`, dynamic `authorize()` callback.
+
+### `@sheetgrid/core@0.3.0`
+
+- Internal: every mutation refactored behind a `Command` interface with reversible inverses.
+- New: `History` class exposed as `store.__history` for undo/redo (bounded, transactions, events).
+- New: `addRow` / `updateRow` / `deleteRow`, `addColumn` / `updateColumn` / `deleteColumn`, `setSort` / `setFilter` on the public `GridStore`.
+- New: `snapshot()` / `applySnapshot()` for opaque state serialization.
+- New: `evaluateFilter` + `filterRowIds` helpers exposed publicly.
+- Additive `agentWritable` and `description` fields on `ColumnDef`.
+- Additive `./commands` subpath export for downstream agent package consumption.
+
+### `@sheetgrid/react@0.3.0`
+
+- New: `useGridController()` hook + `controller` prop on `<Grid>`.
+- Paste via `controller.setCells` dispatches as a single `CompoundCommand` for atomic undo.
+- `@sheetgrid/agent` added as optional peer dependency.
+
+### `@sheetgrid/vue@0.1.0-alpha.5`
+
+- New: `useGridController()` composable + `controller` prop on `<SheetGrid>`.
+- Paste via `controller.setCells` dispatches as a single `CompoundCommand`.
+- `@sheetgrid/agent` added as optional peer dependency.
+
+### `@sheetgrid/nuxt@0.1.0-alpha.5`
+
+- `useGridController` auto-imported alongside `useGridStore`.
+
 ## Unreleased
 
 ### Added — `@sheetgrid/vue@0.1.0-alpha.4` additional scoped slots

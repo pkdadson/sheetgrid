@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from "vue";
+import AgentTab from "./AgentTab.vue";
 import ObjectsDemo from "./pages/ObjectsDemo.vue";
 import MatrixDemo from "./pages/MatrixDemo.vue";
 import PerfDemo from "./pages/PerfDemo.vue";
 
-export type Page = "objects" | "matrix" | "perf";
+export type Page = "objects" | "matrix" | "perf" | "agent";
 export type Theme = "light" | "dark";
 export type Density = "comfortable" | "compact";
 
 function pageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  if (raw === "matrix" || raw === "perf" || raw === "objects") return raw;
+  if (raw === "matrix" || raw === "perf" || raw === "objects" || raw === "agent") return raw;
   return "objects";
 }
 
@@ -114,6 +115,14 @@ function toggleTheme() {
           data-testid="nav-perf"
           @click="go('perf')"
         >10k Perf</button>
+        <button
+          type="button"
+          role="tab"
+          :aria-selected="page === 'agent'"
+          :class="{ active: page === 'agent' }"
+          data-testid="nav-agent"
+          @click="go('agent')"
+        >Agent</button>
       </div>
       <div class="nav-actions">
         <button
@@ -134,6 +143,7 @@ function toggleTheme() {
       <ObjectsDemo v-if="page === 'objects'" :density="density" :theme="theme" />
       <MatrixDemo v-if="page === 'matrix'" :density="density" :theme="theme" />
       <PerfDemo v-if="page === 'perf'" :density="density" :theme="theme" />
+      <AgentTab v-if="page === 'agent'" />
     </main>
   </div>
 </template>

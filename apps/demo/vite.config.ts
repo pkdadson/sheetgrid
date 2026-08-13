@@ -9,11 +9,29 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     // Dev/e2e: use package sources so editor/grid fixes are picked up without a dist rebuild
-    alias: {
-      "@sheetgrid/react": path.join(root, "packages/react/src/index.ts"),
-      "@sheetgrid/core": path.join(root, "packages/core/src/index.ts"),
-      "@sheetgrid/tokens": path.join(root, "packages/tokens/src/index.ts"),
-    },
+    // Note: more-specific sub-path aliases must come before the root package alias.
+    alias: [
+      {
+        find: "@sheetgrid/core/commands",
+        replacement: path.join(root, "packages/core/src/model/commands/index.ts"),
+      },
+      {
+        find: "@sheetgrid/react",
+        replacement: path.join(root, "packages/react/src/index.ts"),
+      },
+      {
+        find: "@sheetgrid/core",
+        replacement: path.join(root, "packages/core/src/index.ts"),
+      },
+      {
+        find: "@sheetgrid/tokens",
+        replacement: path.join(root, "packages/tokens/src/index.ts"),
+      },
+      {
+        find: "@sheetgrid/agent",
+        replacement: path.join(root, "packages/agent/src/index.ts"),
+      },
+    ],
   },
   server: {
     port: 5177,

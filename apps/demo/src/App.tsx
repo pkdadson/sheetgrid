@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
+import { AgentTab } from "./AgentTab.js";
 import { MatrixDemo } from "./pages/MatrixDemo";
 import { ObjectsDemo } from "./pages/ObjectsDemo";
 import { PerfDemo } from "./pages/PerfDemo";
 
-export type Page = "objects" | "matrix" | "perf";
+export type Page = "objects" | "matrix" | "perf" | "agent";
 export type Theme = "light" | "dark";
 export type Density = "comfortable" | "compact";
 
 function pageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  if (raw === "matrix" || raw === "perf" || raw === "objects") return raw;
+  if (raw === "matrix" || raw === "perf" || raw === "objects" || raw === "agent") return raw;
   return "objects";
 }
 
@@ -123,6 +124,16 @@ export function App() {
           >
             10k Perf
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={page === "agent"}
+            className={page === "agent" ? "active" : ""}
+            data-testid="nav-agent"
+            onClick={() => go("agent")}
+          >
+            Agent
+          </button>
         </div>
         <div className="nav-actions">
           <button
@@ -153,6 +164,7 @@ export function App() {
         )}
         {page === "matrix" && <MatrixDemo density={density} theme={theme} />}
         {page === "perf" && <PerfDemo density={density} theme={theme} />}
+        {page === "agent" && <AgentTab />}
       </main>
     </div>
   );

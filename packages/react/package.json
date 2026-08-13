@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/react",
-  "version": "0.2.1",
+  "version": "0.4.0",
   "description": "SheetGrid — Excel-class React data grid: virtualized, customizable, responsive",
   "license": "MIT",
   "type": "module",
@@ -37,14 +37,19 @@
     "prepublishOnly": "pnpm run build && pnpm run test"
   },
   "peerDependencies": {
+    "@sheetgrid/agent": "^0.1.0-alpha.0",
     "react": ">=18.2.0",
     "react-dom": ">=18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "@sheetgrid/agent": { "optional": true }
   },
   "dependencies": {
     "@sheetgrid/core": "workspace:^",
     "@sheetgrid/tokens": "workspace:^"
   },
   "devDependencies": {
+    "@sheetgrid/agent": "workspace:*",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.3.0",

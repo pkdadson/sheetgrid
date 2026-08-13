@@ -525,3 +525,36 @@ For Nuxt 3, use **`@sheetgrid/nuxt`** — it auto-imports composables and regist
 ## License
 
 MIT
+
+## Agent controller (optional)
+
+```vue
+<script setup lang="ts">
+import { SheetGrid, useGridController } from "@sheetgrid/vue";
+const controller = useGridController();
+</script>
+
+<template>
+  <SheetGrid :controller="controller" :rows="rows" :columns="columns" />
+</template>
+```
+
+See [@sheetgrid/agent README](../agent/README.md) for the full API.
+
+### Chat UI with `<AgentChat>`
+
+```vue
+<script setup lang="ts">
+import { AgentChat, useGridController, SheetGrid } from "@sheetgrid/vue";
+const controller = useGridController();
+async function send({ messages, tools, systemPrompt, signal }) {
+  // Call your LLM. Return { content, stop_reason }.
+}
+</script>
+
+<template>
+  <AgentChat :controller="controller" :send="send" />
+</template>
+```
+
+See [@sheetgrid/agent README](../agent/README.md) for full API + SDK adapters.
