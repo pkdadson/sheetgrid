@@ -107,6 +107,8 @@ export interface GridController {
   __detach(): void;
   /** True iff attached to a store. */
   isAttached(): boolean;
+  /** Enqueue an op to run when the controller next attaches. Bounded queue (100). */
+  __enqueue(op: AgentOp): void;
 
   // ── Subscription for framework reactivity ──
   subscribe(listener: () => void): Unsubscribe;

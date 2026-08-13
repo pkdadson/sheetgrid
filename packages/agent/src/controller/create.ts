@@ -35,6 +35,7 @@ import type { GridEvent } from "../types/grid-event.js";
 import type { Snapshot } from "../types/snapshot.js";
 import type { WhereClause } from "../types/where-clause.js";
 import { createAttachedState } from "./attached-state.js";
+import { replayOp } from "./queue-drain.js";
 import { runAuthCheck } from "./authorize-check.js";
 import { createEventBus } from "./event-bus.js";
 import { createSelectionState } from "./selection-state.js";
@@ -106,6 +107,9 @@ export function createGridController(
         } as GridEvent);
         notify();
       });
+      // Drain any ops enqueued while detached.
+      const pending = attached.drain();
+      for (const op of pending) replayOp(controller, op);
     } else if (storeSubUnsub) {
       storeSubUnsub();
       storeSubUnsub = null;
@@ -423,6 +427,9 @@ export function createGridController(
     },
     isAttached() {
       return attached.isAttached();
+    },
+    __enqueue(op: AgentOp) {
+      attached.enqueue(op);
     },
 
     // ── Framework reactivity ──
