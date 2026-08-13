@@ -54,3 +54,6 @@ export {
 } from "@sheetgrid/core";
 
 export { useGridController } from "./useGridController.js";
+
+export { AgentChat } from "./AgentChat.js";
+export type { AgentChatProps } from "./AgentChat.js";
