@@ -4,6 +4,14 @@
 
 Pair with `@sheetgrid/react` or `@sheetgrid/vue` to make a grid that your app's AI agent can read, mutate, and undo — with typed operations, structured error returns, and paste/multi-cell atomicity out of the box.
 
+<p align="center">
+  <img src="docs/assets/agent-chat-react.png" alt="AgentChat driving a React SheetGrid — chat with tool trace + updated grid" width="820" />
+</p>
+
+| BYOK panel (6 providers) | Vue equivalent |
+|---|---|
+| <img src="docs/assets/byok-panel.png" alt="BYOK panel with Anthropic selected — Provider dropdown, Model, API key, dev-only security notice" width="400" /> | <img src="docs/assets/agent-chat-vue.png" alt="AgentChat driving a Vue SheetGrid" width="400" /> |
+
 > **Try it live in 60 seconds** — `pnpm dev:demo` (React) or `pnpm dev:demo-vue` (Vue) from the monorepo. Both demos ship a BYOK panel above the chat with 6 providers (mock / Anthropic / OpenAI / OpenAI-compatible / Gemini / Vercel). Paste a key, pick a model, talk to your grid.
 
 ## Table of contents
