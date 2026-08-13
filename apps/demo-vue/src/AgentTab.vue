@@ -38,9 +38,16 @@ async function mockSend(input: SendInput): Promise<SendOutput> {
   if (text.includes("fill")) {
     return {
       content: [
-        { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" } },
-        { type: "tool_use", id: "t2", name: "grid_set_cell", input: { rowId: "r2", columnId: "note", value: "Follow-up scheduled" } },
-        { type: "tool_use", id: "t3", name: "grid_set_cell", input: { rowId: "r3", columnId: "note", value: "Retired" } },
+        {
+          type: "tool_use", id: "t1", name: "grid_set_cells",
+          input: {
+            patches: [
+              { rowId: "r1", columnId: "note", value: "First contact 2026-08-11" },
+              { rowId: "r2", columnId: "note", value: "Follow-up scheduled" },
+              { rowId: "r3", columnId: "note", value: "Retired" },
+            ],
+          },
+        },
       ],
       stop_reason: "tool_use",
     };
