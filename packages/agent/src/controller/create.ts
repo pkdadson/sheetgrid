@@ -9,12 +9,16 @@ import type {
 import {
   AddColumnCommand,
   AddRowCommand,
+  ClearFormulaCommand,
   CompoundCommand,
   DeleteColumnCommand,
   DeleteRowCommand,
   MoveColumnCommand,
   MoveRowCommand,
   SetCellCommand,
+  SetFilterCommand,
+  SetFormulaCommand,
+  SetSortCommand,
   UpdateColumnCommand,
   UpdateRowCommand,
 } from "@sheetgrid/core/commands";
@@ -269,19 +273,16 @@ export function createGridController(
       return dispatch(op, new UpdateColumnCommand(columnId, patch, agentSource(op)));
     },
     setSort(specs) {
-      const auth = authOrFail({ type: "grid.set_sort", specs });
-      if (!auth.ok) return auth;
-      return unsupported("setSort");
+      const op: AgentOp = { type: "grid.set_sort", specs };
+      return dispatch(op, new SetSortCommand(specs, agentSource(op)));
     },
     clearSort() {
-      const auth = authOrFail({ type: "grid.clear_sort" });
-      if (!auth.ok) return auth;
-      return unsupported("clearSort");
+      const op: AgentOp = { type: "grid.clear_sort" };
+      return dispatch(op, new SetSortCommand([], agentSource(op)));
     },
     setFilter(filter) {
-      const auth = authOrFail({ type: "grid.set_filter", filter });
-      if (!auth.ok) return auth;
-      return unsupported("setFilter");
+      const op: AgentOp = { type: "grid.set_filter", filter };
+      return dispatch(op, new SetFilterCommand(filter, agentSource(op)));
     },
     select(target) {
       const auth = authOrFail({ type: "grid.select", target });
@@ -291,14 +292,12 @@ export function createGridController(
       return ok(undefined);
     },
     setFormula(rowId, columnId, source) {
-      const auth = authOrFail({ type: "grid.set_formula", rowId, columnId, source });
-      if (!auth.ok) return auth;
-      return unsupported("setFormula");
+      const op: AgentOp = { type: "grid.set_formula", rowId, columnId, source };
+      return dispatch(op, new SetFormulaCommand(rowId, columnId, source, agentSource(op)));
     },
     clearFormula(rowId, columnId) {
-      const auth = authOrFail({ type: "grid.clear_formula", rowId, columnId });
-      if (!auth.ok) return auth;
-      return unsupported("clearFormula");
+      const op: AgentOp = { type: "grid.clear_formula", rowId, columnId };
+      return dispatch(op, new ClearFormulaCommand(rowId, columnId, agentSource(op)));
     },
 
     // ── Transactions (M5) ──
