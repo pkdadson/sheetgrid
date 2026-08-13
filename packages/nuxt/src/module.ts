@@ -22,6 +22,7 @@ export default defineNuxtModule<ModuleOptions>({
     addImports([
       { name: "useVirtualWindow", from: "@sheetgrid/vue" },
       { name: "useGridStore", from: "@sheetgrid/vue" },
+      { name: "useGridController", from: "@sheetgrid/vue" },
       { name: "injectTokens", from: "@sheetgrid/vue" },
       { name: "registerCellType", from: "@sheetgrid/vue" },
       { name: "getCellType", from: "@sheetgrid/vue" },
