@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-08-13 (agent chat)
+
+### `@sheetgrid/agent@0.1.0-alpha.1`
+
+- New: `createAgentLoop` — framework-agnostic tool-loop engine. Runs the send→tool_use→execute→tool_result cycle until the LLM stops calling tools.
+- New: `defaultSystemPrompt(schema)` — derives a system prompt from `controller.describe()`.
+- Interceptors: `onBeforeTool` (return false / throw to deny), `onAfterTool`, `onError`.
+- Bounds: `maxHistory` (default 20 turns), `maxIterations` (default 25 loop iterations).
+- Cancellation via `AbortSignal` propagated to consumer's `send`.
+- Zero LLM SDK dependencies. Consumer supplies `send(input): Promise<SendOutput>` — the only LLM-facing code.
+
+### `@sheetgrid/react@0.4.0`
+
+- New: `useAgent(controller, options)` hook — reactive AgentLoop via `useSyncExternalStore` with snapshot caching.
+- New: `<AgentChat>` component — default chat UI, with `className` / render-prop / callback escape hatches.
+
+### `@sheetgrid/vue@0.1.0-alpha.6`
+
+- New: `useAgent(controller, options)` composable — reactive AgentLoop via `shallowRef` + `triggerRef`, auto-cancels on scope disposal.
+- New: `<AgentChat>` SFC — default chat UI, with named slots + emits.
+
+### `@sheetgrid/nuxt@0.1.0-alpha.6`
+
+- `useAgent` auto-imported alongside `useGridController`.
+
 ## 2026-08-13
 
 ### `@sheetgrid/agent@0.1.0-alpha.0` (new package)

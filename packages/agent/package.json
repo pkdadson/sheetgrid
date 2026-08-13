@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/agent",
-  "version": "0.1.0-alpha.0",
+  "version": "0.1.0-alpha.1",
   "description": "SheetGrid — framework-agnostic controller and LLM tool descriptors for agentic apps",
   "license": "MIT",
   "type": "module",
