@@ -322,8 +322,36 @@ export function createGridController(
     },
 
     // ── Transactions (M5) ──
-    async batch<T>(_fn: (tx: GridController) => T | Promise<T>) {
-      return Promise.resolve(unsupported("batch") as OpResult<T>);
+    async batch<T>(fn: (tx: GridController) => T | Promise<T>): Promise<OpResult<T>> {
+      const authRes = authOrFail({ type: "grid.batch", ops: [] });
+      if (!authRes.ok) return authRes as OpResult<T>;
+      const s = requireStore();
+      if (!s) return fail("detached", "detached") as OpResult<T>;
+      bus.emit({ type: "transaction.started" });
+      const snap = s.__takeSnapshot();
+      s.__history.beginTransaction();
+      try {
+        const value = await fn(controller);
+        s.__history.commitTransaction(
+          (children) => new CompoundCommand(children, agentSource({ type: "grid.batch", ops: [] })),
+        );
+        bus.emit({ type: "transaction.committed", ops: [] });
+        notify();
+        return { ok: true, value };
+      } catch (err) {
+        // Roll back to snapshot for full atomicity.
+        s.__history.rollbackTransaction();
+        s.__restore(snap);
+        // The __restore push adds a history entry — pop it so undo doesn't reveal a phantom "restore" step.
+        s.__history.undo();
+        s.__history.clear();
+        bus.emit({
+          type: "transaction.rolledback",
+          reason: err instanceof Error ? err.message : String(err),
+        });
+        notify();
+        return fail("internal", err instanceof Error ? err.message : String(err)) as OpResult<T>;
+      }
     },
 
     // ── History (M5) ──
