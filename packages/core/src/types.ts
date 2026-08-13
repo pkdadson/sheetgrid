@@ -34,6 +34,16 @@ export interface ColumnDef {
   type?: string;
   /** Optional custom comparator. Overrides the default derived from `type`. */
   comparator?: Comparator;
+  /**
+   * Whether an agent (via GridController) is allowed to write this column.
+   * Defaults to true unless the column is otherwise read-only.
+   */
+  agentWritable?: boolean;
+  /**
+   * Optional human-readable description shown to the agent in tool descriptors.
+   * Use this to hint constraints like "Free-text customer note. Empty means not contacted."
+   */
+  description?: string;
 }
 
 export interface ColumnGroupDef {
