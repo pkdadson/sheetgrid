@@ -7,8 +7,12 @@ import type {
   SortSpec,
 } from "@sheetgrid/core";
 import {
+  AddRowCommand,
   CompoundCommand,
+  DeleteRowCommand,
+  MoveRowCommand,
   SetCellCommand,
+  UpdateRowCommand,
 } from "@sheetgrid/core/commands";
 import { fail, ok, type OpResult } from "../types/op-result.js";
 import type {
@@ -225,24 +229,24 @@ export function createGridController(
       return { ok: true, value: { applied, rejected } };
     },
     addRow(values, ropts) {
-      const auth = authOrFail({ type: "grid.add_row", values, opts: ropts });
-      if (!auth.ok) return auth as OpResult<{ rowId: RowId }>;
-      return unsupported("addRow") as OpResult<{ rowId: RowId }>;
+      const op: AgentOp = { type: "grid.add_row", values, opts: ropts };
+      const id = ropts?.id ?? `row-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const cmd = new AddRowCommand(values, { ...ropts, id }, agentSource(op));
+      const res = dispatch(op, cmd);
+      if (!res.ok) return res as OpResult<{ rowId: RowId }>;
+      return { ok: true, value: { rowId: id } };
     },
     updateRow(rowId, patch) {
-      const auth = authOrFail({ type: "grid.update_row", rowId, patch });
-      if (!auth.ok) return auth;
-      return unsupported("updateRow");
+      const op: AgentOp = { type: "grid.update_row", rowId, patch };
+      return dispatch(op, new UpdateRowCommand(rowId, patch, agentSource(op)));
     },
     deleteRow(rowId) {
-      const auth = authOrFail({ type: "grid.delete_row", rowId });
-      if (!auth.ok) return auth;
-      return unsupported("deleteRow");
+      const op: AgentOp = { type: "grid.delete_row", rowId };
+      return dispatch(op, new DeleteRowCommand(rowId, agentSource(op)));
     },
     moveRow(rowId, toIndex) {
-      const auth = authOrFail({ type: "grid.move_row", rowId, toIndex });
-      if (!auth.ok) return auth;
-      return unsupported("moveRow");
+      const op: AgentOp = { type: "grid.move_row", rowId, toIndex };
+      return dispatch(op, new MoveRowCommand(rowId, toIndex, agentSource(op)));
     },
     addColumn(def, copts) {
       const auth = authOrFail({ type: "grid.add_column", def, opts: copts });

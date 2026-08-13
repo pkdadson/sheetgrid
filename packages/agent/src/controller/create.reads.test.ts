@@ -109,12 +109,12 @@ describe("createGridController (M4: reads + lifecycle)", () => {
     expect(res.ok).toBe(false);
   });
 
-  it("write ops in M4 return unsupported (M5 lands them)", () => {
+  it("addRow (M5) succeeds and returns a rowId", () => {
     const c = createGridController();
     c.__attach(fx());
     const res = c.addRow({ name: "New" });
-    expect(res.ok).toBe(false);
-    if (res.ok) throw new Error();
-    expect(res.code).toBe("unsupported");
+    expect(res.ok).toBe(true);
+    if (!res.ok) throw new Error();
+    expect(res.value.rowId).toMatch(/^row-/);
   });
 });
