@@ -23,6 +23,9 @@ importers:
 
   apps/demo:
     dependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@sheetgrid/react':
         specifier: workspace:*
         version: link:../../packages/react
@@ -51,6 +54,9 @@ importers:
 
   apps/demo-vue:
     dependencies:
+      '@sheetgrid/agent':
+        specifier: workspace:*
+        version: link:../../packages/agent
       '@sheetgrid/vue':
         specifier: workspace:*
         version: link:../../packages/vue
