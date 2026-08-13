@@ -4,6 +4,37 @@
 
 Pair with `@sheetgrid/react` or `@sheetgrid/vue` to make a grid that your app's AI agent can read, mutate, and undo — with typed operations, structured error returns, and paste/multi-cell atomicity out of the box.
 
+> **Try it live in 60 seconds** — `pnpm dev:demo` (React) or `pnpm dev:demo-vue` (Vue) from the monorepo. Both demos ship a BYOK panel above the chat with 6 providers (mock / Anthropic / OpenAI / OpenAI-compatible / Gemini / Vercel). Paste a key, pick a model, talk to your grid.
+
+## Table of contents
+
+- [Install](#install)
+- [Quickstart — React](#quickstart--react) / [Vue](#quickstart--vue)
+- [How SheetGrid compares](#how-sheetgrid-compares)
+- [Controller API](#controller-api--reads)
+- [Transactions, history, safety, events](#transactions)
+- [LLM tool descriptors](#llm-tool-descriptors)
+- [`<AgentChat>` and `useAgent`](#agentchat-and-useagent--drop-in-chat-ui)
+- Recipe: [`docs/recipes/12-agent-chat.md`](../../docs/recipes/12-agent-chat.md) — full adapters, production proxy, security, troubleshooting
+
+## How SheetGrid compares
+
+Agentic capabilities are new territory for data grids. Here's the honest state as of alpha:
+
+| | SheetGrid | AG Grid | TanStack Table | Handsontable |
+|---|---|---|---|---|
+| Typed controller API for external programmatic driving | ✅ built-in (`GridController`) | ❌ (imperative Grid API, not designed for agents) | ❌ (headless — you own the state) | ❌ |
+| Structured `OpResult` returns (no exceptions across boundary) | ✅ | ❌ | ❌ | ❌ |
+| Reversible Command / History model with `undo` / `redo` / `snapshot` | ✅ | Partial (undo via Enterprise) | ❌ | Partial (via plugin) |
+| Ready-made LLM tool descriptors (26 tools, JSON Schema, SDK-agnostic) | ✅ (`describeGridTools`) | ❌ | ❌ | ❌ |
+| Drop-in chat UI with tool loop (`<AgentChat>` / `useAgent`) | ✅ | ❌ | ❌ | ❌ |
+| Per-column + per-op authorization for agent writes | ✅ (`agentWritable`, `authorize`) | ❌ | N/A (you own state) | ❌ |
+| Bundle impact if unused | 0 (opt-in package) | — | 0 | — |
+| Framework support | React + Vue + Nuxt | React / Angular / Vue / vanilla | React / Vue / Solid / Svelte / Qwik | React / Vue / Angular |
+| License | MIT | MIT + Enterprise ($) | MIT | MIT + Commercial ($) |
+
+Where SheetGrid focuses: making the grid a first-class agent target. Where the others focus: enterprise-grade grid features (server-side row model, aggregation, pivot tables) that SheetGrid doesn't ship yet. Pick based on what dominates your project.
+
 ## Install
 
 ```bash

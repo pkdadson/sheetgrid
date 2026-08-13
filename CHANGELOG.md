@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-08-13 (agent chat — docs)
+
+- `docs/recipes/12-agent-chat.md`: added Known limitations, Production deployment (complete Next.js Route Handler + Cloudflare Worker with auth / rate limit / audit / error handling), Adding your own (non-grid) tools, Props reference tables (`<AgentChat>` + `useAgent`), Performance for large grids, Security considerations (prompt injection, PII, keys, authorization), Troubleshooting (9 common issues).
+- `packages/agent/README.md`: added "Try live in 60 seconds" callout, table of contents, and comparison table vs AG Grid / TanStack Table / Handsontable.
+
 ## 2026-08-13 (agent chat)
 
 ### `@sheetgrid/agent@0.1.0-alpha.1`
