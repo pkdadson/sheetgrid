@@ -525,3 +525,18 @@ For Nuxt 3, use **`@sheetgrid/nuxt`** — it auto-imports composables and regist
 ## License
 
 MIT
+
+## Agent controller (optional)
+
+```vue
+<script setup lang="ts">
+import { SheetGrid, useGridController } from "@sheetgrid/vue";
+const controller = useGridController();
+</script>
+
+<template>
+  <SheetGrid :controller="controller" :rows="rows" :columns="columns" />
+</template>
+```
+
+See [@sheetgrid/agent README](../agent/README.md) for the full API.
