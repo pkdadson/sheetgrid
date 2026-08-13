@@ -38,13 +38,18 @@
     "prepublishOnly": "pnpm run build && pnpm run test"
   },
   "peerDependencies": {
+    "@sheetgrid/agent": "^0.1.0-alpha.0",
     "vue": ">=3.3.0"
+  },
+  "peerDependenciesMeta": {
+    "@sheetgrid/agent": { "optional": true }
   },
   "dependencies": {
     "@sheetgrid/core": "workspace:^",
     "@sheetgrid/tokens": "workspace:^"
   },
   "devDependencies": {
+    "@sheetgrid/agent": "workspace:*",
     "@vitejs/plugin-vue": "^5.2.0",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^25.0.0",
