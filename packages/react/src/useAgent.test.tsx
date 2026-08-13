@@ -50,17 +50,33 @@ describe("useAgent (React)", () => {
     expect(result.current.thinking).toBe(false);
   });
 
-  it("options are consumed only on first render (stability > reactivity)", () => {
+  it("swapping send option between renders takes effect", async () => {
     const controller = fixture();
-    const send1 = mockSend([]);
-    const send2 = mockSend([]);
+    const send1 = vi.fn(async () => ({
+      content: [{ type: "text" as const, text: "from send1" }],
+      stop_reason: "end_turn" as const,
+    }));
+    const send2 = vi.fn(async () => ({
+      content: [{ type: "text" as const, text: "from send2" }],
+      stop_reason: "end_turn" as const,
+    }));
+
     const { result, rerender } = renderHook(
-      ({ opts }) => useAgent(controller, opts),
+      ({ opts }: { opts: { send: any } }) => useAgent(controller, opts),
       { initialProps: { opts: { send: send1 } } },
     );
+
+    await act(async () => {
+      await result.current.send("first");
+    });
+    expect(send1).toHaveBeenCalledTimes(1);
+    expect(send2).toHaveBeenCalledTimes(0);
+
     rerender({ opts: { send: send2 } });
-    // Trigger a send — the ORIGINAL send1 should be called, not send2.
-    void result.current.send("hi").catch(() => {});
-    // (No assertion needed if send1 is invoked; the test asserts stability.)
+
+    await act(async () => {
+      await result.current.send("second");
+    });
+    expect(send2).toHaveBeenCalledTimes(1);
   });
 });

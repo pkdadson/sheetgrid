@@ -41,7 +41,7 @@ const placeholder = computed(() =>
     <div
       style="flex: 1; min-height: 0; border: 1px solid var(--sg-border, #e5e7eb); border-radius: 6px"
     >
-      <AgentChat :controller="controller" :send="send" :placeholder="placeholder" />
+      <AgentChat :key="config.provider" :controller="controller" :send="send" :placeholder="placeholder" />
     </div>
   </div>
 </template>

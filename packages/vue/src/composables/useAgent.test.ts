@@ -1,3 +1,8 @@
+// Note: Vue's setup() runs once per component instance, so options passed to
+// useAgent are frozen for that instance's lifetime. Consumers wanting a "swap
+// LLM provider mid-session" flow should use a `key` prop on the component
+// using useAgent to force remount, or wrap their `send` function in a stable
+// wrapper that closes over reactive state.
 import { describe, expect, it, vi } from "vitest";
 import { defineComponent, h, nextTick } from "vue";
 import { mount } from "@vue/test-utils";
