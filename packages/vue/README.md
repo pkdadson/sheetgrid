@@ -540,3 +540,21 @@ const controller = useGridController();
 ```
 
 See [@sheetgrid/agent README](../agent/README.md) for the full API.
+
+### Chat UI with `<AgentChat>`
+
+```vue
+<script setup lang="ts">
+import { AgentChat, useGridController, SheetGrid } from "@sheetgrid/vue";
+const controller = useGridController();
+async function send({ messages, tools, systemPrompt, signal }) {
+  // Call your LLM. Return { content, stop_reason }.
+}
+</script>
+
+<template>
+  <AgentChat :controller="controller" :send="send" />
+</template>
+```
+
+See [@sheetgrid/agent README](../agent/README.md) for full API + SDK adapters.

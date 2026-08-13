@@ -207,6 +207,104 @@ const tools = Object.fromEntries(
 );
 ```
 
+## `<AgentChat>` and `useAgent` — drop-in chat UI
+
+For a full chat experience, use the higher-level `useAgent` hook (React + Vue) or `<AgentChat>` component. Both are built on `createAgentLoop`, are framework-native, and ship zero LLM SDK dependencies.
+
+### React — `<AgentChat>`
+
+```tsx
+import { Grid, useGridController, AgentChat } from "@sheetgrid/react";
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({ apiKey: import.meta.env.VITE_ANTHROPIC_KEY });
+
+function App() {
+  const controller = useGridController();
+  return (
+    <>
+      <Grid controller={controller} rows={rows} columns={columns} />
+      <AgentChat
+        controller={controller}
+        send={async ({ messages, tools, systemPrompt, signal }) => {
+          const res = await client.messages.create(
+            {
+              model: "claude-opus-4-7",
+              max_tokens: 1024,
+              system: systemPrompt,
+              tools: tools.map((t) => ({
+                name: t.name,
+                description: t.description,
+                input_schema: t.input_schema,
+              })),
+              messages: messages.map((m) =>
+                m.role === "user"
+                  ? { role: "user", content: m.content }
+                  : m.role === "assistant"
+                    ? { role: "assistant", content: m.content }
+                    : { role: "user", content: m.content.map((c) => ({ type: "tool_result", tool_use_id: c.tool_use_id, content: JSON.stringify(c.output) })) }
+              ),
+            },
+            { signal },
+          );
+          return res;
+        }}
+      />
+    </>
+  );
+}
+```
+
+That's the full integration. Anthropic's response shape matches `SendOutput` directly.
+
+### Vue — `<AgentChat>`
+
+```vue
+<script setup lang="ts">
+import { SheetGrid, useGridController, AgentChat } from "@sheetgrid/vue";
+const controller = useGridController();
+async function send(input) { /* same as React */ }
+</script>
+
+<template>
+  <AgentChat :controller="controller" :send="send" />
+</template>
+```
+
+### Headless — `useAgent`
+
+If `<AgentChat>` doesn't fit your UI, use the hook directly:
+
+```tsx
+const { messages, thinking, send, error } = useAgent(controller, { send: myLLMCall });
+// render however you want
+```
+
+### Adapters for other SDKs
+
+- **OpenAI**: rename `tool.input_schema` → `parameters`; map response `tool_calls` → `content` blocks (~10 lines).
+- **Vercel AI SDK**: pass `tools` to `generateText`; walk the returned `toolCalls` (~15 lines).
+
+The loop engine only cares that `send` returns `{ content: [{ type: 'text' | 'tool_use' }], stop_reason }`. Adapt on your side.
+
+### Interception hooks
+
+```tsx
+<AgentChat
+  controller={controller}
+  send={myLLMCall}
+  onBeforeTool={(call) => call.name !== "grid_delete_row" || confirm("Really delete?")}
+  onAfterTool={(call, result) => console.log(call.name, result)}
+  onError={(err) => showToast(err.message)}
+/>
+```
+
+Return `false` from `onBeforeTool` to deny — the loop feeds the deny back to the model as a tool_result so it can adapt.
+
+### Customization
+
+`<AgentChat>` accepts `className`, `style`, `renderMessage`, `renderInput`, `renderToolTrace`, `renderError`, `renderThinking` (Vue uses named slots with the same names). Beyond that, drop the component and use `useAgent` directly.
+
 ## Status
 
 **Alpha.** API surface is not stable until `0.1.0`. Feedback via [GitHub issues](https://github.com/pkdadson/sheetgrid/issues) welcome.
