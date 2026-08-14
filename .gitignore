@@ -12,5 +12,9 @@ blob-report
 .playwright-mcp/
 /*.png
 
+# Superpowers planning/spec artifacts — kept local per repo policy
+docs/superpowers/plans/
+docs/superpowers/specs/
+
 # GitHub Packages staging
 .gh-publish-staging/
