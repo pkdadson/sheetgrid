@@ -40,18 +40,37 @@ run("node scripts/assert-ci-green.mjs");
 const otp = process.env.NPM_OTP;
 const otpFlag = otp ? ` --otp=${otp}` : "";
 
+// Publish order matters — dependencies before dependents.
+// Stable packages publish to the default (latest) dist-tag; alpha
+// packages publish to `next` so they aren't picked up by @^0.1.0-style
+// consumers accidentally.
+const ALL_PACKAGES = [
+  { name: "@sheetgrid/tokens", tag: null },
+  { name: "@sheetgrid/core", tag: null },
+  { name: "@sheetgrid/agent", tag: "next" },
+  { name: "@sheetgrid/react", tag: null },
+  { name: "@sheetgrid/vue", tag: "next" },
+  { name: "@sheetgrid/nuxt", tag: "next" },
+];
+
 const packages = filter
-  ? [filter]
-  : ["@sheetgrid/tokens", "@sheetgrid/core", "@sheetgrid/react"];
+  ? ALL_PACKAGES.filter((p) => p.name === filter)
+  : ALL_PACKAGES;
+
+if (packages.length === 0) {
+  console.error(`publish-npm: filter "${filter}" matched no known packages.`);
+  process.exit(1);
+}
 
 // Build + unit tests again locally (belt and suspenders)
 run("pnpm build");
 run("pnpm test");
 
-for (const pkg of packages) {
-  console.log(`\n=== Publishing ${pkg} ===`);
+for (const { name, tag } of packages) {
+  console.log(`\n=== Publishing ${name}${tag ? ` (--tag ${tag})` : ""} ===`);
+  const tagFlag = tag ? ` --tag ${tag}` : "";
   run(
-    `pnpm --filter ${pkg} publish --access public --no-git-checks${otpFlag}`,
+    `pnpm --filter ${name} publish --access public --no-git-checks${tagFlag}${otpFlag}`,
   );
 }
 
