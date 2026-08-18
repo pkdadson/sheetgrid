@@ -21,11 +21,23 @@ export function evaluateFilter(clause: FilterClause, row: GridRow): boolean {
     case "gte":
       return typeof v === "number" && typeof target === "number" && v >= target;
     case "contains":
-      return typeof v === "string" && typeof target === "string" && v.includes(target);
+      return (
+        typeof v === "string" &&
+        typeof target === "string" &&
+        v.includes(target)
+      );
     case "starts_with":
-      return typeof v === "string" && typeof target === "string" && v.startsWith(target);
+      return (
+        typeof v === "string" &&
+        typeof target === "string" &&
+        v.startsWith(target)
+      );
     case "ends_with":
-      return typeof v === "string" && typeof target === "string" && v.endsWith(target);
+      return (
+        typeof v === "string" &&
+        typeof target === "string" &&
+        v.endsWith(target)
+      );
     case "in":
       return Array.isArray(target) && target.some((t) => Object.is(v, t));
     case "not_in":
@@ -42,7 +54,10 @@ export function evaluateFilter(clause: FilterClause, row: GridRow): boolean {
 }
 
 /** Returns the row ids visible under the given filter (or all if filter is null). */
-export function filterRowIds(rows: GridRow[], filter: FilterClause | null): string[] {
+export function filterRowIds(
+  rows: GridRow[],
+  filter: FilterClause | null,
+): string[] {
   if (filter === null) return rows.map((r) => r.id);
   return rows.filter((r) => evaluateFilter(filter, r)).map((r) => r.id);
 }

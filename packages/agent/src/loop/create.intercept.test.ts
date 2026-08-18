@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { createAgentLoop } from "./create.js";
 import type { SendOutput } from "./types.js";
@@ -28,7 +28,14 @@ describe("AgentLoop interceptors", () => {
     const { controller, store } = fixture();
     const send = mockSend([
       {
-        content: [{ type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "name", value: "X" } }],
+        content: [
+          {
+            type: "tool_use",
+            id: "t1",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "name", value: "X" },
+          },
+        ],
         stop_reason: "tool_use",
       },
       { content: [{ type: "text", text: "ok" }], stop_reason: "end_turn" },
@@ -53,7 +60,14 @@ describe("AgentLoop interceptors", () => {
     const { controller } = fixture();
     const send = mockSend([
       {
-        content: [{ type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "name", value: "X" } }],
+        content: [
+          {
+            type: "tool_use",
+            id: "t1",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "name", value: "X" },
+          },
+        ],
         stop_reason: "tool_use",
       },
       { content: [{ type: "text", text: "ok" }], stop_reason: "end_turn" },
@@ -76,7 +90,14 @@ describe("AgentLoop interceptors", () => {
     const { controller } = fixture();
     const send = mockSend([
       {
-        content: [{ type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "name", value: "New" } }],
+        content: [
+          {
+            type: "tool_use",
+            id: "t1",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "name", value: "New" },
+          },
+        ],
         stop_reason: "tool_use",
       },
       { content: [{ type: "text", text: "ok" }], stop_reason: "end_turn" },

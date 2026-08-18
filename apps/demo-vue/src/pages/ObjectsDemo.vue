@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { required } from "@sheetgrid/core";
-import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
+import { type ObjectRow, SheetGrid } from "@sheetgrid/vue";
+import { ref } from "vue";
 
 defineProps<{
   density: "comfortable" | "compact";
@@ -24,21 +24,75 @@ const columns = [
   },
   { id: "region", header: "Region", width: 100 as const },
   { id: "score", header: "Score", width: 90 as const, type: "number" as const },
-  { id: "bonus", header: "Bonus", width: 100 as const, type: "number" as const },
-  { id: "active", header: "Active", width: 80 as const, type: "boolean" as const },
+  {
+    id: "bonus",
+    header: "Bonus",
+    width: 100 as const,
+    type: "number" as const,
+  },
+  {
+    id: "active",
+    header: "Active",
+    width: 80 as const,
+    type: "boolean" as const,
+  },
 ];
 
 const columnGroups = [
   { id: "person", header: "Person", children: ["name", "role"] },
-  { id: "work", header: "Work", children: ["region", "score", "bonus", "active"] },
+  {
+    id: "work",
+    header: "Work",
+    children: ["region", "score", "bonus", "active"],
+  },
 ];
 
 const rows = ref<ObjectRow[]>([
-  { id: "1", name: "Ada Lovelace", role: "Engineer", region: "EU", score: 98, bonus: 0, active: true },
-  { id: "2", name: "Grace Hopper", role: "Admiral", region: "US", score: 99, bonus: 0, active: true },
-  { id: "3", name: "Alan Turing", role: "Researcher", region: "EU", score: 97, bonus: 0, active: false },
-  { id: "4", name: "Katherine Johnson", role: "Mathematician", region: "US", score: 100, bonus: 0, active: true },
-  { id: "5", name: "Claude Shannon", role: "Engineer", region: "US", score: 96, bonus: 0, active: true },
+  {
+    id: "1",
+    name: "Ada Lovelace",
+    role: "Engineer",
+    region: "EU",
+    score: 98,
+    bonus: 0,
+    active: true,
+  },
+  {
+    id: "2",
+    name: "Grace Hopper",
+    role: "Admiral",
+    region: "US",
+    score: 99,
+    bonus: 0,
+    active: true,
+  },
+  {
+    id: "3",
+    name: "Alan Turing",
+    role: "Researcher",
+    region: "EU",
+    score: 97,
+    bonus: 0,
+    active: false,
+  },
+  {
+    id: "4",
+    name: "Katherine Johnson",
+    role: "Mathematician",
+    region: "US",
+    score: 100,
+    bonus: 0,
+    active: true,
+  },
+  {
+    id: "5",
+    name: "Claude Shannon",
+    role: "Engineer",
+    region: "US",
+    score: 96,
+    bonus: 0,
+    active: true,
+  },
 ]);
 
 function onRowsChange(next: ObjectRow[]) {

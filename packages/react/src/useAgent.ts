@@ -1,11 +1,11 @@
-import { useRef, useSyncExternalStore } from "react";
 import {
-  createAgentLoop,
   type AgentLoop,
   type AgentLoopOptions,
   type AgentState,
+  createAgentLoop,
 } from "@sheetgrid/agent";
 import type { GridController } from "@sheetgrid/agent";
+import { useRef, useSyncExternalStore } from "react";
 
 export interface UseAgentResult extends AgentState {
   send: AgentLoop["send"];
@@ -89,11 +89,7 @@ export function useAgent(
   const loop = loopRef.current;
   const getSnapshot = snapshotRef.current!;
 
-  const state = useSyncExternalStore(
-    loop.subscribe,
-    getSnapshot,
-    getSnapshot,
-  );
+  const state = useSyncExternalStore(loop.subscribe, getSnapshot, getSnapshot);
 
   return {
     messages: state.messages,

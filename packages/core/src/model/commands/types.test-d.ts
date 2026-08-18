@@ -1,10 +1,5 @@
 import { expectTypeOf, test } from "vitest";
-import type {
-  Command,
-  CommandResult,
-  EventSource,
-  Snapshot,
-} from "./types.js";
+import type { Command, CommandResult, EventSource, Snapshot } from "./types.js";
 import type { GridEvent } from "./types.js";
 
 test("EventSource discriminated union", () => {
@@ -19,7 +14,9 @@ test("EventSource discriminated union", () => {
 test("Command.apply returns CommandResult with inverse Command", () => {
   type Apply = Command["apply"];
   expectTypeOf<ReturnType<Apply>>().toMatchTypeOf<CommandResult>();
-  expectTypeOf<Extract<CommandResult, { ok: true }>["inverse"]>().toMatchTypeOf<Command>();
+  expectTypeOf<
+    Extract<CommandResult, { ok: true }>["inverse"]
+  >().toMatchTypeOf<Command>();
 });
 
 test("Snapshot is opaque JSON-serializable", () => {

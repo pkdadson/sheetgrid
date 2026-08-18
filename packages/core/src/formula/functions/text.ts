@@ -90,7 +90,9 @@ export const textFunctions: FormulaFnDef[] = [
     impl: (args) => {
       const s = str(args[0]!);
       if (isFormulaError(s)) return s;
-      return s.toLowerCase().replace(/(^|[^a-zA-Z])([a-zA-Z])/g, (_, a, b) => a + b.toUpperCase());
+      return s
+        .toLowerCase()
+        .replace(/(^|[^a-zA-Z])([a-zA-Z])/g, (_, a, b) => a + b.toUpperCase());
     },
   },
   {
@@ -121,7 +123,7 @@ export const textFunctions: FormulaFnDef[] = [
   {
     name: "CONCAT",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args, ctx) => {
       let out = "";
       for (const a of args) {
@@ -138,7 +140,7 @@ export const textFunctions: FormulaFnDef[] = [
   {
     name: "CONCATENATE",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args, ctx) => {
       const def = textFunctions.find((f) => f.name === "CONCAT")!;
       return def.impl(args, ctx);
@@ -147,11 +149,12 @@ export const textFunctions: FormulaFnDef[] = [
   {
     name: "TEXTJOIN",
     minArgs: 3,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args, ctx) => {
       const delim = str(args[0]!);
       if (isFormulaError(delim)) return delim;
-      const ignoreEmpty = args[1] === true || args[1] === 1 || args[1] === "TRUE";
+      const ignoreEmpty =
+        args[1] === true || args[1] === 1 || args[1] === "TRUE";
       const parts: string[] = [];
       for (let i = 2; i < args.length; i++) {
         const s = str(args[i]!);
@@ -192,8 +195,7 @@ export const textFunctions: FormulaFnDef[] = [
         return isFormulaError(s) ? s : isFormulaError(oldS) ? oldS : newS;
       }
       if (oldS === "") return s;
-      const instance =
-        args[3] !== undefined ? toNumber(args[3]) : null;
+      const instance = args[3] !== undefined ? toNumber(args[3]) : null;
       if (instance !== null && isFormulaError(instance)) return instance;
       if (instance === null) {
         // M2: guard against output exceeding maxStringLength before allocating
@@ -202,7 +204,10 @@ export const textFunctions: FormulaFnDef[] = [
         const projectedSize =
           s.length + occurrences * (newS.length - oldS.length);
         if (projectedSize > ctx.limits.maxStringLength) {
-          return formulaError("VALUE", "SUBSTITUTE result exceeds max string length");
+          return formulaError(
+            "VALUE",
+            "SUBSTITUTE result exceeds max string length",
+          );
         }
         return parts.join(newS);
       }
@@ -215,9 +220,13 @@ export const textFunctions: FormulaFnDef[] = [
           count++;
           if (count === target) {
             // M2: guard instance-specific substitution output
-            const projected = out.length + newS.length + (s.length - i - oldS.length);
+            const projected =
+              out.length + newS.length + (s.length - i - oldS.length);
             if (projected > ctx.limits.maxStringLength) {
-              return formulaError("VALUE", "SUBSTITUTE result exceeds max string length");
+              return formulaError(
+                "VALUE",
+                "SUBSTITUTE result exceeds max string length",
+              );
             }
             out += newS;
             i += oldS.length;

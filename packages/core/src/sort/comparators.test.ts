@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { withNullsLast, pickDefaultComparator } from "./comparators.js";
 import type { GridRow, SortDirection } from "../types.js";
+import { pickDefaultComparator, withNullsLast } from "./comparators.js";
 
 const dummyRow: GridRow = { id: "x", values: {} };
 const ctx = (direction: SortDirection) => ({
@@ -11,7 +11,9 @@ const ctx = (direction: SortDirection) => ({
 
 describe("withNullsLast", () => {
   it("sorts null/undefined last regardless of direction", () => {
-    const cmp = withNullsLast((a: unknown, b: unknown) => (a as number) - (b as number));
+    const cmp = withNullsLast(
+      (a: unknown, b: unknown) => (a as number) - (b as number),
+    );
     expect(cmp(1, null, ctx("asc"))).toBeLessThan(0);
     expect(cmp(null, 1, ctx("asc"))).toBeGreaterThan(0);
     expect(cmp(1, null, ctx("desc"))).toBeLessThan(0);
@@ -21,7 +23,9 @@ describe("withNullsLast", () => {
   });
 
   it("delegates non-null values to inner comparator", () => {
-    const cmp = withNullsLast((a: unknown, b: unknown) => (a as number) - (b as number));
+    const cmp = withNullsLast(
+      (a: unknown, b: unknown) => (a as number) - (b as number),
+    );
     expect(cmp(1, 2, ctx("asc"))).toBeLessThan(0);
     expect(cmp(3, 2, ctx("asc"))).toBeGreaterThan(0);
   });

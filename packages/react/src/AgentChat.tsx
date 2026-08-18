@@ -1,4 +1,3 @@
-import { useState, type CSSProperties, type ReactNode } from "react";
 import type {
   AgentError,
   AgentLoopOptions,
@@ -7,6 +6,7 @@ import type {
   ToolCall,
 } from "@sheetgrid/agent";
 import type { OpResult } from "@sheetgrid/agent";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import { useAgent } from "./useAgent.js";
 import "./AgentChat.css";
 
@@ -58,7 +58,10 @@ function defaultRenderMessage(msg: AgentMessage): ReactNode {
   }
   if (msg.role === "assistant") {
     return (
-      <div key={msg.id} className="sg-agent-chat__msg sg-agent-chat__msg--assistant">
+      <div
+        key={msg.id}
+        className="sg-agent-chat__msg sg-agent-chat__msg--assistant"
+      >
         {msg.content.map((b, i) => {
           if (b.type === "text") return <span key={i}>{b.text}</span>;
           return (
@@ -124,7 +127,11 @@ export function AgentChat(props: AgentChatProps): JSX.Element {
   // Wire event callbacks lazily on first render.
   const [wired, setWired] = useState(false);
   if (!wired) {
-    if (onToolCall) agent.on("tool.called", (e) => e.type === "tool.called" && onToolCall(e.call));
+    if (onToolCall)
+      agent.on(
+        "tool.called",
+        (e) => e.type === "tool.called" && onToolCall(e.call),
+      );
     if (onDone) agent.on("done", () => onDone());
     setWired(true);
   }
@@ -148,7 +155,11 @@ export function AgentChat(props: AgentChatProps): JSX.Element {
         {agent.messages.length === 0 && emptyState}
         {agent.messages.map((m) => (renderMessage ?? defaultRenderMessage)(m))}
         {agent.thinking &&
-          (renderThinking ? renderThinking() : <div className="sg-agent-chat__thinking">thinking…</div>)}
+          (renderThinking ? (
+            renderThinking()
+          ) : (
+            <div className="sg-agent-chat__thinking">thinking…</div>
+          ))}
         {agent.error &&
           (renderError ? (
             renderError(agent.error)
@@ -159,7 +170,11 @@ export function AgentChat(props: AgentChatProps): JSX.Element {
           ))}
       </div>
       {renderInput ? (
-        renderInput({ send: doSend, thinking: agent.thinking, cancel: agent.cancel })
+        renderInput({
+          send: doSend,
+          thinking: agent.thinking,
+          cancel: agent.cancel,
+        })
       ) : (
         <form
           className="sg-agent-chat__input"
@@ -179,7 +194,10 @@ export function AgentChat(props: AgentChatProps): JSX.Element {
               }
             }}
           />
-          <button type="submit" disabled={agent.thinking || text.trim().length === 0}>
+          <button
+            type="submit"
+            disabled={agent.thinking || text.trim().length === 0}
+          >
             Send
           </button>
           {agent.thinking && (

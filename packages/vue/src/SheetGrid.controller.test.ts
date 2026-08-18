@@ -1,6 +1,6 @@
+import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
-import { mount } from "@vue/test-utils";
 import SheetGrid from "./SheetGrid.vue";
 import { useGridController } from "./composables/useGridController.js";
 
@@ -11,10 +11,16 @@ describe("<SheetGrid :controller>", () => {
         const controller = useGridController();
         (globalThis as any).__vc = controller;
         const rows = ref([{ id: "r1", values: { n: 1 } }]);
-        const columns = ref([{ id: "n", header: "N", type: "number" as const }]);
+        const columns = ref([
+          { id: "n", header: "N", type: "number" as const },
+        ]);
         return () =>
           h("div", { style: "height: 300px" }, [
-            h(SheetGrid, { controller, rows: rows.value, columns: columns.value }),
+            h(SheetGrid, {
+              controller,
+              rows: rows.value,
+              columns: columns.value,
+            }),
           ]);
       },
     });
@@ -34,10 +40,16 @@ describe("<SheetGrid :controller>", () => {
         const controller = useGridController();
         (globalThis as any).__vc = controller;
         const rows = ref([{ id: "r1", values: { n: 1 } }]);
-        const columns = ref([{ id: "n", header: "N", type: "number" as const }]);
+        const columns = ref([
+          { id: "n", header: "N", type: "number" as const },
+        ]);
         return () =>
           h("div", { style: "height: 300px" }, [
-            h(SheetGrid, { controller, rows: rows.value, columns: columns.value }),
+            h(SheetGrid, {
+              controller,
+              rows: rows.value,
+              columns: columns.value,
+            }),
           ]);
       },
     });

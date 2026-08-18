@@ -1,6 +1,11 @@
 import type { ColumnId, RowId } from "../../types.js";
 import { ClearFormulaCommand } from "./clear-formula.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class SetFormulaCommand implements Command {
   readonly kind = "formula.set";
@@ -20,9 +25,8 @@ export class SetFormulaCommand implements Command {
       };
     }
     const prevSource = internal.formulas.getRaw(this.rowId, this.columnId);
-    const prevLiteral = internal
-      .getRowsRef()
-      .find((r) => r.id === this.rowId)?.values[this.columnId];
+    const prevLiteral = internal.getRowsRef().find((r) => r.id === this.rowId)
+      ?.values[this.columnId];
     const ok = internal.formulas.set(this.rowId, this.columnId, this.source_);
     if (!ok) {
       return {
@@ -33,7 +37,12 @@ export class SetFormulaCommand implements Command {
     }
     internal.formulas.recalcAll();
     const inverse: Command = prevSource
-      ? new SetFormulaCommand(this.rowId, this.columnId, prevSource, this.source)
+      ? new SetFormulaCommand(
+          this.rowId,
+          this.columnId,
+          prevSource,
+          this.source,
+        )
       : new ClearFormulaCommandWithLiteral(
           this.rowId,
           this.columnId,
@@ -49,7 +58,9 @@ export class SetFormulaCommand implements Command {
           rowId: this.rowId,
           columnId: this.columnId,
           prev: prevSource,
-          next: this.source_.startsWith("=") ? this.source_ : `=${this.source_}`,
+          next: this.source_.startsWith("=")
+            ? this.source_
+            : `=${this.source_}`,
           source: this.source,
         },
       ],
@@ -79,7 +90,10 @@ class ClearFormulaCommandWithLiteral implements Command {
       internal.setRows(
         rows.map((r, i) =>
           i === idx
-            ? { id: r.id, values: { ...row.values, [this.columnId]: this.literal } }
+            ? {
+                id: r.id,
+                values: { ...row.values, [this.columnId]: this.literal },
+              }
             : r,
         ),
       );
@@ -88,7 +102,12 @@ class ClearFormulaCommandWithLiteral implements Command {
     return {
       ok: true,
       inverse: prevSource
-        ? new SetFormulaCommand(this.rowId, this.columnId, prevSource, this.source)
+        ? new SetFormulaCommand(
+            this.rowId,
+            this.columnId,
+            prevSource,
+            this.source,
+          )
         : new ClearFormulaCommandWithLiteral(
             this.rowId,
             this.columnId,

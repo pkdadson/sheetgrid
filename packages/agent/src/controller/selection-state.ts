@@ -35,10 +35,20 @@ export function createSelectionState(): ControllerSelection {
   return {
     get: () => state,
     selectCell(rowId, columnId) {
-      set({ active: { rowId, columnId }, ranges: [], rowIds: [], columnIds: [] });
+      set({
+        active: { rowId, columnId },
+        ranges: [],
+        rowIds: [],
+        columnIds: [],
+      });
     },
     selectRange(start, end) {
-      set({ active: start, ranges: [{ start, end }], rowIds: [], columnIds: [] });
+      set({
+        active: start,
+        ranges: [{ start, end }],
+        rowIds: [],
+        columnIds: [],
+      });
     },
     clear() {
       set(empty());

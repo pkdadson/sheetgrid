@@ -1,5 +1,10 @@
 import type { ColumnId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class SetColumnOrderCommand implements Command {
   readonly kind = "column-order.set";

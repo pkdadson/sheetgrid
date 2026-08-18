@@ -31,11 +31,10 @@ export async function mockSend(input: SendInput): Promise<SendOutput> {
     };
   }
 
-  const lastUser = [...input.messages]
-    .reverse()
-    .find((m) => m.role === "user");
-  const text =
-    (lastUser && lastUser.role === "user" ? lastUser.content : "").toLowerCase();
+  const lastUser = [...input.messages].reverse().find((m) => m.role === "user");
+  const text = (
+    lastUser && lastUser.role === "user" ? lastUser.content : ""
+  ).toLowerCase();
 
   if (text.includes("fill")) {
     return {

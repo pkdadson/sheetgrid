@@ -48,7 +48,11 @@ function compareOp(
 ): boolean {
   const rhsNum = Number(rhsRaw);
   const lhsNum = toNumber(value);
-  if (!isFormulaError(lhsNum) && Number.isFinite(rhsNum) && rhsRaw.trim() !== "") {
+  if (
+    !isFormulaError(lhsNum) &&
+    Number.isFinite(rhsNum) &&
+    rhsRaw.trim() !== ""
+  ) {
     switch (op) {
       case ">=":
         return lhsNum >= rhsNum;

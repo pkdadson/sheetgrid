@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Agent loop — React demo (<AgentChat>)", () => {
-  test("fill / undo natural-language commands drive the grid", async ({ page }) => {
+  test("fill / undo natural-language commands drive the grid", async ({
+    page,
+  }) => {
     await page.goto("http://127.0.0.1:5177");
     await page.getByRole("tab", { name: /agent/i }).click();
 
@@ -12,14 +14,20 @@ test.describe("Agent loop — React demo (<AgentChat>)", () => {
 
     await input.fill("fill notes");
     await send.click();
-    await expect(gridArea.locator("text=First contact 2026-08-11").first()).toBeVisible();
+    await expect(
+      gridArea.locator("text=First contact 2026-08-11").first(),
+    ).toBeVisible();
 
     await input.fill("undo");
     await send.click();
-    await expect(gridArea.locator("text=First contact 2026-08-11")).toHaveCount(0);
+    await expect(gridArea.locator("text=First contact 2026-08-11")).toHaveCount(
+      0,
+    );
   });
 
-  test("who is in the grid returns a text summary from the assistant", async ({ page }) => {
+  test("who is in the grid returns a text summary from the assistant", async ({
+    page,
+  }) => {
     await page.goto("http://127.0.0.1:5177");
     await page.getByRole("tab", { name: /agent/i }).click();
     const input = page.locator(".sg-agent-chat textarea");
@@ -27,6 +35,8 @@ test.describe("Agent loop — React demo (<AgentChat>)", () => {
     await input.fill("who is in the grid");
     await send.click();
     // Assistant summary appears in transcript.
-    await expect(page.locator("text=/Ada.*Grace.*Katherine/i").first()).toBeVisible({ timeout: 8000 });
+    await expect(
+      page.locator("text=/Ada.*Grace.*Katherine/i").first(),
+    ).toBeVisible({ timeout: 8000 });
   });
 });

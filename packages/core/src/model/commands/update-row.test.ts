@@ -26,7 +26,11 @@ describe("UpdateRowCommand", () => {
 
   it("emits row.updated event with prev and patch", () => {
     const s = base();
-    const res = new UpdateRowCommand("a", { name: "Ada L", age: 100 }, src).apply(s);
+    const res = new UpdateRowCommand(
+      "a",
+      { name: "Ada L", age: 100 },
+      src,
+    ).apply(s);
     if (!res.ok) throw new Error();
     expect(res.events[0]).toMatchObject({
       type: "row.updated",

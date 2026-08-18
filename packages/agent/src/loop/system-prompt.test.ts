@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { defaultSystemPrompt } from "./system-prompt.js";
 import type { GridSchema } from "../types/controller.js";
+import { defaultSystemPrompt } from "./system-prompt.js";
 
 const schema: GridSchema = {
   columns: [
     { id: "name", header: "Name", type: "text", agentWritable: true },
-    { id: "age", header: "Age", type: "number", agentWritable: true, description: "Years" },
+    {
+      id: "age",
+      header: "Age",
+      type: "number",
+      agentWritable: true,
+      description: "Years",
+    },
     { id: "id", header: "ID", agentWritable: false },
   ],
   rowIdField: "id",

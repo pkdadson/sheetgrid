@@ -1,4 +1,4 @@
-import { render, cleanup, act } from "@testing-library/react";
+import { act, cleanup, render } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { Grid } from "./Grid.js";
 import { useGridController } from "./useGridController.js";

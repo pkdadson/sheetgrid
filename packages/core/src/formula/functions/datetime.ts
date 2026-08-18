@@ -21,7 +21,9 @@ export const datetimeFunctions: FormulaFnDef[] = [
       if (isFormulaError(y) || isFormulaError(m) || isFormulaError(d)) {
         return isFormulaError(y) ? y : isFormulaError(m) ? m : d;
       }
-      return new Date(Date.UTC(Math.trunc(y), Math.trunc(m) - 1, Math.trunc(d)));
+      return new Date(
+        Date.UTC(Math.trunc(y), Math.trunc(m) - 1, Math.trunc(d)),
+      );
     },
   },
   {
@@ -35,7 +37,9 @@ export const datetimeFunctions: FormulaFnDef[] = [
       if (isFormulaError(h) || isFormulaError(m) || isFormulaError(s)) {
         return isFormulaError(h) ? h : isFormulaError(m) ? m : s;
       }
-      return (Math.trunc(h) * 3600 + Math.trunc(m) * 60 + Math.trunc(s)) / 86400;
+      return (
+        (Math.trunc(h) * 3600 + Math.trunc(m) * 60 + Math.trunc(s)) / 86400
+      );
     },
   },
   {
@@ -62,7 +66,8 @@ export const datetimeFunctions: FormulaFnDef[] = [
       if (typeof v === "number") return v % 1;
       if (typeof v === "string") {
         const parts = v.split(":").map(Number);
-        if (parts.some((p) => !Number.isFinite(p))) return formulaError("VALUE");
+        if (parts.some((p) => !Number.isFinite(p)))
+          return formulaError("VALUE");
         const h = parts[0] ?? 0;
         const m = parts[1] ?? 0;
         const s = parts[2] ?? 0;
@@ -85,7 +90,9 @@ export const datetimeFunctions: FormulaFnDef[] = [
     volatile: true,
     impl: (_a, ctx) => {
       const n = ctx.now();
-      return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+      return new Date(
+        Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()),
+      );
     },
   },
   {
@@ -191,7 +198,11 @@ export const datetimeFunctions: FormulaFnDef[] = [
       if (isFormulaError(d)) return d;
       if (isFormulaError(m)) return m;
       return new Date(
-        Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + Math.trunc(m), d.getUTCDate()),
+        Date.UTC(
+          d.getUTCFullYear(),
+          d.getUTCMonth() + Math.trunc(m),
+          d.getUTCDate(),
+        ),
       );
     },
   },
@@ -278,7 +289,7 @@ export const datetimeFunctions: FormulaFnDef[] = [
       if (isFormulaError(a) || isFormulaError(b)) {
         return isFormulaError(a) ? a : b;
       }
-      let start = a.getTime() <= b.getTime() ? a : b;
+      const start = a.getTime() <= b.getTime() ? a : b;
       const end = a.getTime() <= b.getTime() ? b : a;
       let count = 0;
       const cur = new Date(start.getTime());

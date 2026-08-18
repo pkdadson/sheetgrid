@@ -1,5 +1,10 @@
 import type { ColumnDef, ColumnId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class UpdateColumnCommand implements Command {
   readonly kind = "column.update";
@@ -20,7 +25,11 @@ export class UpdateColumnCommand implements Command {
     const cols = internal.getColumnsRef();
     const idx = cols.findIndex((c) => c.id === this.columnId);
     if (idx < 0) {
-      return { ok: false, code: "not_found", message: `column "${this.columnId}"` };
+      return {
+        ok: false,
+        code: "not_found",
+        message: `column "${this.columnId}"`,
+      };
     }
     const prev = { ...cols[idx]! };
     const prevPatch: Partial<ColumnDef> = {};

@@ -1,6 +1,11 @@
 import type { GridRow } from "../../types.js";
 import { cloneRow } from "./base.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class ReplaceRowsCommand implements Command {
   readonly kind = "rows.replaced";

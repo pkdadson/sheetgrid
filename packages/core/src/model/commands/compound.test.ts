@@ -8,9 +8,7 @@ const src = { kind: "agent", toolName: "batch" } as const;
 describe("CompoundCommand", () => {
   it("applies children in order, inverse undoes in reverse order", () => {
     const s = createInternalStore({
-      rows: [
-        { id: "r1", values: { a: 0, b: 0 } },
-      ],
+      rows: [{ id: "r1", values: { a: 0, b: 0 } }],
       columns: [
         { id: "a", header: "A" },
         { id: "b", header: "B" },

@@ -1,6 +1,6 @@
 import { toNumber } from "../coerce.js";
-import { formulaError, isFormulaError } from "../errors.js";
 import { flattenValues } from "../coerce.js";
+import { formulaError, isFormulaError } from "../errors.js";
 import type { FormulaFnDef } from "./types.js";
 
 export const financialFunctions: FormulaFnDef[] = [
@@ -24,7 +24,7 @@ export const financialFunctions: FormulaFnDef[] = [
       const t = type as number;
       if (r === 0) return -(p + f) / n;
       const pvif = (1 + r) ** n;
-      let pmt = (r * (p * pvif + f)) / ((1 + r * t) * (pvif - 1));
+      const pmt = (r * (p * pvif + f)) / ((1 + r * t) * (pvif - 1));
       return -pmt;
     },
   },
@@ -47,10 +47,7 @@ export const financialFunctions: FormulaFnDef[] = [
       const f = fv as number;
       const t = type as number;
       if (r === 0) return -p * n - f;
-      return -(
-        (p * (1 + r * t) * ((1 + r) ** n - 1)) / r +
-        f
-      ) / (1 + r) ** n;
+      return -((p * (1 + r * t) * ((1 + r) ** n - 1)) / r + f) / (1 + r) ** n;
     },
   },
   {
@@ -127,13 +124,10 @@ export const financialFunctions: FormulaFnDef[] = [
       for (let i = 0; i < 50; i++) {
         if (rate === -1) return formulaError("NUM");
         const y =
-          present * (1 + rate) ** n +
-          p * ((1 + rate) ** n - 1) / rate +
-          f;
+          present * (1 + rate) ** n + (p * ((1 + rate) ** n - 1)) / rate + f;
         const dy =
           n * present * (1 + rate) ** (n - 1) +
-          p *
-            (n * (1 + rate) ** (n - 1) * rate - ((1 + rate) ** n - 1)) /
+          (p * (n * (1 + rate) ** (n - 1) * rate - ((1 + rate) ** n - 1))) /
             rate ** 2;
         const next = rate - y / dy;
         if (!Number.isFinite(next)) return formulaError("NUM");
@@ -189,7 +183,7 @@ export const financialFunctions: FormulaFnDef[] = [
   {
     name: "NPV",
     minArgs: 2,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const rate = toNumber(args[0]!);
       if (isFormulaError(rate)) return rate;
@@ -219,7 +213,7 @@ export const financialFunctions: FormulaFnDef[] = [
         cfs.push(n);
       }
       if (cfs.length < 2) return formulaError("NUM");
-      let guess = args[1] !== undefined ? toNumber(args[1]) : 0.1;
+      const guess = args[1] !== undefined ? toNumber(args[1]) : 0.1;
       if (isFormulaError(guess)) return guess;
       let rate = guess as number;
       for (let iter = 0; iter < 50; iter++) {

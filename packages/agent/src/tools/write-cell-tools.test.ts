@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { describeGridTools } from "./index.js";
 
@@ -8,7 +8,12 @@ function fx() {
     rows: [{ id: "r1", values: { name: "Ada", age: 36, active: true } }],
     columns: [
       { id: "name", header: "Name", type: "text" },
-      { id: "age", header: "Age", type: "number", description: "Person's age in years" },
+      {
+        id: "age",
+        header: "Age",
+        type: "number",
+        description: "Person's age in years",
+      },
       { id: "active", header: "Active", type: "boolean" },
     ],
   });
@@ -48,7 +53,11 @@ describe("write-cell tools", () => {
     const c = createGridController();
     c.__attach(store);
     const t = describeGridTools(c).find((t) => t.name === "grid_set_cell")!;
-    const res = await t.execute({ rowId: "r1", columnId: "id_col", value: "y" });
+    const res = await t.execute({
+      rowId: "r1",
+      columnId: "id_col",
+      value: "y",
+    });
     expect(res.ok).toBe(false);
     if (res.ok) throw new Error();
     expect((res as any).code).toBe("read_only");

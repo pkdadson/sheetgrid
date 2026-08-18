@@ -1,5 +1,5 @@
 import { expectTypeOf, test } from "vitest";
-import type { GridEvent, EventSource } from "./grid-event.js";
+import type { EventSource, GridEvent } from "./grid-event.js";
 
 test("GridEvent covers all core events + transaction wrappers + selection", () => {
   const cell: GridEvent = {
@@ -18,7 +18,10 @@ test("GridEvent covers all core events + transaction wrappers + selection", () =
   const commit: GridEvent = { type: "transaction.committed", ops: [] };
   expectTypeOf(commit).toMatchTypeOf<GridEvent>();
 
-  const rb: GridEvent = { type: "transaction.rolledback", reason: "auth denied" };
+  const rb: GridEvent = {
+    type: "transaction.rolledback",
+    reason: "auth denied",
+  };
   expectTypeOf(rb).toMatchTypeOf<GridEvent>();
 
   const detached: GridEvent = { type: "controller.detached" };

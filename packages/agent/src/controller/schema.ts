@@ -1,6 +1,6 @@
 import type { GridStore } from "@sheetgrid/core";
-import { isColumnAgentWritable } from "./authorize-check.js";
 import type { GridSchema } from "../types/controller.js";
+import { isColumnAgentWritable } from "./authorize-check.js";
 
 export function buildSchema(
   store: GridStore,

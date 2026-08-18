@@ -1,4 +1,5 @@
 import { describeGridTools } from "../tools/index.js";
+import type { OpResult } from "../types/op-result.js";
 import { defaultSystemPrompt } from "./system-prompt.js";
 import type {
   AgentEvent,
@@ -49,7 +50,10 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
       try {
         h(event);
       } catch (err) {
-        console.error(`AgentLoop: wildcard handler threw for "${event.type}"`, err);
+        console.error(
+          `AgentLoop: wildcard handler threw for "${event.type}"`,
+          err,
+        );
       }
     }
   };
@@ -81,11 +85,17 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
 
   const send: AgentLoop["send"] = async (userText) => {
     if (thinking) {
-      throw new Error("AgentLoop is busy — cancel or await the prior send first");
+      throw new Error(
+        "AgentLoop is busy — cancel or await the prior send first",
+      );
     }
     setError(null);
 
-    const userMsg: AgentMessage = { id: nextId("m"), role: "user", content: userText };
+    const userMsg: AgentMessage = {
+      id: nextId("m"),
+      role: "user",
+      content: userText,
+    };
     addMessage(userMsg);
 
     setThinking(true);
@@ -124,7 +134,8 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
 
         // Collect tool_use blocks; execute in declaration order.
         const toolUses = output.content.filter(
-          (b): b is Extract<typeof b, { type: "tool_use" }> => b.type === "tool_use",
+          (b): b is Extract<typeof b, { type: "tool_use" }> =>
+            b.type === "tool_use",
         );
 
         if (toolUses.length === 0 || output.stop_reason !== "tool_use") {
@@ -167,7 +178,7 @@ export function createAgentLoop(opts: AgentLoopOptions): AgentLoop {
 
           // Execute.
           const tool = tools.find((t) => t.name === call.name);
-          let result;
+          let result: OpResult<unknown>;
           if (!tool) {
             result = {
               ok: false as const,

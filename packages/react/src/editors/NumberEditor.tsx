@@ -9,8 +9,7 @@ export function NumberEditor({
   error,
 }: EditorRenderProps) {
   const skipBlurCommit = useRef(false);
-  const display =
-    value === null || value === undefined ? "" : String(value);
+  const display = value === null || value === undefined ? "" : String(value);
 
   return (
     <input

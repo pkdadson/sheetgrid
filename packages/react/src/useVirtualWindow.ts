@@ -1,4 +1,5 @@
 import {
+  type SizeCache,
   anchorScrollDelta,
   buildPrefixSums,
   computePads,
@@ -7,7 +8,6 @@ import {
   offsetOf,
   sizeAt,
   windowFromPrefix,
-  type SizeCache,
 } from "@sheetgrid/core";
 import {
   useCallback,

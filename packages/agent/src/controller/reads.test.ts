@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
-import { doGetData, doGetCell, doQueryRows, doDescribe } from "./reads.js";
+import { describe, expect, it } from "vitest";
+import { doDescribe, doGetCell, doGetData, doQueryRows } from "./reads.js";
 
 function fixture() {
   return createGridStore({
@@ -39,7 +39,9 @@ describe("doGetData", () => {
   it("range slices by post-sort/filter visible index", () => {
     const store = fixture();
     store.setSort([{ columnId: "age", direction: "desc" }]);
-    const { rows, total } = doGetData(store, "objects", { range: { fromRow: 0, toRow: 1 } });
+    const { rows, total } = doGetData(store, "objects", {
+      range: { fromRow: 0, toRow: 1 },
+    });
     expect(rows.map((r) => r.id)).toEqual(["r3"]); // Katherine, oldest first
     expect(total).toBe(3); // total is pre-slice
   });
@@ -54,7 +56,9 @@ describe("doGetData", () => {
       formulas: true,
     });
     store.setFormula("r1", "b", "=A1*2");
-    const { rows } = doGetData(store, "objects", { includeFormulaSources: true });
+    const { rows } = doGetData(store, "objects", {
+      includeFormulaSources: true,
+    });
     expect(rows[0]!.formulas).toEqual({ b: "=A1*2" });
   });
 });

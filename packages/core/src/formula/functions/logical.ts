@@ -1,4 +1,4 @@
-import { toBoolean, flattenValues } from "../coerce.js";
+import { flattenValues, toBoolean } from "../coerce.js";
 import { formulaError, isFormulaError } from "../errors.js";
 import type { FormulaValue } from "../types.js";
 import type { FormulaFnDef } from "./types.js";
@@ -30,7 +30,7 @@ export const logicalFunctions: FormulaFnDef[] = [
   {
     name: "IFS",
     minArgs: 2,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       if (args.length % 2 !== 0) {
         return formulaError("VALUE", "IFS requires pairs");
@@ -62,7 +62,7 @@ export const logicalFunctions: FormulaFnDef[] = [
   {
     name: "AND",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       for (const a of args) {
         for (const v of flattenValues(a)) {
@@ -77,7 +77,7 @@ export const logicalFunctions: FormulaFnDef[] = [
   {
     name: "OR",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       for (const a of args) {
         for (const v of flattenValues(a)) {
@@ -102,7 +102,7 @@ export const logicalFunctions: FormulaFnDef[] = [
   {
     name: "XOR",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       let count = 0;
       for (const a of args) {
@@ -130,7 +130,7 @@ export const logicalFunctions: FormulaFnDef[] = [
   {
     name: "SWITCH",
     minArgs: 3,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const expr = args[0]!;
       const err = firstError(expr);

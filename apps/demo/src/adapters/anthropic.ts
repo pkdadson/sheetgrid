@@ -10,12 +10,14 @@ export function makeAnthropicSend(opts: { apiKey: string; model: string }) {
     });
 
     const anthropicMessages = input.messages.map((m) => {
-      if (m.role === "user") return { role: "user" as const, content: m.content };
+      if (m.role === "user")
+        return { role: "user" as const, content: m.content };
       if (m.role === "assistant") {
         return {
           role: "assistant" as const,
           content: m.content.map((b) => {
-            if (b.type === "text") return { type: "text" as const, text: b.text };
+            if (b.type === "text")
+              return { type: "text" as const, text: b.text };
             return {
               type: "tool_use" as const,
               id: b.id,

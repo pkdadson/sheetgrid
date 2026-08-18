@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createEventBus } from "./event-bus.js";
 import type { GridEvent } from "../types/grid-event.js";
+import { createEventBus } from "./event-bus.js";
 
 const src = { kind: "system", reason: "init" } as const;
 
@@ -35,7 +35,9 @@ describe("EventBus", () => {
   it("catches handler errors without breaking other handlers", () => {
     const bus = createEventBus();
     const good = vi.fn();
-    bus.on("cell.changed", () => { throw new Error("boom"); });
+    bus.on("cell.changed", () => {
+      throw new Error("boom");
+    });
     bus.on("cell.changed", good);
     // Swallow console noise
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});

@@ -1,11 +1,11 @@
+import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, ref } from "vue";
-import { mount } from "@vue/test-utils";
 import { useGridController } from "./useGridController.js";
 
 describe("useGridController (Vue)", () => {
   it("returns a stable controller across renders", () => {
-    let captured: any[] = [];
+    const captured: any[] = [];
     const Cmp = defineComponent({
       setup() {
         const controller = useGridController();

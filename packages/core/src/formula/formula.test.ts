@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { type formulaError, isFormulaError } from "./errors.js";
 import { evaluateAst } from "./evaluate.js";
-import { formulaError, isFormulaError } from "./errors.js";
 import { listFunctions } from "./functions/index.js";
 import { tokenize } from "./lexer.js";
 import { defaultFormulaLimits, mergeFormulaLimits } from "./limits.js";
@@ -156,7 +156,9 @@ describe("recalc cycles", () => {
         results.set(`${r}:${c}`, v);
       },
     });
-    expect(isFormulaError(results.get("0:0")!) && results.get("0:0")).toBeTruthy();
+    expect(
+      isFormulaError(results.get("0:0")!) && results.get("0:0"),
+    ).toBeTruthy();
     expect(
       isFormulaError(results.get("0:0")!) &&
         (results.get("0:0") as ReturnType<typeof formulaError>).type ===

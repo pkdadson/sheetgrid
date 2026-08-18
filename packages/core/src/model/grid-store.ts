@@ -9,30 +9,30 @@ import type {
   GridRow,
   RowId,
 } from "../types.js";
+import { AddColumnCommand } from "./commands/add-column.js";
+import { AddRowCommand, generateRowId } from "./commands/add-row.js";
 import { ClearFormulaCommand } from "./commands/clear-formula.js";
+import { DeleteColumnCommand } from "./commands/delete-column.js";
+import { DeleteRowCommand } from "./commands/delete-row.js";
 import { MoveColumnCommand } from "./commands/move-column.js";
 import { MoveRowCommand } from "./commands/move-row.js";
 import { ReplaceColumnsCommand } from "./commands/replace-columns.js";
 import { ReplaceRowsCommand } from "./commands/replace-rows.js";
+import { RestoreCommand } from "./commands/restore.js";
 import { SetCellCommand } from "./commands/set-cell.js";
 import { SetColumnOrderCommand } from "./commands/set-column-order.js";
 import { SetErrorCommand } from "./commands/set-error.js";
+import { SetFilterCommand } from "./commands/set-filter.js";
 import { SetFormulaCommand } from "./commands/set-formula.js";
+import { SetSortCommand } from "./commands/set-sort.js";
 import { SwapColumnsCommand } from "./commands/swap-columns.js";
 import { SwapRowsCommand } from "./commands/swap-rows.js";
 import type { EventSource, Snapshot } from "./commands/types.js";
+import { UpdateColumnCommand } from "./commands/update-column.js";
+import { UpdateRowCommand } from "./commands/update-row.js";
 import { History } from "./history.js";
 import { createInternalStore } from "./internal-store.js";
 import { takeSnapshot } from "./snapshot.js";
-import { RestoreCommand } from "./commands/restore.js";
-import { AddRowCommand, generateRowId } from "./commands/add-row.js";
-import { UpdateRowCommand } from "./commands/update-row.js";
-import { DeleteRowCommand } from "./commands/delete-row.js";
-import { AddColumnCommand } from "./commands/add-column.js";
-import { UpdateColumnCommand } from "./commands/update-column.js";
-import { DeleteColumnCommand } from "./commands/delete-column.js";
-import { SetSortCommand } from "./commands/set-sort.js";
-import { SetFilterCommand } from "./commands/set-filter.js";
 
 export type FormulaEntryMode = "auto-equals" | "explicit-only";
 
@@ -62,7 +62,12 @@ export interface GridStore {
   getColumns(): ColumnDef[];
   getOrderedColumns(): ColumnDef[];
   getCell(rowId: RowId, columnId: ColumnId): unknown;
-  setCell(rowId: RowId, columnId: ColumnId, value: unknown, reason: CommitReason): void;
+  setCell(
+    rowId: RowId,
+    columnId: ColumnId,
+    value: unknown,
+    reason: CommitReason,
+  ): void;
   replaceRows(rows: GridRow[]): void;
   replaceColumns(columns: ColumnDef[]): void;
   setColumnOrder(order: ColumnId[]): void;
@@ -81,14 +86,20 @@ export interface GridStore {
   getFormulaEntry(): FormulaEntryMode;
   setFormula(rowId: RowId, columnId: ColumnId, source: string): boolean;
   clearFormula(rowId: RowId, columnId: ColumnId): void;
-  getFormula(rowId: RowId, columnId: ColumnId): { source: string; result: FormulaValue } | null;
+  getFormula(
+    rowId: RowId,
+    columnId: ColumnId,
+  ): { source: string; result: FormulaValue } | null;
 
   // New in M2.
   addRow(
     values: Record<ColumnId, unknown>,
     opts?: { at?: number | "end"; id?: RowId },
   ): { ok: boolean; rowId?: RowId; error?: string };
-  updateRow(rowId: RowId, patch: Record<ColumnId, unknown>): { ok: boolean; error?: string };
+  updateRow(
+    rowId: RowId,
+    patch: Record<ColumnId, unknown>,
+  ): { ok: boolean; error?: string };
   deleteRow(rowId: RowId): { ok: boolean; error?: string };
   addColumn(
     def: ColumnDef,
@@ -99,12 +110,16 @@ export interface GridStore {
     patch: Partial<ColumnDef>,
   ): { ok: boolean; error?: string };
   deleteColumn(columnId: ColumnId): { ok: boolean; error?: string };
-  setSort(specs: import("../types.js").SortSpec[]): { ok: boolean; error?: string };
+  setSort(specs: import("../types.js").SortSpec[]): {
+    ok: boolean;
+    error?: string;
+  };
   clearSort(): void;
   getSort(): import("../types.js").SortSpec[];
-  setFilter(
-    filter: import("../types.js").FilterClause,
-  ): { ok: boolean; error?: string };
+  setFilter(filter: import("../types.js").FilterClause): {
+    ok: boolean;
+    error?: string;
+  };
   clearFilter(): void;
   getFilter(): import("../types.js").FilterClause | null;
 
@@ -127,7 +142,10 @@ export function createGridStore(input: CreateGridStoreInput): GridStore {
 
   const formulaEntry: FormulaEntryMode = input.formulaEntry ?? "auto-equals";
 
-  const dispatchAndTrack = (cmd: Parameters<History["dispatch"]>[0], reason: CommitReason) => {
+  const dispatchAndTrack = (
+    cmd: Parameters<History["dispatch"]>[0],
+    reason: CommitReason,
+  ) => {
     const res = history.dispatch(cmd);
     if (res.ok) lastReason = reason;
     return res;
@@ -146,33 +164,57 @@ export function createGridStore(input: CreateGridStoreInput): GridStore {
     getCell: (rowId, columnId) =>
       internal.getRowsRef().find((r) => r.id === rowId)?.values[columnId],
     setCell(rowId, columnId, value, reason) {
-      dispatchAndTrack(new SetCellCommand(rowId, columnId, value, sourceFor(reason)), reason);
+      dispatchAndTrack(
+        new SetCellCommand(rowId, columnId, value, sourceFor(reason)),
+        reason,
+      );
     },
     replaceRows(next) {
       dispatchAndTrack(new ReplaceRowsCommand(next, sourceFor("api")), "api");
     },
     replaceColumns(next) {
-      dispatchAndTrack(new ReplaceColumnsCommand(next, sourceFor("api")), "api");
+      dispatchAndTrack(
+        new ReplaceColumnsCommand(next, sourceFor("api")),
+        "api",
+      );
     },
     setColumnOrder(order) {
-      dispatchAndTrack(new SetColumnOrderCommand(order, sourceFor("reorder")), "reorder");
+      dispatchAndTrack(
+        new SetColumnOrderCommand(order, sourceFor("reorder")),
+        "reorder",
+      );
     },
     getColumnOrder: () => internal.getColumnOrderRef(),
     moveColumn(columnId, toIndex) {
-      dispatchAndTrack(new MoveColumnCommand(columnId, toIndex, sourceFor("reorder")), "reorder");
+      dispatchAndTrack(
+        new MoveColumnCommand(columnId, toIndex, sourceFor("reorder")),
+        "reorder",
+      );
     },
     swapColumns(a, b) {
-      dispatchAndTrack(new SwapColumnsCommand(a, b, sourceFor("reorder")), "reorder");
+      dispatchAndTrack(
+        new SwapColumnsCommand(a, b, sourceFor("reorder")),
+        "reorder",
+      );
     },
     moveRow(rowId, toIndex) {
-      dispatchAndTrack(new MoveRowCommand(rowId, toIndex, sourceFor("reorder")), "reorder");
+      dispatchAndTrack(
+        new MoveRowCommand(rowId, toIndex, sourceFor("reorder")),
+        "reorder",
+      );
     },
     swapRows(a, b) {
-      dispatchAndTrack(new SwapRowsCommand(a, b, sourceFor("reorder")), "reorder");
+      dispatchAndTrack(
+        new SwapRowsCommand(a, b, sourceFor("reorder")),
+        "reorder",
+      );
     },
     getErrors: () => internal.errors.getMap(),
     setError(rowId, columnId, error) {
-      dispatchAndTrack(new SetErrorCommand(rowId, columnId, error, sourceFor("api")), "api");
+      dispatchAndTrack(
+        new SetErrorCommand(rowId, columnId, error, sourceFor("api")),
+        "api",
+      );
     },
     clearError(rowId, columnId) {
       this.setError(rowId, columnId, null);
@@ -219,7 +261,9 @@ export function createGridStore(input: CreateGridStoreInput): GridStore {
         new AddRowCommand(values, { ...opts, id }, sourceFor("api")),
         "api",
       );
-      return res.ok ? { ok: true, rowId: id } : { ok: false, error: res.message };
+      return res.ok
+        ? { ok: true, rowId: id }
+        : { ok: false, error: res.message };
     },
     updateRow(rowId, patch) {
       const res = dispatchAndTrack(
@@ -257,7 +301,10 @@ export function createGridStore(input: CreateGridStoreInput): GridStore {
       return res.ok ? { ok: true } : { ok: false, error: res.message };
     },
     setSort(specs) {
-      const res = dispatchAndTrack(new SetSortCommand(specs, sourceFor("api")), "api");
+      const res = dispatchAndTrack(
+        new SetSortCommand(specs, sourceFor("api")),
+        "api",
+      );
       return res.ok ? { ok: true } : { ok: false, error: res.message };
     },
     clearSort() {

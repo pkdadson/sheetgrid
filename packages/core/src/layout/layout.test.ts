@@ -43,9 +43,7 @@ describe("column layout", () => {
     expect(widths.a).toBe(120);
     expect(widths.b).toBe(120);
     expect(widths.e).toBe(120);
-    expect(
-      Object.values(widths).reduce((sum, w) => sum + w, 0),
-    ).toBe(600);
+    expect(Object.values(widths).reduce((sum, w) => sum + w, 0)).toBe(600);
   });
 
   it("setColumnWidth clamps", () => {

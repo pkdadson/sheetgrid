@@ -12,7 +12,7 @@
  *   node scripts/publish-npm.mjs --filter @sheetgrid/react
  */
 import { execSync } from "node:child_process";
-import { join, dirname } from "node:path";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -28,7 +28,10 @@ const fIdx = args.indexOf("--filter");
 if (fIdx >= 0) filter = args[fIdx + 1];
 
 // Gate: refuse dirty tree for publish
-const dirty = execSync("git status --porcelain", { cwd: root, encoding: "utf8" }).trim();
+const dirty = execSync("git status --porcelain", {
+  cwd: root,
+  encoding: "utf8",
+}).trim();
 if (dirty) {
   console.error("publish-npm: working tree is dirty. Commit or stash first.");
   process.exit(1);

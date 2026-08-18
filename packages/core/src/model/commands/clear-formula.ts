@@ -1,6 +1,11 @@
 import type { ColumnId, RowId } from "../../types.js";
 import { SetFormulaCommand } from "./set-formula.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class ClearFormulaCommand implements Command {
   readonly kind = "formula.clear";
@@ -19,7 +24,11 @@ export class ClearFormulaCommand implements Command {
       // No-op — inverse is a no-op that puts the cleared state back.
       return {
         ok: true,
-        inverse: new ClearFormulaCommand(this.rowId, this.columnId, this.source),
+        inverse: new ClearFormulaCommand(
+          this.rowId,
+          this.columnId,
+          this.source,
+        ),
         events: [],
       };
     }

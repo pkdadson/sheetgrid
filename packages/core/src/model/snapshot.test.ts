@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createInternalStore } from "./internal-store.js";
-import { takeSnapshot, applySnapshot } from "./snapshot.js";
-import { History } from "./history.js";
 import { RestoreCommand } from "./commands/restore.js";
 import { SetCellCommand } from "./commands/set-cell.js";
+import { History } from "./history.js";
+import { createInternalStore } from "./internal-store.js";
+import { applySnapshot, takeSnapshot } from "./snapshot.js";
 
 const src = { kind: "system", reason: "init" } as const;
 

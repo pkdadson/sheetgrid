@@ -1,4 +1,4 @@
-import { render, cleanup, act, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { Grid } from "./Grid.js";
 import { useGridController } from "./useGridController.js";
@@ -18,6 +18,7 @@ function Fixture({ readOnly }: { readOnly?: boolean }) {
         columns={[{ id: "name", header: "Name" }]}
       />
       <button
+        type="button"
         data-testid="agent-set"
         onClick={() => controller.setCell("r1", "name", "Ada L")}
       >
@@ -64,7 +65,11 @@ describe("<Grid controller={...}/>", () => {
       (globalThis as any).__c = c;
       return (
         <div style={{ height: 300 }}>
-          <Grid controller={c} rows={[{ id: "r1", values: { n: 1 } }]} columns={[{ id: "n", header: "N" }]} />
+          <Grid
+            controller={c}
+            rows={[{ id: "r1", values: { n: 1 } }]}
+            columns={[{ id: "n", header: "N" }]}
+          />
         </div>
       );
     };

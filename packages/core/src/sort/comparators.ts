@@ -28,15 +28,14 @@ const booleanInner: Comparator = (a, b) => {
   return na - nb;
 };
 
-const stringInner: Comparator = (a, b) => collator.compare(String(a), String(b));
+const stringInner: Comparator = (a, b) =>
+  collator.compare(String(a), String(b));
 
 /**
  * Choose a default comparator for a column based on its `type` field. Falls
  * back to a locale-aware string comparator for unknown or missing types.
  */
-export function pickDefaultComparator(
-  type: string | undefined,
-): Comparator {
+export function pickDefaultComparator(type: string | undefined): Comparator {
   switch (type) {
     case "number":
       return withNullsLast(numericInner);

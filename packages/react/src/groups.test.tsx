@@ -24,11 +24,15 @@ describe("Grid columnGroups", () => {
     expect(screen.getByText("Work")).toBeTruthy();
     expect(screen.getByText("Name")).toBeTruthy();
     expect(screen.getByText("Score")).toBeTruthy();
-    expect(screen.getByRole("columnheader", { name: "Person" }).getAttribute("colspan")).toBe(
-      "2",
-    );
-    expect(screen.getByRole("columnheader", { name: "Work" }).getAttribute("colspan")).toBe(
-      "2",
-    );
+    expect(
+      screen
+        .getByRole("columnheader", { name: "Person" })
+        .getAttribute("colspan"),
+    ).toBe("2");
+    expect(
+      screen
+        .getByRole("columnheader", { name: "Work" })
+        .getAttribute("colspan"),
+    ).toBe("2");
   });
 });

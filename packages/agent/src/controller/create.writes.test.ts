@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "./create.js";
 
 function fx() {
@@ -40,7 +40,9 @@ describe("controller writes — cells", () => {
           header: "Age",
           type: "number",
           validate: (v) =>
-            typeof v === "number" && v >= 0 ? { ok: true } : { ok: false, message: "must be non-negative" },
+            typeof v === "number" && v >= 0
+              ? { ok: true }
+              : { ok: false, message: "must be non-negative" },
         },
       ],
     });

@@ -1,5 +1,5 @@
-import type { FullInternalStore } from "./internal-store.js";
 import type { Snapshot } from "./commands/types.js";
+import type { FullInternalStore } from "./internal-store.js";
 
 export function takeSnapshot(s: FullInternalStore): Snapshot {
   return {

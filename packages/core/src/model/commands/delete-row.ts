@@ -1,6 +1,11 @@
 import type { ColumnId, GridRow, RowId } from "../../types.js";
 import { AddRowCommand } from "./add-row.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 /**
  * Compound inverse: re-insert the row at original index AND restore formulas.
@@ -17,10 +22,17 @@ class ReinsertRowCommand implements Command {
   apply(internal: InternalStore): CommandResult {
     const rows = internal.getRowsRef();
     if (rows.some((r) => r.id === this.row.id)) {
-      return { ok: false, code: "conflict", message: `row id "${this.row.id}" already exists` };
+      return {
+        ok: false,
+        code: "conflict",
+        message: `row id "${this.row.id}" already exists`,
+      };
     }
     const next = [...rows];
-    next.splice(this.index, 0, { id: this.row.id, values: { ...this.row.values } });
+    next.splice(this.index, 0, {
+      id: this.row.id,
+      values: { ...this.row.values },
+    });
     internal.setRows(next);
     if (internal.formulas.isEnabled()) {
       for (const [columnId, source] of this.formulas) {

@@ -1,4 +1,10 @@
-import { addComponent, addImports, createResolver, defineNuxtModule, useNuxt } from "@nuxt/kit";
+import {
+  addComponent,
+  addImports,
+  createResolver,
+  defineNuxtModule,
+  useNuxt,
+} from "@nuxt/kit";
 
 export interface ModuleOptions {
   /** Prefix for global components. Default: none (registers as `SheetGrid`, `SortHeader`). */

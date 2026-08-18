@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { type ObjectRow, SheetGrid } from "@sheetgrid/vue";
 import { computed, ref } from "vue";
-import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
 
 const props = defineProps<{
   density: "comfortable" | "compact";

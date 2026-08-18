@@ -1,4 +1,10 @@
-import type { Command, CommandResult, EventSource, GridEvent, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  GridEvent,
+  InternalStore,
+} from "./types.js";
 
 export class CompoundCommand implements Command {
   readonly kind = "compound";

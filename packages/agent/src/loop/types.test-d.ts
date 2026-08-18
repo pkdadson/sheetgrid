@@ -1,14 +1,14 @@
 import { expectTypeOf, test } from "vitest";
 import type {
-  AgentMessage,
+  AgentError,
   AgentEvent,
+  AgentLoop,
+  AgentLoopOptions,
+  AgentMessage,
   AgentState,
   SendInput,
   SendOutput,
   ToolCall,
-  AgentError,
-  AgentLoopOptions,
-  AgentLoop,
 } from "./types.js";
 
 test("AgentMessage discriminates by role", () => {
@@ -21,7 +21,13 @@ test("AgentMessage discriminates by role", () => {
   const tool: AgentMessage = {
     id: "m3",
     role: "tool",
-    content: [{ type: "tool_result", tool_use_id: "t1", output: { ok: true, value: null } }],
+    content: [
+      {
+        type: "tool_result",
+        tool_use_id: "t1",
+        output: { ok: true, value: null },
+      },
+    ],
   };
   expectTypeOf(user).toMatchTypeOf<AgentMessage>();
   expectTypeOf(assistant).toMatchTypeOf<AgentMessage>();
@@ -38,7 +44,12 @@ test("SendOutput content is text or tool_use blocks", () => {
   const out: SendOutput = {
     content: [
       { type: "text", text: "sure" },
-      { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1" } },
+      {
+        type: "tool_use",
+        id: "t1",
+        name: "grid_set_cell",
+        input: { rowId: "r1" },
+      },
     ],
     stop_reason: "tool_use",
   };

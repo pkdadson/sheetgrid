@@ -36,13 +36,9 @@ describe("fromMatrix / toMatrix", () => {
   });
 
   it("fills missing cells with null", () => {
-    const { rows, columns } = fromMatrix(
-      [
-        ["A", "B"],
-        ["only"],
-      ],
-      { headerRow: true },
-    );
+    const { rows, columns } = fromMatrix([["A", "B"], ["only"]], {
+      headerRow: true,
+    });
     expect(rows[0]!.values[columns[1]!.id]).toBeNull();
   });
 });

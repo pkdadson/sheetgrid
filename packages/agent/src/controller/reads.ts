@@ -1,11 +1,11 @@
 import {
-  evaluateFilter,
   type ColumnId,
   type FilterClause,
   type GridStore,
   type RowId,
+  evaluateFilter,
 } from "@sheetgrid/core";
-import { fail, ok, type OpResult } from "../types/op-result.js";
+import { type OpResult, fail, ok } from "../types/op-result.js";
 import { deriveVisibleRowIds } from "./derive-visible-rows.js";
 
 export interface GetDataOptions {
@@ -85,7 +85,11 @@ export function doGetCell(
   store: GridStore,
   rowId: RowId,
   columnId: ColumnId,
-): OpResult<{ value: unknown; formula?: string; error?: { message: string; code?: string } }> {
+): OpResult<{
+  value: unknown;
+  formula?: string;
+  error?: { message: string; code?: string };
+}> {
   const row = store.getRows().find((r) => r.id === rowId);
   if (!row) return fail("not_found", `row "${rowId}"`);
   const cols = store.getColumns();
@@ -93,9 +97,17 @@ export function doGetCell(
     return fail("not_found", `column "${columnId}"`);
   }
   const value = row.values[columnId];
-  const formulaState = store.isFormulasEnabled() ? store.getFormula(rowId, columnId) : null;
-  const err = store.getErrors().get(`${encodeURIComponent(rowId)}|${encodeURIComponent(columnId)}`);
-  const result: { value: unknown; formula?: string; error?: { message: string; code?: string } } = {
+  const formulaState = store.isFormulasEnabled()
+    ? store.getFormula(rowId, columnId)
+    : null;
+  const err = store
+    .getErrors()
+    .get(`${encodeURIComponent(rowId)}|${encodeURIComponent(columnId)}`);
+  const result: {
+    value: unknown;
+    formula?: string;
+    error?: { message: string; code?: string };
+  } = {
     value,
   };
   if (formulaState) result.formula = formulaState.source;
@@ -118,7 +130,10 @@ export function doQueryRows(
   })(where);
   for (const col of referenced) {
     if (!known.has(col)) {
-      return fail("invalid_argument", `where clause references unknown column "${col}"`);
+      return fail(
+        "invalid_argument",
+        `where clause references unknown column "${col}"`,
+      );
     }
   }
 
@@ -129,14 +144,20 @@ export function doQueryRows(
   return ok({ rowIds });
 }
 
-export function doDescribe(store: GridStore, mode: "objects" | "matrix"): string {
+export function doDescribe(
+  store: GridStore,
+  mode: "objects" | "matrix",
+): string {
   const rows = store.getRows();
   const cols = store.getOrderedColumns();
   const sort = store.getSort();
   const filter = store.getFilter();
 
   const colDesc = cols
-    .map((c) => `${c.id} (${c.type ?? "text"}${c.header !== c.id ? `, "${c.header}"` : ""})`)
+    .map(
+      (c) =>
+        `${c.id} (${c.type ?? "text"}${c.header !== c.id ? `, "${c.header}"` : ""})`,
+    )
     .join(", ");
   const sortDesc =
     sort.length === 0
