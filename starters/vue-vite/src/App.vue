@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { type ObjectRow, SheetGrid } from "@sheetgrid/vue";
 import { ref } from "vue";
-import { SheetGrid, type ObjectRow } from "@sheetgrid/vue";
 
 const columns = [
   { id: "name", header: "Name", width: 160 as const },
@@ -16,16 +16,44 @@ const columns = [
       { label: "Mathematician", value: "Mathematician" },
     ],
   },
-  { id: "score", header: "Score", width: 100 as const, type: "number" as const },
-  { id: "active", header: "Active", width: 90 as const, type: "boolean" as const },
+  {
+    id: "score",
+    header: "Score",
+    width: 100 as const,
+    type: "number" as const,
+  },
+  {
+    id: "active",
+    header: "Active",
+    width: 90 as const,
+    type: "boolean" as const,
+  },
 ];
 
 const rows = ref<ObjectRow[]>([
   { id: "1", name: "Ada Lovelace", role: "Engineer", score: 98, active: true },
   { id: "2", name: "Grace Hopper", role: "Admiral", score: 99, active: true },
-  { id: "3", name: "Alan Turing", role: "Researcher", score: 97, active: false },
-  { id: "4", name: "Katherine Johnson", role: "Mathematician", score: 100, active: true },
-  { id: "5", name: "Claude Shannon", role: "Engineer", score: 96, active: true },
+  {
+    id: "3",
+    name: "Alan Turing",
+    role: "Researcher",
+    score: 97,
+    active: false,
+  },
+  {
+    id: "4",
+    name: "Katherine Johnson",
+    role: "Mathematician",
+    score: 100,
+    active: true,
+  },
+  {
+    id: "5",
+    name: "Claude Shannon",
+    role: "Engineer",
+    score: 96,
+    active: true,
+  },
 ]);
 
 function onRowsChange(next: ObjectRow[]) {
