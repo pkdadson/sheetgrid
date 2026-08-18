@@ -5,10 +5,19 @@ test("FilterOp union covers common ops", () => {
   const op: FilterOp = "eq";
   expectTypeOf(op).toMatchTypeOf<FilterOp>();
   const ops: FilterOp[] = [
-    "eq", "neq", "lt", "lte", "gt", "gte",
-    "contains", "starts_with", "ends_with",
-    "in", "not_in",
-    "is_null", "is_not_null",
+    "eq",
+    "neq",
+    "lt",
+    "lte",
+    "gt",
+    "gte",
+    "contains",
+    "starts_with",
+    "ends_with",
+    "in",
+    "not_in",
+    "is_null",
+    "is_not_null",
   ];
   expectTypeOf(ops).toMatchTypeOf<FilterOp[]>();
 });

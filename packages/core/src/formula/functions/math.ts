@@ -3,7 +3,10 @@ import { formulaError, isFormulaError } from "../errors.js";
 import type { EvalContext, FormulaValue } from "../types.js";
 import type { FormulaFnDef } from "./types.js";
 
-function numsFromArgs(args: FormulaValue[], skipText = true): number[] | FormulaValue {
+function numsFromArgs(
+  args: FormulaValue[],
+  skipText = true,
+): number[] | FormulaValue {
   const out: number[] = [];
   for (const a of args) {
     for (const v of flattenValues(a)) {
@@ -54,8 +57,7 @@ export const mathFunctions: FormulaFnDef[] = [
     name: "SIGN",
     minArgs: 1,
     maxArgs: 1,
-    impl: (a) =>
-      unaryNum(a, (n) => (n === 0 ? 0 : n > 0 ? 1 : -1)),
+    impl: (a) => unaryNum(a, (n) => (n === 0 ? 0 : n > 0 ? 1 : -1)),
   },
   {
     name: "ROUND",
@@ -269,7 +271,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "MIN",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
@@ -285,7 +287,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "MAX",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
@@ -301,7 +303,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "SUM",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
@@ -311,7 +313,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "PRODUCT",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
@@ -322,13 +324,14 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "SUMPRODUCT",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       if (args.length === 0) return 0;
       const arrays = args.map((a) => flattenValues(a));
       const len = arrays[0]!.length;
       for (const arr of arrays) {
-        if (arr.length !== len) return formulaError("VALUE", "Array length mismatch");
+        if (arr.length !== len)
+          return formulaError("VALUE", "Array length mismatch");
       }
       let sum = 0;
       for (let i = 0; i < len; i++) {
@@ -346,7 +349,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "GCD",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args, false);
       if (!Array.isArray(nums)) return nums;
@@ -357,14 +360,16 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "LCM",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args, false);
       if (!Array.isArray(nums)) return nums;
       if (nums.length === 0) return formulaError("VALUE");
       return nums
         .map((n) => Math.abs(Math.trunc(n)))
-        .reduce((a, b) => (a === 0 || b === 0 ? 0 : Math.abs(a * b) / gcd2(a, b)));
+        .reduce((a, b) =>
+          a === 0 || b === 0 ? 0 : Math.abs(a * b) / gcd2(a, b),
+        );
     },
   },
   {
@@ -380,7 +385,8 @@ export const mathFunctions: FormulaFnDef[] = [
       const N = Math.trunc(n);
       const K = Math.trunc(k);
       if (N < 0 || K < 0 || K > N) return formulaError("NUM");
-      if (K > 1000 || N > 1000) return formulaError("LIMIT", "COMBIN too large");
+      if (K > 1000 || N > 1000)
+        return formulaError("LIMIT", "COMBIN too large");
       let r = 1;
       for (let i = 1; i <= K; i++) r = (r * (N - K + i)) / i;
       return Math.round(r);
@@ -423,7 +429,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "AVERAGE",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numsFromArgs(args);
       if (!Array.isArray(nums)) return nums;
@@ -434,7 +440,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "COUNT",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       let c = 0;
       for (const a of args) {
@@ -449,7 +455,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "COUNTA",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       let c = 0;
       for (const a of args) {
@@ -463,7 +469,7 @@ export const mathFunctions: FormulaFnDef[] = [
   {
     name: "COUNTBLANK",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       let c = 0;
       for (const a of args) {

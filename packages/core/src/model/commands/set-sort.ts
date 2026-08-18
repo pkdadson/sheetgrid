@@ -1,5 +1,10 @@
 import type { SortSpec } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class SetSortCommand implements Command {
   readonly kind = "sort.set";

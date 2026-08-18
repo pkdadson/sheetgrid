@@ -1,14 +1,20 @@
-import { useCallback, useMemo, useState } from "react";
 import type { SendOutput } from "@sheetgrid/agent";
-import { mockSend } from "./adapters/mock.js";
+import { useCallback, useMemo, useState } from "react";
 import { makeAnthropicSend } from "./adapters/anthropic.js";
+import { makeGeminiSend } from "./adapters/gemini.js";
+import { mockSend } from "./adapters/mock.js";
+import { makeOpenAICompatibleSend } from "./adapters/openai-compatible.js";
 import { makeOpenAISend } from "./adapters/openai.js";
 import { makeVercelAISend } from "./adapters/vercel.js";
 import type { VercelSubProvider } from "./adapters/vercel.js";
-import { makeGeminiSend } from "./adapters/gemini.js";
-import { makeOpenAICompatibleSend } from "./adapters/openai-compatible.js";
 
-export type ProviderId = "mock" | "anthropic" | "openai" | "openai-compatible" | "gemini" | "vercel";
+export type ProviderId =
+  | "mock"
+  | "anthropic"
+  | "openai"
+  | "openai-compatible"
+  | "gemini"
+  | "vercel";
 export type { VercelSubProvider };
 
 export interface ProviderConfig {
@@ -46,9 +52,13 @@ function readConfig(): ProviderConfig {
     return {
       provider: (parsed.provider ?? "mock") as ProviderId,
       apiKey: String(parsed.apiKey ?? ""),
-      model: String(parsed.model ?? DEFAULT_MODELS[parsed.provider ?? "mock"] ?? ""),
+      model: String(
+        parsed.model ?? DEFAULT_MODELS[parsed.provider ?? "mock"] ?? "",
+      ),
       baseURL: parsed.baseURL ? String(parsed.baseURL) : undefined,
-      vercelSubProvider: parsed.vercelSubProvider as VercelSubProvider | undefined,
+      vercelSubProvider: parsed.vercelSubProvider as
+        | VercelSubProvider
+        | undefined,
     };
   } catch {
     return { provider: "mock", apiKey: "", model: "" };
@@ -88,7 +98,9 @@ export function useProviderSend() {
         (next.vercelSubProvider !== undefined && merged.provider === "vercel")
       ) {
         const sub = merged.vercelSubProvider ?? "openai";
-        const currentIsDefault = merged.model === "" || Object.values(DEFAULT_VERCEL_MODELS).includes(merged.model);
+        const currentIsDefault =
+          merged.model === "" ||
+          Object.values(DEFAULT_VERCEL_MODELS).includes(merged.model);
         if (currentIsDefault) merged.model = DEFAULT_VERCEL_MODELS[sub];
       }
       writeConfig(merged);
@@ -126,7 +138,12 @@ export function useProviderSend() {
     if (config.provider === "openai-compatible") {
       if (!config.baseURL) {
         return async (): Promise<SendOutput> => ({
-          content: [{ type: "text", text: "Missing baseURL for openai-compatible provider (e.g. https://api.groq.com/openai/v1). Fill it in above." }],
+          content: [
+            {
+              type: "text",
+              text: "Missing baseURL for openai-compatible provider (e.g. https://api.groq.com/openai/v1). Fill it in above.",
+            },
+          ],
           stop_reason: "end_turn",
         });
       }
@@ -140,7 +157,13 @@ export function useProviderSend() {
       return makeGeminiSend({ apiKey: config.apiKey, model: config.model });
     }
     return mockSend;
-  }, [config.provider, config.apiKey, config.model, config.baseURL, config.vercelSubProvider]);
+  }, [
+    config.provider,
+    config.apiKey,
+    config.model,
+    config.baseURL,
+    config.vercelSubProvider,
+  ]);
 
   return { config, setConfig, send };
 }

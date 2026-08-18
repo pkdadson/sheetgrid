@@ -1,9 +1,9 @@
-import { onScopeDispose } from "vue";
 import {
-  createGridController,
   type CreateGridControllerOptions,
   type GridController,
+  createGridController,
 } from "@sheetgrid/agent";
+import { onScopeDispose } from "vue";
 
 /**
  * Create a GridController tied to the current effect scope. Detaches

@@ -1,6 +1,11 @@
 import type { ColumnId, GridRow, RowId } from "../../types.js";
 import { DeleteRowCommand } from "./delete-row.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 let syntheticCounter = 0;
 export function generateRowId(): RowId {
@@ -25,10 +30,15 @@ export class AddRowCommand implements Command {
     const rows = internal.getRowsRef();
     const id = this.opts.id ?? generateRowId();
     if (rows.some((r) => r.id === id)) {
-      return { ok: false, code: "conflict", message: `row id "${id}" already exists` };
+      return {
+        ok: false,
+        code: "conflict",
+        message: `row id "${id}" already exists`,
+      };
     }
     const at = this.opts.at ?? "end";
-    const index = at === "end" ? rows.length : Math.max(0, Math.min(rows.length, at));
+    const index =
+      at === "end" ? rows.length : Math.max(0, Math.min(rows.length, at));
     const row: GridRow = { id, values: { ...this.values } };
     const next = [...rows];
     next.splice(index, 0, row);

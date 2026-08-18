@@ -4,13 +4,9 @@ import { createGridStore } from "./grid-store.js";
 
 describe("createGridStore", () => {
   it("gets and sets a cell value", () => {
-    const { rows, columns } = fromMatrix(
-      [
-        ["Name"],
-        ["Ada"],
-      ],
-      { headerRow: true },
-    );
+    const { rows, columns } = fromMatrix([["Name"], ["Ada"]], {
+      headerRow: true,
+    });
     const store = createGridStore({ rows, columns });
     const rowId = rows[0]!.id;
     const colId = columns[0]!.id;

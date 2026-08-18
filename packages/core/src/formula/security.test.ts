@@ -7,13 +7,13 @@
  * L3 – MIN/MAX large-array reduce (no V8 spread limit)
  */
 import { describe, expect, it } from "vitest";
-import { evaluateAst } from "./evaluate.js";
-import { isFormulaError } from "./errors.js";
-import { parseFormula } from "./parser.js";
-import { mergeFormulaLimits } from "./limits.js";
-import type { EvalContext, FormulaValue } from "./types.js";
 import { collectDeps } from "./deps.js";
+import { isFormulaError } from "./errors.js";
+import { evaluateAst } from "./evaluate.js";
 import { mathFunctions } from "./functions/math.js";
+import { mergeFormulaLimits } from "./limits.js";
+import { parseFormula } from "./parser.js";
+import type { EvalContext, FormulaValue } from "./types.js";
 
 function makeCtx(
   cells: FormulaValue[][],
@@ -68,7 +68,7 @@ describe("security: M1 — wildcard matcher step cap", () => {
     // Pattern designed to cause many backtrack steps on a long string.
     // The cap at MAX_MATCH_STEPS returns false quickly rather than hanging.
     const text = "a".repeat(500);
-    const pattern = "*a".repeat(60) + "b"; // impossible match; many star resets
+    const pattern = `${"*a".repeat(60)}b`; // impossible match; many star resets
     const grid: FormulaValue[][] = [[text]];
     const start = Date.now();
     const result = evalIn(`=COUNTIF(A1:A1,"${pattern}")`, grid);
@@ -114,7 +114,10 @@ describe("security: M3 — deps.ts large-integer overflow guard", () => {
       c2: 999,
     };
     const start = Date.now();
-    const info = collectDeps(fakeAst as Parameters<typeof collectDeps>[0], 100_000);
+    const info = collectDeps(
+      fakeAst as Parameters<typeof collectDeps>[0],
+      100_000,
+    );
     const elapsed = Date.now() - start;
     expect(elapsed).toBeLessThan(100);
     // Corner-only fallback → exactly 2 unique corner keys
@@ -130,7 +133,10 @@ describe("security: M3 — deps.ts large-integer overflow guard", () => {
       c2: Number.MAX_SAFE_INTEGER,
     };
     const start = Date.now();
-    const info = collectDeps(fakeAst as Parameters<typeof collectDeps>[0], 100_000);
+    const info = collectDeps(
+      fakeAst as Parameters<typeof collectDeps>[0],
+      100_000,
+    );
     const elapsed = Date.now() - start;
     expect(elapsed).toBeLessThan(100);
     expect(info.deps).toHaveLength(2);

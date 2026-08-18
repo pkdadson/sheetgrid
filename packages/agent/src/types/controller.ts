@@ -38,20 +38,38 @@ export interface GridController {
     columnIds?: ColumnId[];
     range?: { fromRow: number; toRow: number };
     includeFormulaSources?: boolean;
-  }): { rows: Array<{ id: RowId; values: Record<ColumnId, unknown>; formulas?: Record<ColumnId, string> }>; total: number };
+  }): {
+    rows: Array<{
+      id: RowId;
+      values: Record<ColumnId, unknown>;
+      formulas?: Record<ColumnId, string>;
+    }>;
+    total: number;
+  };
   getCell(
     rowId: RowId,
     columnId: ColumnId,
-  ): OpResult<{ value: unknown; formula?: string; error?: { message: string; code?: string } }>;
+  ): OpResult<{
+    value: unknown;
+    formula?: string;
+    error?: { message: string; code?: string };
+  }>;
   queryRows(where: WhereClause): OpResult<{ rowIds: RowId[] }>;
   getSelection(): SelectionState;
   describe(): string;
 
   // ── Cell writes ──
   setCell(rowId: RowId, columnId: ColumnId, value: unknown): OpResult;
-  setCells(patches: Array<{ rowId: RowId; columnId: ColumnId; value: unknown }>): OpResult<{
+  setCells(
+    patches: Array<{ rowId: RowId; columnId: ColumnId; value: unknown }>,
+  ): OpResult<{
     applied: number;
-    rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }>;
+    rejected: Array<{
+      rowId: RowId;
+      columnId: ColumnId;
+      code: string;
+      message: string;
+    }>;
   }>;
 
   // ── Row CRUD ──
@@ -76,7 +94,12 @@ export interface GridController {
   select(
     target:
       | { rowId: RowId; columnId: ColumnId }
-      | { range: { start: { rowId: RowId; columnId: ColumnId }; end: { rowId: RowId; columnId: ColumnId } } },
+      | {
+          range: {
+            start: { rowId: RowId; columnId: ColumnId };
+            end: { rowId: RowId; columnId: ColumnId };
+          };
+        },
   ): OpResult;
 
   // ── Formulas ──

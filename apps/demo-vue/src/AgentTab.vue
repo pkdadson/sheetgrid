@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { AgentChat, SheetGrid, useGridController } from "@sheetgrid/vue";
 import { computed, ref } from "vue";
-import { SheetGrid, useGridController, AgentChat } from "@sheetgrid/vue";
 import ProviderConfig from "./ProviderConfig.vue";
 import { useProviderSend } from "./composables/useProviderSend.js";
 

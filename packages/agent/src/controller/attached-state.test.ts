@@ -36,9 +36,20 @@ describe("AttachedState", () => {
 
   it("queue holds up to 100 pending ops when detached", () => {
     const st = createAttachedState();
-    for (let i = 0; i < 100; i++) st.enqueue({ type: "grid.set_cell", rowId: "r", columnId: "c", value: i } as any);
+    for (let i = 0; i < 100; i++)
+      st.enqueue({
+        type: "grid.set_cell",
+        rowId: "r",
+        columnId: "c",
+        value: i,
+      } as any);
     // The 101st push evicts the oldest.
-    st.enqueue({ type: "grid.set_cell", rowId: "r", columnId: "c", value: 999 } as any);
+    st.enqueue({
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "c",
+      value: 999,
+    } as any);
     const drained = st.drain();
     expect(drained).toHaveLength(100);
     expect((drained[99] as any).value).toBe(999);

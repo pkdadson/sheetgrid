@@ -12,6 +12,8 @@ test("GridController exposes read + write + history methods with correct return 
   }>();
   expectTypeOf<C["setCell"]>().returns.toMatchTypeOf<OpResult>();
   expectTypeOf<C["undo"]>().returns.toMatchTypeOf<OpResult<{ op: unknown }>>();
-  expectTypeOf<C["batch"]>().returns.toMatchTypeOf<Promise<OpResult<unknown>>>();
+  expectTypeOf<C["batch"]>().returns.toMatchTypeOf<
+    Promise<OpResult<unknown>>
+  >();
   expectTypeOf<C["canUndo"]>().returns.toEqualTypeOf<boolean>();
 });

@@ -1,6 +1,6 @@
+import type { ColumnDef, GridRow } from "@sheetgrid/core";
 import { describe, expect, it } from "vitest";
 import { deriveVisibleRowIds } from "./derive-visible-rows.js";
-import type { GridRow, ColumnDef } from "@sheetgrid/core";
 
 const cols: ColumnDef[] = [
   { id: "n", header: "N", type: "number", sortable: true },
@@ -29,12 +29,11 @@ describe("deriveVisibleRowIds", () => {
   });
 
   it("applies filter", () => {
-    const ids = deriveVisibleRowIds(
-      rows,
-      cols,
-      [],
-      { column: "n", op: "gte", value: 2 },
-    );
+    const ids = deriveVisibleRowIds(rows, cols, [], {
+      column: "n",
+      op: "gte",
+      value: 2,
+    });
     expect(ids).toEqual(["r1", "r3"]);
   });
 

@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { agentSource } from "./write-source.js";
 import type { AgentOp } from "../types/agent-op.js";
+import { agentSource } from "./write-source.js";
 
 describe("agentSource", () => {
   it("returns kind=agent with toolName derived from op.type", () => {
-    const op: AgentOp = { type: "grid.set_cell", rowId: "r", columnId: "c", value: 1 };
-    expect(agentSource(op)).toEqual({ kind: "agent", toolName: "grid_set_cell" });
+    const op: AgentOp = {
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "c",
+      value: 1,
+    };
+    expect(agentSource(op)).toEqual({
+      kind: "agent",
+      toolName: "grid_set_cell",
+    });
   });
 
   it("threads through provided correlationId", () => {

@@ -27,7 +27,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "MEDIAN",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numericList(args);
       if (!Array.isArray(nums)) return nums;
@@ -40,7 +40,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "MODE",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numericList(args);
       if (!Array.isArray(nums)) return nums;
@@ -100,9 +100,7 @@ export const statsFunctions: FormulaFnDef[] = [
       if (!Array.isArray(nums)) return nums;
       const order = args[2] !== undefined ? toNumber(args[2]) : 0;
       if (isFormulaError(order)) return order;
-      const sorted = [...nums].sort((a, b) =>
-        order === 0 ? b - a : a - b,
-      );
+      const sorted = [...nums].sort((a, b) => (order === 0 ? b - a : a - b));
       const idx = sorted.indexOf(n);
       if (idx < 0) return formulaError("NA");
       return idx + 1;
@@ -143,7 +141,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "STDEV",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numericList(args);
       if (!Array.isArray(nums)) return nums;
@@ -153,7 +151,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "STDEVP",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numericList(args);
       if (!Array.isArray(nums)) return nums;
@@ -163,7 +161,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "VAR",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const s = stdev(
         Array.isArray(numericList(args)) ? (numericList(args) as number[]) : [],
@@ -180,7 +178,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "VARP",
     minArgs: 1,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const nums = numericList(args);
       if (!Array.isArray(nums)) return nums;
@@ -211,7 +209,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "SUMIFS",
     minArgs: 3,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       if ((args.length - 1) % 2 !== 0) return formulaError("VALUE");
       const sumRange = flattenValues(args[0]!);
@@ -253,7 +251,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "COUNTIFS",
     minArgs: 2,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       if (args.length % 2 !== 0) return formulaError("VALUE");
       const pairs: { range: FormulaValue[]; crit: FormulaValue }[] = [];
@@ -297,7 +295,7 @@ export const statsFunctions: FormulaFnDef[] = [
   {
     name: "AVERAGEIFS",
     minArgs: 3,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       if ((args.length - 1) % 2 !== 0) return formulaError("VALUE");
       const avgRange = flattenValues(args[0]!);

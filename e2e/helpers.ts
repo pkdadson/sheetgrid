@@ -42,7 +42,9 @@ export async function editCellByText(
   nextValue: string,
   testId = "grid-objects",
 ) {
-  const cell = grid(page, testId).getByRole("gridcell", { name: cellText }).first();
+  const cell = grid(page, testId)
+    .getByRole("gridcell", { name: cellText })
+    .first();
   await cell.dblclick();
   const input = grid(page, testId).locator("input.eg-editor, select.eg-editor");
   await expect(input).toBeVisible();

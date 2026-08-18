@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
 import { SetCellCommand } from "@sheetgrid/core/commands";
+import { describe, expect, it, vi } from "vitest";
 import { createDispatcher } from "./dispatch.js";
 import { createEventBus } from "./event-bus.js";
 import { agentSource } from "./write-source.js";
@@ -23,7 +23,12 @@ describe("createDispatcher", () => {
       notify,
       auth: () => ({ ok: true, value: undefined }),
     });
-    const source = agentSource({ type: "grid.set_cell", rowId: "r1", columnId: "name", value: "Ada L" });
+    const source = agentSource({
+      type: "grid.set_cell",
+      rowId: "r1",
+      columnId: "name",
+      value: "Ada L",
+    });
     const res = dispatch(
       { type: "grid.set_cell", rowId: "r1", columnId: "name", value: "Ada L" },
       new SetCellCommand("r1", "name", "Ada L", source),
@@ -41,7 +46,10 @@ describe("createDispatcher", () => {
       notify: () => {},
       auth: () => ({ ok: true, value: undefined }),
     });
-    const res = dispatch({ type: "grid.undo" }, new SetCellCommand("r", "c", 1, { kind: "system", reason: "init" }));
+    const res = dispatch(
+      { type: "grid.undo" },
+      new SetCellCommand("r", "c", 1, { kind: "system", reason: "init" }),
+    );
     expect(res.ok).toBe(false);
     if (res.ok) throw new Error();
     expect(res.code).toBe("detached");
@@ -78,7 +86,10 @@ describe("createDispatcher", () => {
     });
     dispatch(
       { type: "grid.set_cell", rowId: "r1", columnId: "name", value: "Ada L" },
-      new SetCellCommand("r1", "name", "Ada L", { kind: "agent", toolName: "grid_set_cell" }),
+      new SetCellCommand("r1", "name", "Ada L", {
+        kind: "agent",
+        toolName: "grid_set_cell",
+      }),
     );
     expect(seen).toContain("cell.changed");
   });
@@ -96,14 +107,25 @@ describe("createDispatcher", () => {
       // Attempting to re-enter dispatch inside a handler should throw.
       expect(() =>
         dispatch(
-          { type: "grid.set_cell", rowId: "r1", columnId: "name", value: "loop" },
-          new SetCellCommand("r1", "name", "loop", { kind: "system", reason: "init" }),
+          {
+            type: "grid.set_cell",
+            rowId: "r1",
+            columnId: "name",
+            value: "loop",
+          },
+          new SetCellCommand("r1", "name", "loop", {
+            kind: "system",
+            reason: "init",
+          }),
         ),
       ).toThrow(/re-entrant/i);
     });
     dispatch(
       { type: "grid.set_cell", rowId: "r1", columnId: "name", value: "first" },
-      new SetCellCommand("r1", "name", "first", { kind: "system", reason: "init" }),
+      new SetCellCommand("r1", "name", "first", {
+        kind: "system",
+        reason: "init",
+      }),
     );
   });
 });

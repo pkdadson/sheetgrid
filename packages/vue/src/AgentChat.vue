@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import "./AgentChat.css";
-import { ref } from "vue";
 import type {
   AgentError,
   AgentLoopOptions,
@@ -9,6 +8,7 @@ import type {
   OpResult,
   ToolCall,
 } from "@sheetgrid/agent";
+import { ref } from "vue";
 import { useAgent } from "./composables/useAgent.js";
 
 const props = defineProps<{

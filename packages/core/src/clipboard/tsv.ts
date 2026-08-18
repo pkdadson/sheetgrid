@@ -1,6 +1,12 @@
-import type { CellCoord, ColumnId, GridRow, RowId, ValidationMode } from "../types.js";
 import type { GridStore } from "../model/grid-store.js";
 import { commitCell } from "../model/validation.js";
+import type {
+  CellCoord,
+  ColumnId,
+  GridRow,
+  RowId,
+  ValidationMode,
+} from "../types.js";
 
 /** Serialize a 2D matrix to TSV with Excel-friendly quoting. */
 export function serializeTsv(matrix: unknown[][]): string {

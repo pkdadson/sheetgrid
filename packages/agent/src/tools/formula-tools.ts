@@ -29,7 +29,8 @@ export function buildFormulaTools(c: GridController): ToolDescriptor[] {
     },
     {
       name: "grid_clear_formula",
-      description: "Remove a formula from a cell; the cell keeps its last computed value as a literal.",
+      description:
+        "Remove a formula from a cell; the cell keeps its last computed value as a literal.",
       input_schema: {
         type: "object",
         required: ["rowId", "columnId"],
@@ -40,7 +41,10 @@ export function buildFormulaTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        const { rowId, columnId } = input as { rowId: string; columnId: string };
+        const { rowId, columnId } = input as {
+          rowId: string;
+          columnId: string;
+        };
         return c.clearFormula(rowId, columnId) as OpResult<unknown>;
       },
     },

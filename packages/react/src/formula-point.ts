@@ -56,9 +56,6 @@ export function cellInPickRange(
 ): boolean {
   if (!range) return false;
   return (
-    row >= range.r1 &&
-    row <= range.r2 &&
-    col >= range.c1 &&
-    col <= range.c2
+    row >= range.r1 && row <= range.r2 && col >= range.c1 && col <= range.c2
   );
 }

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { buildSchema } from "./schema.js";
 
 describe("buildSchema", () => {
@@ -16,8 +16,17 @@ describe("buildSchema", () => {
     expect(schema.rowIdField).toBe("id");
     expect(schema.rowCount).toBe(1);
     expect(schema.columns).toEqual([
-      expect.objectContaining({ id: "name", header: "Name", agentWritable: true }),
-      expect.objectContaining({ id: "age", header: "Age", type: "number", agentWritable: true }),
+      expect.objectContaining({
+        id: "name",
+        header: "Name",
+        agentWritable: true,
+      }),
+      expect.objectContaining({
+        id: "age",
+        header: "Age",
+        type: "number",
+        agentWritable: true,
+      }),
     ]);
     expect(schema.sort).toEqual([]);
     expect(schema.filter).toBeNull();
@@ -32,8 +41,12 @@ describe("buildSchema", () => {
       ],
     });
     const schema = buildSchema(store, "objects");
-    expect(schema.columns.find((c) => c.id === "id")!.agentWritable).toBe(false);
-    expect(schema.columns.find((c) => c.id === "name")!.agentWritable).toBe(true);
+    expect(schema.columns.find((c) => c.id === "id")!.agentWritable).toBe(
+      false,
+    );
+    expect(schema.columns.find((c) => c.id === "name")!.agentWritable).toBe(
+      true,
+    );
   });
 
   it("includes description when column has one", () => {

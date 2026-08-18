@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "./create.js";
 
 function fx() {
@@ -39,7 +39,11 @@ describe("controller view state", () => {
     const c = createGridController();
     c.__attach(store);
     c.setFilter({ column: "a", op: "gt", value: 1 });
-    expect(c.getSchema().filter).toMatchObject({ column: "a", op: "gt", value: 1 });
+    expect(c.getSchema().filter).toMatchObject({
+      column: "a",
+      op: "gt",
+      value: 1,
+    });
   });
 
   it("setFormula computes and getCell returns formula source", () => {

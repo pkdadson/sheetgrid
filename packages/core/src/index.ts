@@ -134,7 +134,11 @@ export { mapKeyToCommand } from "./keyboard/map.js";
 export type { GridCommand, KeyLike } from "./keyboard/map.js";
 
 export { History } from "./model/history.js";
-export type { HistoryEvent, HistoryListener, HistoryOptions } from "./model/history.js";
+export type {
+  HistoryEvent,
+  HistoryListener,
+  HistoryOptions,
+} from "./model/history.js";
 export type {
   Command,
   CommandResult,

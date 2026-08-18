@@ -1,6 +1,11 @@
 import type { SendInput, SendOutput } from "@sheetgrid/agent";
 
-export type VercelSubProvider = "openai" | "anthropic" | "google" | "mistral" | "xai";
+export type VercelSubProvider =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "mistral"
+  | "xai";
 
 /**
  * Vercel AI SDK adapter with sub-provider selection. Dynamically imports
@@ -48,9 +53,7 @@ export function makeVercelAISend(opts: {
     }
 
     // Convert messages to Vercel's shape.
-    const messages: any[] = [
-      { role: "system", content: input.systemPrompt },
-    ];
+    const messages: any[] = [{ role: "system", content: input.systemPrompt }];
     for (const m of input.messages) {
       if (m.role === "user") {
         messages.push({ role: "user", content: m.content });
@@ -90,7 +93,8 @@ export function makeVercelAISend(opts: {
         input: tc.args,
       });
     }
-    const stopReason = (res.toolCalls?.length ?? 0) > 0 ? "tool_use" : "end_turn";
+    const stopReason =
+      (res.toolCalls?.length ?? 0) > 0 ? "tool_use" : "end_turn";
     return { content, stop_reason: stopReason };
   };
 }

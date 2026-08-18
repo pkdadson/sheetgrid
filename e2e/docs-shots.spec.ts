@@ -14,16 +14,26 @@ test.describe("docs screenshots", () => {
     test.skip(testInfo.project.name !== DESKTOP, "desktop-only");
     await openDemo(page);
     await goToObjects(page);
-    await expect(grid(page, "grid-objects").getByText("Ada Lovelace")).toBeVisible();
-    await page.screenshot({ path: "docs/assets/objects/desktop.png", fullPage: false });
+    await expect(
+      grid(page, "grid-objects").getByText("Ada Lovelace"),
+    ).toBeVisible();
+    await page.screenshot({
+      path: "docs/assets/objects/desktop.png",
+      fullPage: false,
+    });
   });
 
   test("objects — mobile", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== MOBILE, "mobile-only");
     await openDemo(page);
     await goToObjects(page);
-    await expect(grid(page, "grid-objects").getByText("Ada Lovelace")).toBeVisible();
-    await page.screenshot({ path: "docs/assets/objects/mobile.png", fullPage: false });
+    await expect(
+      grid(page, "grid-objects").getByText("Ada Lovelace"),
+    ).toBeVisible();
+    await page.screenshot({
+      path: "docs/assets/objects/mobile.png",
+      fullPage: false,
+    });
   });
 
   test("objects — detail (selected cell)", async ({ page }, testInfo) => {
@@ -35,7 +45,10 @@ test.describe("docs screenshots", () => {
     // right-aligned numeric content than against text cells nested in a group row.
     await g.getByText("98").first().click();
     await expect(g.locator('[data-active="true"]')).toHaveText("98");
-    await page.screenshot({ path: "docs/assets/objects/detail.png", fullPage: false });
+    await page.screenshot({
+      path: "docs/assets/objects/detail.png",
+      fullPage: false,
+    });
   });
 
   test("matrix — desktop", async ({ page }, testInfo) => {
@@ -43,7 +56,10 @@ test.describe("docs screenshots", () => {
     await openDemo(page);
     await goToMatrix(page);
     await expect(grid(page, "grid-matrix").getByText("Widgets")).toBeVisible();
-    await page.screenshot({ path: "docs/assets/matrix/desktop.png", fullPage: false });
+    await page.screenshot({
+      path: "docs/assets/matrix/desktop.png",
+      fullPage: false,
+    });
   });
 
   test("perf — desktop initial", async ({ page }, testInfo) => {
@@ -52,7 +68,10 @@ test.describe("docs screenshots", () => {
     await goToPerf(page);
     const g = grid(page, "grid-perf");
     await expect(g.getByText("R0C0")).toBeVisible();
-    await page.screenshot({ path: "docs/assets/perf/desktop.png", fullPage: false });
+    await page.screenshot({
+      path: "docs/assets/perf/desktop.png",
+      fullPage: false,
+    });
   });
 
   test("perf — scrolled", async ({ page }, testInfo) => {
@@ -68,7 +87,10 @@ test.describe("docs screenshots", () => {
     await page.waitForTimeout(200);
     // Confirm the initial rows have scrolled out of view before capturing.
     await expect(g.getByText("R0C0")).toHaveCount(0);
-    await page.screenshot({ path: "docs/assets/perf/scrolled.png", fullPage: false });
+    await page.screenshot({
+      path: "docs/assets/perf/scrolled.png",
+      fullPage: false,
+    });
   });
 
   test("a11y — keyboard focus ring", async ({ page }, testInfo) => {
@@ -84,6 +106,9 @@ test.describe("docs screenshots", () => {
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("ArrowDown");
     await expect(g.locator('[data-active="true"]')).toBeVisible();
-    await page.screenshot({ path: "docs/assets/a11y/focus.png", fullPage: false });
+    await page.screenshot({
+      path: "docs/assets/a11y/focus.png",
+      fullPage: false,
+    });
   });
 });

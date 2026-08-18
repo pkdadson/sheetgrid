@@ -5,8 +5,8 @@ import type {
   RowId,
   SortSpec,
 } from "@sheetgrid/core";
-import type { WhereClause } from "./where-clause.js";
 import type { Snapshot } from "./snapshot.js";
+import type { WhereClause } from "./where-clause.js";
 
 /**
  * All operations an agent (or the controller) can express as a single value.

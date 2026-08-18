@@ -1,6 +1,11 @@
 import { moveItem } from "../../layout/reorder.js";
 import type { RowId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class MoveRowCommand implements Command {
   readonly kind = "row.moved";

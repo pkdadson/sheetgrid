@@ -1,5 +1,10 @@
 import type { ColumnId, RowId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class UpdateRowCommand implements Command {
   readonly kind = "row.update";

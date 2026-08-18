@@ -1,7 +1,7 @@
 import type { AstNode } from "./ast.js";
 import { collectDeps } from "./deps.js";
-import { evaluateAst } from "./evaluate.js";
 import { formulaError, isFormulaError } from "./errors.js";
+import { evaluateAst } from "./evaluate.js";
 import { mergeFormulaLimits } from "./limits.js";
 import { parseFormula } from "./parser.js";
 import { cellRefKey } from "./refs.js";

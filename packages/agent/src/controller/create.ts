@@ -23,25 +23,25 @@ import {
   UpdateColumnCommand,
   UpdateRowCommand,
 } from "@sheetgrid/core/commands";
-import { fail, ok, type OpResult } from "../types/op-result.js";
+import type { AgentOp } from "../types/agent-op.js";
+import type { AuthorizeFn } from "../types/authorize.js";
 import type {
   GridController,
   GridSchema,
   Unsubscribe,
 } from "../types/controller.js";
-import type { AgentOp } from "../types/agent-op.js";
-import type { AuthorizeFn } from "../types/authorize.js";
 import type { GridEvent } from "../types/grid-event.js";
+import { type OpResult, fail, ok } from "../types/op-result.js";
 import type { Snapshot } from "../types/snapshot.js";
 import type { WhereClause } from "../types/where-clause.js";
 import { createAttachedState } from "./attached-state.js";
-import { replayOp } from "./queue-drain.js";
 import { runAuthCheck } from "./authorize-check.js";
-import { createEventBus } from "./event-bus.js";
-import { createSelectionState } from "./selection-state.js";
-import { buildSchema } from "./schema.js";
-import { doGetData, doGetCell, doQueryRows, doDescribe } from "./reads.js";
 import { createDispatcher } from "./dispatch.js";
+import { createEventBus } from "./event-bus.js";
+import { replayOp } from "./queue-drain.js";
+import { doDescribe, doGetCell, doGetData, doQueryRows } from "./reads.js";
+import { buildSchema } from "./schema.js";
+import { createSelectionState } from "./selection-state.js";
 import { agentSource } from "./write-source.js";
 
 export interface CreateGridControllerOptions {
@@ -126,9 +126,12 @@ export function createGridController(
         // Translate core kind into an AgentOp for the event payload.
         // Minimal shape — richer op reconstruction not needed here.
         const op = { type: `grid.${e.kind.replace(/\./g, "_")}` } as AgentOp;
-        if (e.type === "history.pushed") bus.emit({ type: "history.pushed", op });
-        else if (e.type === "history.undone") bus.emit({ type: "history.undone", op });
-        else if (e.type === "history.redone") bus.emit({ type: "history.redone", op });
+        if (e.type === "history.pushed")
+          bus.emit({ type: "history.pushed", op });
+        else if (e.type === "history.undone")
+          bus.emit({ type: "history.undone", op });
+        else if (e.type === "history.redone")
+          bus.emit({ type: "history.redone", op });
       });
     } else if (historyUnsub) {
       historyUnsub();
@@ -183,12 +186,14 @@ export function createGridController(
     },
     getCell(rowId, columnId) {
       const s = requireStore();
-      if (!s) return fail("detached", "GridController is not attached to a grid");
+      if (!s)
+        return fail("detached", "GridController is not attached to a grid");
       return doGetCell(s, rowId, columnId);
     },
     queryRows(where) {
       const s = requireStore();
-      if (!s) return fail("detached", "GridController is not attached to a grid");
+      if (!s)
+        return fail("detached", "GridController is not attached to a grid");
       return doQueryRows(s, where);
     },
     getSelection() {
@@ -208,7 +213,10 @@ export function createGridController(
       const col = s.getColumns().find((c) => c.id === columnId);
       if (col?.validate) {
         const rows = s.getRows();
-        const row = rows.find((r) => r.id === rowId) ?? { id: rowId, values: {} };
+        const row = rows.find((r) => r.id === rowId) ?? {
+          id: rowId,
+          values: {},
+        };
         const r = col.validate(value, { rowId, columnId, row, rows });
         if (r instanceof Promise) {
           return fail(
@@ -216,54 +224,119 @@ export function createGridController(
             `column "${columnId}" has an async validator; run validation upstream before controller.setCell`,
           );
         }
-        if (!r.ok) return fail("validation_failed", r.message, { code: r.code });
+        if (!r.ok)
+          return fail("validation_failed", r.message, { code: r.code });
       }
-      return dispatch(op, new SetCellCommand(rowId, columnId, value, agentSource(op)));
+      return dispatch(
+        op,
+        new SetCellCommand(rowId, columnId, value, agentSource(op)),
+      );
     },
     setCells(patches) {
       const op: AgentOp = { type: "grid.set_cells", patches };
       const auth = authOrFail(op);
-      if (!auth.ok) return auth as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
+      if (!auth.ok)
+        return auth as OpResult<{
+          applied: number;
+          rejected: Array<{
+            rowId: RowId;
+            columnId: ColumnId;
+            code: string;
+            message: string;
+          }>;
+        }>;
       const s = requireStore();
-      if (!s) return fail("detached", "detached") as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
-      const rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> = [];
+      if (!s)
+        return fail("detached", "detached") as OpResult<{
+          applied: number;
+          rejected: Array<{
+            rowId: RowId;
+            columnId: ColumnId;
+            code: string;
+            message: string;
+          }>;
+        }>;
+      const rejected: Array<{
+        rowId: RowId;
+        columnId: ColumnId;
+        code: string;
+        message: string;
+      }> = [];
       const commands: SetCellCommand[] = [];
       let applied = 0;
       for (const p of patches) {
         const col = s.getColumns().find((c) => c.id === p.columnId);
         if (!col) {
-          rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "not_found", message: `column "${p.columnId}"` });
+          rejected.push({
+            rowId: p.rowId,
+            columnId: p.columnId,
+            code: "not_found",
+            message: `column "${p.columnId}"`,
+          });
           continue;
         }
         const row = s.getRows().find((r) => r.id === p.rowId);
         if (!row) {
-          rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "not_found", message: `row "${p.rowId}"` });
+          rejected.push({
+            rowId: p.rowId,
+            columnId: p.columnId,
+            code: "not_found",
+            message: `row "${p.rowId}"`,
+          });
           continue;
         }
         if (col.validate) {
-          const r = col.validate(p.value, { rowId: p.rowId, columnId: p.columnId, row, rows: s.getRows() });
+          const r = col.validate(p.value, {
+            rowId: p.rowId,
+            columnId: p.columnId,
+            row,
+            rows: s.getRows(),
+          });
           if (r instanceof Promise) {
-            rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "invalid_argument", message: "async validators not supported on controller writes" });
+            rejected.push({
+              rowId: p.rowId,
+              columnId: p.columnId,
+              code: "invalid_argument",
+              message: "async validators not supported on controller writes",
+            });
             continue;
           }
           if (!r.ok) {
-            rejected.push({ rowId: p.rowId, columnId: p.columnId, code: "validation_failed", message: r.message });
+            rejected.push({
+              rowId: p.rowId,
+              columnId: p.columnId,
+              code: "validation_failed",
+              message: r.message,
+            });
             continue;
           }
         }
-        commands.push(new SetCellCommand(p.rowId, p.columnId, p.value, agentSource(op)));
+        commands.push(
+          new SetCellCommand(p.rowId, p.columnId, p.value, agentSource(op)),
+        );
         applied++;
       }
       if (commands.length > 0) {
         const compound = new CompoundCommand(commands, agentSource(op));
         const dres = dispatch(op, compound);
-        if (!dres.ok) return dres as OpResult<{ applied: number; rejected: Array<{ rowId: RowId; columnId: ColumnId; code: string; message: string }> }>;
+        if (!dres.ok)
+          return dres as OpResult<{
+            applied: number;
+            rejected: Array<{
+              rowId: RowId;
+              columnId: ColumnId;
+              code: string;
+              message: string;
+            }>;
+          }>;
       }
       return { ok: true, value: { applied, rejected } };
     },
     addRow(values, ropts) {
       const op: AgentOp = { type: "grid.add_row", values, opts: ropts };
-      const id = ropts?.id ?? `row-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      const id =
+        ropts?.id ??
+        `row-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
       const cmd = new AddRowCommand(values, { ...ropts, id }, agentSource(op));
       const res = dispatch(op, cmd);
       if (!res.ok) return res as OpResult<{ rowId: RowId }>;
@@ -283,7 +356,10 @@ export function createGridController(
     },
     addColumn(def, copts) {
       const op: AgentOp = { type: "grid.add_column", def, opts: copts };
-      return dispatch(op, new AddColumnCommand(def, copts ?? {}, agentSource(op)));
+      return dispatch(
+        op,
+        new AddColumnCommand(def, copts ?? {}, agentSource(op)),
+      );
     },
     deleteColumn(columnId) {
       const op: AgentOp = { type: "grid.delete_column", columnId };
@@ -291,11 +367,17 @@ export function createGridController(
     },
     moveColumn(columnId, toIndex) {
       const op: AgentOp = { type: "grid.move_column", columnId, toIndex };
-      return dispatch(op, new MoveColumnCommand(columnId, toIndex, agentSource(op)));
+      return dispatch(
+        op,
+        new MoveColumnCommand(columnId, toIndex, agentSource(op)),
+      );
     },
     updateColumn(columnId, patch) {
       const op: AgentOp = { type: "grid.update_column", columnId, patch };
-      return dispatch(op, new UpdateColumnCommand(columnId, patch, agentSource(op)));
+      return dispatch(
+        op,
+        new UpdateColumnCommand(columnId, patch, agentSource(op)),
+      );
     },
     setSort(specs) {
       const op: AgentOp = { type: "grid.set_sort", specs };
@@ -312,21 +394,30 @@ export function createGridController(
     select(target) {
       const auth = authOrFail({ type: "grid.select", target });
       if (!auth.ok) return auth;
-      if ("range" in target) selection.selectRange(target.range.start, target.range.end);
+      if ("range" in target)
+        selection.selectRange(target.range.start, target.range.end);
       else selection.selectCell(target.rowId, target.columnId);
       return ok(undefined);
     },
     setFormula(rowId, columnId, source) {
       const op: AgentOp = { type: "grid.set_formula", rowId, columnId, source };
-      return dispatch(op, new SetFormulaCommand(rowId, columnId, source, agentSource(op)));
+      return dispatch(
+        op,
+        new SetFormulaCommand(rowId, columnId, source, agentSource(op)),
+      );
     },
     clearFormula(rowId, columnId) {
       const op: AgentOp = { type: "grid.clear_formula", rowId, columnId };
-      return dispatch(op, new ClearFormulaCommand(rowId, columnId, agentSource(op)));
+      return dispatch(
+        op,
+        new ClearFormulaCommand(rowId, columnId, agentSource(op)),
+      );
     },
 
     // ── Transactions (M5) ──
-    async batch<T>(fn: (tx: GridController) => T | Promise<T>): Promise<OpResult<T>> {
+    async batch<T>(
+      fn: (tx: GridController) => T | Promise<T>,
+    ): Promise<OpResult<T>> {
       const authRes = authOrFail({ type: "grid.batch", ops: [] });
       if (!authRes.ok) return authRes as OpResult<T>;
       const s = requireStore();
@@ -337,7 +428,11 @@ export function createGridController(
       try {
         const value = await fn(controller);
         s.__history.commitTransaction(
-          (children) => new CompoundCommand(children, agentSource({ type: "grid.batch", ops: [] })),
+          (children) =>
+            new CompoundCommand(
+              children,
+              agentSource({ type: "grid.batch", ops: [] }),
+            ),
         );
         bus.emit({ type: "transaction.committed", ops: [] });
         notify();
@@ -354,7 +449,10 @@ export function createGridController(
           reason: err instanceof Error ? err.message : String(err),
         });
         notify();
-        return fail("internal", err instanceof Error ? err.message : String(err)) as OpResult<T>;
+        return fail(
+          "internal",
+          err instanceof Error ? err.message : String(err),
+        ) as OpResult<T>;
       }
     },
 
@@ -367,8 +465,16 @@ export function createGridController(
       const s = requireStore();
       if (!s) return fail("detached", "detached") as OpResult<{ op: AgentOp }>;
       const res = s.__history.undo();
-      if (res === null) return fail("not_found", "nothing to undo") as OpResult<{ op: AgentOp }>;
-      if (!res.ok) return { ok: false, code: res.code as any, message: res.message } as OpResult<{ op: AgentOp }>;
+      if (res === null)
+        return fail("not_found", "nothing to undo") as OpResult<{
+          op: AgentOp;
+        }>;
+      if (!res.ok)
+        return {
+          ok: false,
+          code: res.code as any,
+          message: res.message,
+        } as OpResult<{ op: AgentOp }>;
       notify();
       return { ok: true, value: { op } };
     },
@@ -380,8 +486,16 @@ export function createGridController(
       const s = requireStore();
       if (!s) return fail("detached", "detached") as OpResult<{ op: AgentOp }>;
       const res = s.__history.redo();
-      if (res === null) return fail("not_found", "nothing to redo") as OpResult<{ op: AgentOp }>;
-      if (!res.ok) return { ok: false, code: res.code as any, message: res.message } as OpResult<{ op: AgentOp }>;
+      if (res === null)
+        return fail("not_found", "nothing to redo") as OpResult<{
+          op: AgentOp;
+        }>;
+      if (!res.ok)
+        return {
+          ok: false,
+          code: res.code as any,
+          message: res.message,
+        } as OpResult<{ op: AgentOp }>;
       notify();
       return { ok: true, value: { op } };
     },
@@ -444,7 +558,8 @@ export function createGridController(
 
 function reasonToSource(reason: string) {
   if (reason === "edit") return { kind: "user", interaction: "edit" } as const;
-  if (reason === "paste") return { kind: "user", interaction: "paste" } as const;
+  if (reason === "paste")
+    return { kind: "user", interaction: "paste" } as const;
   if (reason === "cut") return { kind: "user", interaction: "edit" } as const;
   if (reason === "reorder") return { kind: "user", interaction: "ui" } as const;
   return { kind: "system", reason: "init" } as const;

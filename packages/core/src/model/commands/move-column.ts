@@ -1,6 +1,11 @@
 import { moveItem } from "../../layout/reorder.js";
 import type { ColumnId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class MoveColumnCommand implements Command {
   readonly kind = "column.moved";
@@ -14,7 +19,11 @@ export class MoveColumnCommand implements Command {
     const order = internal.getColumnOrderRef();
     const from = order.indexOf(this.columnId);
     if (from < 0) {
-      return { ok: false, code: "not_found", message: `column "${this.columnId}"` };
+      return {
+        ok: false,
+        code: "not_found",
+        message: `column "${this.columnId}"`,
+      };
     }
     if (from === this.toIndex) {
       return {

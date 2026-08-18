@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { Grid, type ObjectRow } from "@sheetgrid/react";
+import { useState } from "react";
 
 const columns = [
   { id: "name", header: "Name", width: 160 },
@@ -22,9 +22,27 @@ const columns = [
 const seed: ObjectRow[] = [
   { id: "1", name: "Ada Lovelace", role: "Engineer", score: 98, active: true },
   { id: "2", name: "Grace Hopper", role: "Admiral", score: 99, active: true },
-  { id: "3", name: "Alan Turing", role: "Researcher", score: 97, active: false },
-  { id: "4", name: "Katherine Johnson", role: "Mathematician", score: 100, active: true },
-  { id: "5", name: "Claude Shannon", role: "Engineer", score: 96, active: true },
+  {
+    id: "3",
+    name: "Alan Turing",
+    role: "Researcher",
+    score: 97,
+    active: false,
+  },
+  {
+    id: "4",
+    name: "Katherine Johnson",
+    role: "Mathematician",
+    score: 100,
+    active: true,
+  },
+  {
+    id: "5",
+    name: "Claude Shannon",
+    role: "Engineer",
+    score: 96,
+    active: true,
+  },
 ];
 
 export function App() {
@@ -34,8 +52,8 @@ export function App() {
       <header>
         <h1>SheetGrid — React starter</h1>
         <p className="hint">
-          Click a cell to select. Enter to edit. Arrow keys to move. Ctrl/Cmd+C copies
-          as TSV. Click a header to sort (Shift+click for multi-sort).
+          Click a cell to select. Enter to edit. Arrow keys to move. Ctrl/Cmd+C
+          copies as TSV. Click a header to sort (Shift+click for multi-sort).
         </p>
       </header>
       <div className="grid-host">

@@ -1,4 +1,4 @@
-import type { MouseEvent, KeyboardEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
 
 export interface SortHeaderProps {
   label: string;

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { SheetGrid } from "@sheetgrid/vue";
+import { ref } from "vue";
 
 defineProps<{
   density: "comfortable" | "compact";

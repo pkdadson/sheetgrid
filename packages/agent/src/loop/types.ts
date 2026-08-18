@@ -1,6 +1,6 @@
-import type { OpResult } from "../types/op-result.js";
-import type { GridSchema } from "../types/controller.js";
 import type { ToolDescriptor } from "../tools/index.js";
+import type { GridSchema } from "../types/controller.js";
+import type { OpResult } from "../types/op-result.js";
 
 /**
  * A single message in the conversation transcript. Roles roughly mirror
@@ -91,7 +91,10 @@ export interface AgentLoopOptions {
   /** Called before each tool. Return false or throw to deny. */
   onBeforeTool?: (call: ToolCall) => boolean | Promise<boolean>;
   /** Called after each tool result is available. */
-  onAfterTool?: (call: ToolCall, result: OpResult<unknown>) => void | Promise<void>;
+  onAfterTool?: (
+    call: ToolCall,
+    result: OpResult<unknown>,
+  ) => void | Promise<void>;
   /** Called for every AgentError before the 'error' event fires. */
   onError?: (err: AgentError) => void;
 

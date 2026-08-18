@@ -28,7 +28,12 @@ describe("selection", () => {
     expect(s.active).toEqual({ rowId: "r1", columnId: "c1" });
     expect(s.ranges).toHaveLength(1);
     expect(
-      isCellSelected(s, { rowId: "r1", columnId: "c1" }, rowIndexOf, colIndexOf),
+      isCellSelected(
+        s,
+        { rowId: "r1", columnId: "c1" },
+        rowIndexOf,
+        colIndexOf,
+      ),
     ).toBe(true);
   });
 
@@ -36,10 +41,20 @@ describe("selection", () => {
     let s = selectCell(createSelection(), { rowId: "r0", columnId: "c0" });
     s = extendTo(s, { rowId: "r1", columnId: "c1" });
     expect(
-      isCellSelected(s, { rowId: "r0", columnId: "c1" }, rowIndexOf, colIndexOf),
+      isCellSelected(
+        s,
+        { rowId: "r0", columnId: "c1" },
+        rowIndexOf,
+        colIndexOf,
+      ),
     ).toBe(true);
     expect(
-      isCellSelected(s, { rowId: "r1", columnId: "c0" }, rowIndexOf, colIndexOf),
+      isCellSelected(
+        s,
+        { rowId: "r1", columnId: "c0" },
+        rowIndexOf,
+        colIndexOf,
+      ),
     ).toBe(true);
   });
 
@@ -72,7 +87,12 @@ describe("selection", () => {
 
     const all = selectAll(rows, cols);
     expect(
-      isCellSelected(all, { rowId: "r2", columnId: "c2" }, rowIndexOf, colIndexOf),
+      isCellSelected(
+        all,
+        { rowId: "r2", columnId: "c2" },
+        rowIndexOf,
+        colIndexOf,
+      ),
     ).toBe(true);
   });
 
@@ -82,7 +102,12 @@ describe("selection", () => {
     expect(s.active).toEqual({ rowId: "r0", columnId: "c1" });
     s = moveActive(s, "down", rows, cols, { extend: true });
     expect(
-      isCellSelected(s, { rowId: "r1", columnId: "c1" }, rowIndexOf, colIndexOf),
+      isCellSelected(
+        s,
+        { rowId: "r1", columnId: "c1" },
+        rowIndexOf,
+        colIndexOf,
+      ),
     ).toBe(true);
   });
 });

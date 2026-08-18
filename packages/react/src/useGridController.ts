@@ -1,9 +1,9 @@
-import { useRef, useSyncExternalStore } from "react";
 import {
-  createGridController,
   type CreateGridControllerOptions,
   type GridController,
+  createGridController,
 } from "@sheetgrid/agent";
+import { useRef, useSyncExternalStore } from "react";
 
 // Stable no-op snapshot for server rendering.
 const _falseSnapshot = () => false;

@@ -56,7 +56,11 @@ function unwrap(v: FormulaValue): FormulaValue {
   return v;
 }
 
-function compare(op: string, left: FormulaValue, right: FormulaValue): FormulaValue {
+function compare(
+  op: string,
+  left: FormulaValue,
+  right: FormulaValue,
+): FormulaValue {
   left = unwrap(left);
   right = unwrap(right);
   if (isFormulaError(left)) return left;
