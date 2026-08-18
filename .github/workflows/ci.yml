@@ -3,8 +3,7 @@ name: CI
 on:
   push:
     branches: [main, master]
-  pull_request:
-    branches: [main, master]
+  pull_request: # all target branches — stacked PRs need checks too
 
 # Cancel older runs on the same ref so the tip status stays meaningful
 concurrency:
