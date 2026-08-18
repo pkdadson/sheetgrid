@@ -1,5 +1,5 @@
-import type { GridController } from "../types/controller.js";
 import type { AgentOp } from "../types/agent-op.js";
+import type { GridController } from "../types/controller.js";
 
 export function replayOp(controller: GridController, op: AgentOp): void {
   switch (op.type) {

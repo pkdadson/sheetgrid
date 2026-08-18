@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { runAuthCheck } from "./authorize-check.js";
-import type { AgentOp } from "../types/agent-op.js";
 import type { ColumnDef } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
+import type { AgentOp } from "../types/agent-op.js";
+import { runAuthCheck } from "./authorize-check.js";
 
 const cols: ColumnDef[] = [
   { id: "a", header: "A" },
@@ -13,12 +13,23 @@ const cols: ColumnDef[] = [
 describe("runAuthCheck", () => {
   it("reads always allowed", () => {
     const op: AgentOp = { type: "grid.get_data" };
-    expect(runAuthCheck(op, cols, { readOnly: false })).toEqual({ ok: true, value: undefined });
-    expect(runAuthCheck(op, cols, { readOnly: true })).toEqual({ ok: true, value: undefined });
+    expect(runAuthCheck(op, cols, { readOnly: false })).toEqual({
+      ok: true,
+      value: undefined,
+    });
+    expect(runAuthCheck(op, cols, { readOnly: true })).toEqual({
+      ok: true,
+      value: undefined,
+    });
   });
 
   it("rejects any write when grid-level readOnly is true", () => {
-    const op: AgentOp = { type: "grid.set_cell", rowId: "r", columnId: "a", value: 1 };
+    const op: AgentOp = {
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "a",
+      value: 1,
+    };
     const res = runAuthCheck(op, cols, { readOnly: true });
     expect(res.ok).toBe(false);
     if (res.ok) throw new Error();
@@ -27,7 +38,12 @@ describe("runAuthCheck", () => {
   });
 
   it("rejects writes to non-writable columns", () => {
-    const op: AgentOp = { type: "grid.set_cell", rowId: "r", columnId: "b", value: 1 };
+    const op: AgentOp = {
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "b",
+      value: 1,
+    };
     const res = runAuthCheck(op, cols, {});
     expect(res.ok).toBe(false);
     if (res.ok) throw new Error();
@@ -36,12 +52,22 @@ describe("runAuthCheck", () => {
   });
 
   it("allows writes to writable columns", () => {
-    const op: AgentOp = { type: "grid.set_cell", rowId: "r", columnId: "a", value: 1 };
+    const op: AgentOp = {
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "a",
+      value: 1,
+    };
     expect(runAuthCheck(op, cols, {})).toEqual({ ok: true, value: undefined });
   });
 
   it("consults authorize() and forwards its string as message", () => {
-    const op: AgentOp = { type: "grid.set_cell", rowId: "r", columnId: "a", value: 1 };
+    const op: AgentOp = {
+      type: "grid.set_cell",
+      rowId: "r",
+      columnId: "a",
+      value: 1,
+    };
     const res = runAuthCheck(op, cols, {
       authorize: () => "row is locked",
     });

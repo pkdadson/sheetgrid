@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { createAgentLoop } from "./create.js";
 import type { SendOutput } from "./types.js";
@@ -86,7 +86,10 @@ describe("createAgentLoop — text-only", () => {
     const loop = createAgentLoop({ controller, send });
     const first = loop.send("hi");
     await expect(loop.send("also")).rejects.toThrow(/busy/i);
-    resolve!({ content: [{ type: "text", text: "ok" }], stop_reason: "end_turn" });
+    resolve!({
+      content: [{ type: "text", text: "ok" }],
+      stop_reason: "end_turn",
+    });
     await first;
   });
 });

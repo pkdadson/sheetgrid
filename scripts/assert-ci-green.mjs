@@ -17,7 +17,9 @@ function run(cmd) {
 
 function main() {
   if (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true") {
-    console.log("assert-ci-green: running inside CI — skip (quality job is the gate).");
+    console.log(
+      "assert-ci-green: running inside CI — skip (quality job is the gate).",
+    );
     return;
   }
 
@@ -41,7 +43,9 @@ function main() {
     /* ignore */
   }
 
-  console.log(`assert-ci-green: checking CI for ${sha.slice(0, 7)} (${branch || "detached"})…`);
+  console.log(
+    `assert-ci-green: checking CI for ${sha.slice(0, 7)} (${branch || "detached"})…`,
+  );
 
   let runsJson;
   try {
@@ -58,8 +62,12 @@ function main() {
 
   const runs = JSON.parse(runsJson || "[]");
   const success = runs.find((r) => r.conclusion === "success");
-  const pending = runs.find((r) => r.status === "in_progress" || r.status === "queued");
-  const failed = runs.find((r) => r.conclusion === "failure" || r.conclusion === "cancelled");
+  const pending = runs.find(
+    (r) => r.status === "in_progress" || r.status === "queued",
+  );
+  const failed = runs.find(
+    (r) => r.conclusion === "failure" || r.conclusion === "cancelled",
+  );
 
   if (success) {
     console.log(`assert-ci-green: OK — green CI\n  ${success.url}`);
@@ -81,8 +89,7 @@ function main() {
   }
 
   console.error(
-    `assert-ci-green: no CI run found for ${sha.slice(0, 7)}.\n` +
-      "Push to origin and wait for CI on main, or open a PR first.",
+    `assert-ci-green: no CI run found for ${sha.slice(0, 7)}.\nPush to origin and wait for CI on main, or open a PR first.`,
   );
   process.exit(1);
 }

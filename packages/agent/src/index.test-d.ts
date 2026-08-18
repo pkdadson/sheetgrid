@@ -1,11 +1,11 @@
 import { expectTypeOf, test } from "vitest";
 import type {
-  GridController,
-  OpResult,
   AgentOp,
-  GridEvent,
-  Snapshot,
   AuthorizeFn,
+  GridController,
+  GridEvent,
+  OpResult,
+  Snapshot,
   WhereClause,
 } from "./index.js";
 

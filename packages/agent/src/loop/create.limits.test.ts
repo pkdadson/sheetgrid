@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { createAgentLoop } from "./create.js";
 import type { SendOutput } from "./types.js";
@@ -49,7 +49,9 @@ describe("AgentLoop limits", () => {
     const controller = fixture();
     // Every send returns another tool_use — infinite loop without the cap.
     const send = vi.fn(async () => ({
-      content: [{ type: "tool_use", id: "t", name: "grid_get_schema", input: {} }],
+      content: [
+        { type: "tool_use", id: "t", name: "grid_get_schema", input: {} },
+      ],
       stop_reason: "tool_use" as const,
     }));
     const events: any[] = [];

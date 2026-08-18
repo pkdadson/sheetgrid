@@ -11,7 +11,9 @@ export type JSONSchema = Record<string, unknown> & {
   additionalProperties?: boolean | JSONSchema;
 };
 
-export function columnValueSchema(col: GridSchema["columns"][number]): JSONSchema {
+export function columnValueSchema(
+  col: GridSchema["columns"][number],
+): JSONSchema {
   const desc = col.description ? { description: col.description } : {};
   // Special-case: select columns may carry an `options` list.
   if (col.type === "select") {
@@ -43,10 +45,19 @@ export function filterClauseSchema(): JSONSchema {
       op: {
         type: "string",
         enum: [
-          "eq", "neq", "lt", "lte", "gt", "gte",
-          "contains", "starts_with", "ends_with",
-          "in", "not_in",
-          "is_null", "is_not_null",
+          "eq",
+          "neq",
+          "lt",
+          "lte",
+          "gt",
+          "gte",
+          "contains",
+          "starts_with",
+          "ends_with",
+          "in",
+          "not_in",
+          "is_null",
+          "is_not_null",
         ],
       },
       value: {},

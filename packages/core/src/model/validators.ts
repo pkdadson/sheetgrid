@@ -17,7 +17,11 @@ export function number(value: unknown): ValidationResult {
   if (typeof value === "number" && !Number.isNaN(value)) {
     return { ok: true };
   }
-  if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) {
+  if (
+    typeof value === "string" &&
+    value.trim() !== "" &&
+    !Number.isNaN(Number(value))
+  ) {
     return { ok: true };
   }
   return { ok: false, message: "Must be a number", code: "number" };

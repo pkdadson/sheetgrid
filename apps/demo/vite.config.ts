@@ -3,7 +3,10 @@ import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 
 export default defineConfig({
   plugins: [react()],
@@ -13,7 +16,10 @@ export default defineConfig({
     alias: [
       {
         find: "@sheetgrid/core/commands",
-        replacement: path.join(root, "packages/core/src/model/commands/index.ts"),
+        replacement: path.join(
+          root,
+          "packages/core/src/model/commands/index.ts",
+        ),
       },
       {
         find: "@sheetgrid/react",

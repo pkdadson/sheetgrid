@@ -59,12 +59,7 @@ export interface EvalBudget {
 export interface EvalContext {
   /** 0-based row/col indices in current grid order */
   getCellValue(rowIndex: number, colIndex: number): FormulaValue;
-  getRange(
-    r1: number,
-    c1: number,
-    r2: number,
-    c2: number,
-  ): FormulaValue[][];
+  getRange(r1: number, c1: number, r2: number, c2: number): FormulaValue[][];
   rowCount: number;
   colCount: number;
   limits: FormulaLimits;

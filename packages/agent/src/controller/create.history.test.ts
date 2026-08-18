@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "./create.js";
 
 function fx() {

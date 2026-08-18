@@ -21,7 +21,11 @@ export function buildViewTools(c: GridController): ToolDescriptor[] {
     {
       name: "grid_clear_sort",
       description: "Remove sort.",
-      input_schema: { type: "object", properties: {}, additionalProperties: false },
+      input_schema: {
+        type: "object",
+        properties: {},
+        additionalProperties: false,
+      },
       async execute() {
         return c.clearSort() as OpResult<unknown>;
       },
@@ -38,7 +42,9 @@ export function buildViewTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        return c.setFilter((input as { filter: any }).filter) as OpResult<unknown>;
+        return c.setFilter(
+          (input as { filter: any }).filter,
+        ) as OpResult<unknown>;
       },
     },
     {

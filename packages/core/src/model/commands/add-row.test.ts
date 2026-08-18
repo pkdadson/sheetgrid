@@ -20,7 +20,11 @@ describe("AddRowCommand", () => {
     const cmd = new AddRowCommand({ n: 3 }, { at: "end" }, src);
     const res = cmd.apply(s);
     if (!res.ok) throw new Error();
-    expect(s.getRowsRef().map((r) => r.id)).toEqual(["a", "b", expect.any(String)]);
+    expect(s.getRowsRef().map((r) => r.id)).toEqual([
+      "a",
+      "b",
+      expect.any(String),
+    ]);
     expect(s.getRowsRef()[2]!.values.n).toBe(3);
     // Inverse is DeleteRowCommand — removes the row we just added.
     res.inverse.apply(s);
@@ -36,7 +40,11 @@ describe("AddRowCommand", () => {
 
   it("uses provided id when supplied", () => {
     const s = base();
-    const res = new AddRowCommand({ n: 5 }, { id: "custom", at: "end" }, src).apply(s);
+    const res = new AddRowCommand(
+      { n: 5 },
+      { id: "custom", at: "end" },
+      src,
+    ).apply(s);
     if (!res.ok) throw new Error();
     expect(s.getRowsRef()[2]!.id).toBe("custom");
   });

@@ -1,6 +1,11 @@
 import { swapItems } from "../../layout/reorder.js";
 import type { ColumnId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class SwapColumnsCommand implements Command {
   readonly kind = "columns.swapped";
@@ -23,8 +28,20 @@ export class SwapColumnsCommand implements Command {
       ok: true,
       inverse: new SwapColumnsCommand(this.a, this.b, this.source),
       events: [
-        { type: "column.moved", columnId: this.a, from: ai, to: bi, source: this.source },
-        { type: "column.moved", columnId: this.b, from: bi, to: ai, source: this.source },
+        {
+          type: "column.moved",
+          columnId: this.a,
+          from: ai,
+          to: bi,
+          source: this.source,
+        },
+        {
+          type: "column.moved",
+          columnId: this.b,
+          from: bi,
+          to: ai,
+          source: this.source,
+        },
       ],
     };
   }

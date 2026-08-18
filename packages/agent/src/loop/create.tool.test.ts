@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { createAgentLoop } from "./create.js";
 import type { SendOutput } from "./types.js";
@@ -32,7 +32,12 @@ describe("createAgentLoop — tool_use execution", () => {
     const send = mockSend([
       {
         content: [
-          { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "age", value: 37 } },
+          {
+            type: "tool_use",
+            id: "t1",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "age", value: 37 },
+          },
         ],
         stop_reason: "tool_use",
       },
@@ -49,7 +54,12 @@ describe("createAgentLoop — tool_use execution", () => {
     expect(send).toHaveBeenCalledTimes(2);
     // Message shape: user, assistant(tool_use), tool(tool_result), assistant(text)
     const state = loop.getState();
-    expect(state.messages.map((m) => m.role)).toEqual(["user", "assistant", "tool", "assistant"]);
+    expect(state.messages.map((m) => m.role)).toEqual([
+      "user",
+      "assistant",
+      "tool",
+      "assistant",
+    ]);
     expect(events).toContain("tool.called");
     expect(events).toContain("tool.result");
     expect(events).toContain("done");
@@ -60,8 +70,18 @@ describe("createAgentLoop — tool_use execution", () => {
     const send = mockSend([
       {
         content: [
-          { type: "tool_use", id: "t1", name: "grid_set_cell", input: { rowId: "r1", columnId: "name", value: "Ada L" } },
-          { type: "tool_use", id: "t2", name: "grid_set_cell", input: { rowId: "r1", columnId: "age", value: 99 } },
+          {
+            type: "tool_use",
+            id: "t1",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "name", value: "Ada L" },
+          },
+          {
+            type: "tool_use",
+            id: "t2",
+            name: "grid_set_cell",
+            input: { rowId: "r1", columnId: "age", value: 99 },
+          },
         ],
         stop_reason: "tool_use",
       },
@@ -77,7 +97,9 @@ describe("createAgentLoop — tool_use execution", () => {
     const { controller } = fixture();
     const send = mockSend([
       {
-        content: [{ type: "tool_use", id: "t1", name: "grid_totally_fake", input: {} }],
+        content: [
+          { type: "tool_use", id: "t1", name: "grid_totally_fake", input: {} },
+        ],
         stop_reason: "tool_use",
       },
       { content: [{ type: "text", text: "ok" }], stop_reason: "end_turn" },

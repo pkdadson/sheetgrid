@@ -110,10 +110,8 @@ body {
   font: inherit;
   font-size: 13px;
   font-weight: 500;
-  transition:
-    background-color var(--demo-transition),
-    color var(--demo-transition),
-    border-color var(--demo-transition);
+  transition: background-color var(--demo-transition), color
+    var(--demo-transition), border-color var(--demo-transition);
 }
 .nav button:hover {
   background: var(--demo-nav-hover);

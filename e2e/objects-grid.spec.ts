@@ -12,7 +12,9 @@ test.describe("Objects grid — features", () => {
     await expect(g.getByRole("columnheader", { name: "Person" })).toBeVisible();
     await expect(g.getByRole("columnheader", { name: "Work" })).toBeVisible();
     for (const name of ["Name", "Role", "Region", "Score", "Bonus", "Active"]) {
-      const header = g.locator("th.eg-th-leaf", { hasText: new RegExp(`^${name}$`) });
+      const header = g.locator("th.eg-th-leaf", {
+        hasText: new RegExp(`^${name}$`),
+      });
       await expect(header).toBeAttached();
       await expect(header).toHaveCount(1);
     }
@@ -28,7 +30,9 @@ test.describe("Objects grid — features", () => {
     await expect(work).toHaveAttribute("colspan", "4");
 
     for (const name of ["Name", "Role", "Region", "Score", "Bonus", "Active"]) {
-      const header = g.locator("th.eg-th-leaf", { hasText: new RegExp(`^${name}$`) });
+      const header = g.locator("th.eg-th-leaf", {
+        hasText: new RegExp(`^${name}$`),
+      });
       const box = await header.boundingBox();
       expect(box, `${name} header should be visible`).toBeTruthy();
       expect(box!.width, `${name} header width`).toBeGreaterThan(40);
@@ -73,7 +77,9 @@ test.describe("Objects grid — features", () => {
     const g = grid(page);
     await g.getByText("Ada Lovelace").click();
     await expect(g.locator('[data-active="true"]')).toHaveCount(1);
-    await expect(g.locator('[data-active="true"]')).toContainText("Ada Lovelace");
+    await expect(g.locator('[data-active="true"]')).toContainText(
+      "Ada Lovelace",
+    );
   });
 
   test("keyboard navigation moves active cell", async ({ page }) => {
@@ -86,7 +92,9 @@ test.describe("Objects grid — features", () => {
     await expect(active).not.toContainText("Ada Lovelace");
   });
 
-  test("double-click edits text cell and commits on Enter", async ({ page }) => {
+  test("double-click edits text cell and commits on Enter", async ({
+    page,
+  }) => {
     const g = grid(page);
     await g.getByText("Ada Lovelace").dblclick();
     const input = g.locator("input.eg-editor");
@@ -138,7 +146,9 @@ test.describe("Objects grid — features", () => {
     await g.focus();
     await page.keyboard.press("ControlOrMeta+x");
     await expect(g.getByText("Claude Shannon")).toHaveCount(0);
-    await expect(g.locator("td.eg-td[aria-invalid='true']").first()).toBeVisible();
+    await expect(
+      g.locator("td.eg-td[aria-invalid='true']").first(),
+    ).toBeVisible();
     const text = await page.evaluate(() => navigator.clipboard.readText());
     expect(text).toContain("Claude Shannon");
   });

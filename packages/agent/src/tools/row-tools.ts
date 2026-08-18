@@ -16,7 +16,9 @@ export function buildRowTools(c: GridController): ToolDescriptor[] {
           opts: {
             type: "object",
             properties: {
-              at: { oneOf: [{ type: "integer", minimum: 0 }, { const: "end" }] },
+              at: {
+                oneOf: [{ type: "integer", minimum: 0 }, { const: "end" }],
+              },
               id: { type: "string" },
             },
           },
@@ -45,7 +47,10 @@ export function buildRowTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        const { rowId, patch } = input as { rowId: string; patch: Record<string, unknown> };
+        const { rowId, patch } = input as {
+          rowId: string;
+          patch: Record<string, unknown>;
+        };
         return c.updateRow(rowId, patch) as OpResult<unknown>;
       },
     },
@@ -59,7 +64,9 @@ export function buildRowTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        return c.deleteRow((input as { rowId: string }).rowId) as OpResult<unknown>;
+        return c.deleteRow(
+          (input as { rowId: string }).rowId,
+        ) as OpResult<unknown>;
       },
     },
     {

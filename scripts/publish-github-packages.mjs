@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execSync } from "node:child_process";
 /**
  * Publish packages to GitHub Packages (npm.pkg.github.com).
  *
@@ -12,10 +13,16 @@
  *
  * Requires: NODE_AUTH_TOKEN with packages:write (GITHUB_TOKEN in Actions).
  */
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
-import { join, dirname } from "node:path";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { execSync } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
@@ -63,19 +70,24 @@ function run(cmd, cwd, { ignoreError = false } = {}) {
 }
 
 function readVersion(relDir) {
-  const pkgJson = JSON.parse(readFileSync(join(root, relDir, "package.json"), "utf8"));
+  const pkgJson = JSON.parse(
+    readFileSync(join(root, relDir, "package.json"), "utf8"),
+  );
   return pkgJson.version;
 }
 
 function alreadyPublished(name, version, outDir) {
   // Uses package-local .npmrc with auth
   try {
-    const out = execSync(`npm view ${name}@${version} version --registry=${registry}`, {
-      cwd: outDir,
-      encoding: "utf8",
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"],
-    }).trim();
+    const out = execSync(
+      `npm view ${name}@${version} version --registry=${registry}`,
+      {
+        cwd: outDir,
+        encoding: "utf8",
+        env: process.env,
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    ).trim();
     return out === version;
   } catch {
     return false;
@@ -84,7 +96,9 @@ function alreadyPublished(name, version, outDir) {
 
 function prepareOne(pkg) {
   const srcDir = join(root, pkg.dir);
-  const pkgJson = JSON.parse(readFileSync(join(srcDir, "package.json"), "utf8"));
+  const pkgJson = JSON.parse(
+    readFileSync(join(srcDir, "package.json"), "utf8"),
+  );
   const version = pkgJson.version;
 
   const outDir = join(staging, pkg.dir.replace("packages/", ""));
@@ -133,9 +147,12 @@ function prepareOne(pkg) {
     next.dependencies = deps;
   }
 
-  delete next.devDependencies;
+  next.devDependencies = undefined; // omitted by JSON.stringify below
 
-  writeFileSync(join(outDir, "package.json"), `${JSON.stringify(next, null, 2)}\n`);
+  writeFileSync(
+    join(outDir, "package.json"),
+    `${JSON.stringify(next, null, 2)}\n`,
+  );
   writeFileSync(
     join(outDir, ".npmrc"),
     `@${owner}:registry=${registry}\n//npm.pkg.github.com/:_authToken=${process.env.NODE_AUTH_TOKEN}\n`,
@@ -146,7 +163,9 @@ function prepareOne(pkg) {
 
 function main() {
   if (!process.env.NODE_AUTH_TOKEN) {
-    console.error("NODE_AUTH_TOKEN is required (GitHub token with packages:write).");
+    console.error(
+      "NODE_AUTH_TOKEN is required (GitHub token with packages:write).",
+    );
     process.exit(1);
   }
 
@@ -165,11 +184,15 @@ function main() {
     }
 
     console.log(`\nPublishing ${ghName}@${version} …`);
-    const ok = run("npm publish --access public", outDir, { ignoreError: true });
+    const ok = run("npm publish --access public", outDir, {
+      ignoreError: true,
+    });
     if (!ok) {
       // Race or "cannot publish over previously published"
       if (alreadyPublished(ghName, version, outDir)) {
-        console.log(`OK — ${ghName}@${version} already present after publish attempt`);
+        console.log(
+          `OK — ${ghName}@${version} already present after publish attempt`,
+        );
       } else {
         console.error(`Failed to publish ${ghName}@${version}`);
         process.exit(1);

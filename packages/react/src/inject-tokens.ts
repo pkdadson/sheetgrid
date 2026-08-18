@@ -321,12 +321,14 @@ tbody tr.eg-data-row:hover .eg-td:not([aria-selected="true"]):not([data-active="
   font-weight: 700;
   flex-shrink: 0;
 }
-`
+`;
 
 /** Inject SheetGrid tokens + base grid styles (idempotent; always refreshes CSS). */
 export function injectTokens(): void {
   if (typeof document === "undefined") return;
-  let style = document.getElementById("sheetgrid-tokens") as HTMLStyleElement | null;
+  let style = document.getElementById(
+    "sheetgrid-tokens",
+  ) as HTMLStyleElement | null;
   if (!style) {
     style = document.createElement("style");
     style.id = "sheetgrid-tokens";

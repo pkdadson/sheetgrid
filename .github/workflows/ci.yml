@@ -37,7 +37,6 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-        continue-on-error: true
 
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { describeGridTools } from "./index.js";
 
@@ -22,11 +22,17 @@ describe("row tools", () => {
     const del = tools.find((t) => t.name === "grid_delete_row")!;
     const mv = tools.find((t) => t.name === "grid_move_row")!;
 
-    const addRes = await add.execute({ values: { name: "Grace" }, opts: { id: "r2", at: "end" } });
+    const addRes = await add.execute({
+      values: { name: "Grace" },
+      opts: { id: "r2", at: "end" },
+    });
     expect(addRes.ok).toBe(true);
     expect(store.getRows().map((r) => r.id)).toEqual(["r1", "r2"]);
 
-    const updRes = await upd.execute({ rowId: "r2", patch: { name: "Grace Hopper" } });
+    const updRes = await upd.execute({
+      rowId: "r2",
+      patch: { name: "Grace Hopper" },
+    });
     expect(updRes.ok).toBe(true);
     expect(store.getCell("r2", "name")).toBe("Grace Hopper");
 

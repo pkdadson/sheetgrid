@@ -1,5 +1,9 @@
 import { useState } from "react";
-import type { ProviderConfig, ProviderId, VercelSubProvider } from "./useProviderSend.js";
+import type {
+  ProviderConfig,
+  ProviderId,
+  VercelSubProvider,
+} from "./useProviderSend.js";
 
 interface ProviderConfigProps {
   config: ProviderConfig;
@@ -33,7 +37,9 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
         }}
       >
         <span style={{ color: "var(--sg-muted, #6b7280)" }}>Provider:</span>
-        <strong style={{ fontFamily: "ui-monospace, monospace" }}>{statusLabel}</strong>
+        <strong style={{ fontFamily: "ui-monospace, monospace" }}>
+          {statusLabel}
+        </strong>
         <button
           type="button"
           onClick={() => setCollapsed(false)}
@@ -65,23 +71,49 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
         border: "1px solid var(--sg-border, #e5e7eb)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-        <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        <label
+          style={{
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
           Provider
           <select
             value={config.provider}
-            onChange={(e) => onChange({ provider: e.target.value as ProviderId })}
+            onChange={(e) =>
+              onChange({ provider: e.target.value as ProviderId })
+            }
             style={{ padding: "4px 6px", fontSize: 12 }}
           >
             <option value="mock">Mock (scripted)</option>
             <option value="anthropic">Anthropic</option>
             <option value="openai">OpenAI</option>
-            <option value="openai-compatible">OpenAI-compatible endpoint</option>
+            <option value="openai-compatible">
+              OpenAI-compatible endpoint
+            </option>
             <option value="gemini">Google Gemini</option>
             <option value="vercel">Vercel AI SDK</option>
           </select>
         </label>
-        <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 1 }}>
+        <label
+          style={{
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            flex: 1,
+          }}
+        >
           Model
           <input
             type="text"
@@ -93,11 +125,22 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
           />
         </label>
         {config.provider === "vercel" && (
-          <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+          <label
+            style={{
+              fontSize: 12,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
             Sub-provider
             <select
               value={config.vercelSubProvider ?? "openai"}
-              onChange={(e) => onChange({ vercelSubProvider: e.target.value as VercelSubProvider })}
+              onChange={(e) =>
+                onChange({
+                  vercelSubProvider: e.target.value as VercelSubProvider,
+                })
+              }
               style={{ padding: "4px 6px", fontSize: 12 }}
             >
               <option value="openai">OpenAI</option>
@@ -109,7 +152,15 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
           </label>
         )}
         {config.provider === "openai-compatible" && (
-          <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 2 }}>
+          <label
+            style={{
+              fontSize: 12,
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              flex: 2,
+            }}
+          >
             baseURL
             <input
               type="text"
@@ -120,7 +171,15 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
             />
           </label>
         )}
-        <label style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 4, flex: 2 }}>
+        <label
+          style={{
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+            flex: 2,
+          }}
+        >
           API key
           <input
             type="password"
@@ -148,11 +207,18 @@ export function ProviderConfigStrip({ config, onChange }: ProviderConfigProps) {
         </button>
       </div>
       {config.provider !== "mock" && (
-        <div style={{ fontSize: 11, color: "var(--sg-muted, #6b7280)", lineHeight: 1.4 }}>
-          🔒 <strong>Dev testing only.</strong> Your key stays in <code>sessionStorage</code>{" "}
-          and is sent directly from your browser to the provider.
-          {" "}<strong>Production apps must proxy through a backend</strong> — never ship a key in
-          your bundle.
+        <div
+          style={{
+            fontSize: 11,
+            color: "var(--sg-muted, #6b7280)",
+            lineHeight: 1.4,
+          }}
+        >
+          🔒 <strong>Dev testing only.</strong> Your key stays in{" "}
+          <code>sessionStorage</code> and is sent directly from your browser to
+          the provider.{" "}
+          <strong>Production apps must proxy through a backend</strong> — never
+          ship a key in your bundle.
         </div>
       )}
     </div>

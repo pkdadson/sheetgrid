@@ -6,7 +6,8 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
   return [
     {
       name: "grid_add_column",
-      description: "Add a new column. def contains id, header, and optional type/agentWritable/description.",
+      description:
+        "Add a new column. def contains id, header, and optional type/agentWritable/description.",
       input_schema: {
         type: "object",
         required: ["def"],
@@ -25,7 +26,9 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
           opts: {
             type: "object",
             properties: {
-              at: { oneOf: [{ type: "integer", minimum: 0 }, { const: "end" }] },
+              at: {
+                oneOf: [{ type: "integer", minimum: 0 }, { const: "end" }],
+              },
             },
           },
         },
@@ -38,7 +41,8 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
     },
     {
       name: "grid_update_column",
-      description: "Patch a column def (header, type, etc.). column id cannot be changed.",
+      description:
+        "Patch a column def (header, type, etc.). column id cannot be changed.",
       input_schema: {
         type: "object",
         required: ["columnId", "patch"],
@@ -55,7 +59,8 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
     },
     {
       name: "grid_delete_column",
-      description: "Delete a column and its column-order entry. Row values for the deleted column are preserved and restored on undo.",
+      description:
+        "Delete a column and its column-order entry. Row values for the deleted column are preserved and restored on undo.",
       input_schema: {
         type: "object",
         required: ["columnId"],
@@ -63,7 +68,9 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        return c.deleteColumn((input as { columnId: string }).columnId) as OpResult<unknown>;
+        return c.deleteColumn(
+          (input as { columnId: string }).columnId,
+        ) as OpResult<unknown>;
       },
     },
     {
@@ -79,7 +86,10 @@ export function buildColumnTools(c: GridController): ToolDescriptor[] {
         additionalProperties: false,
       },
       async execute(input) {
-        const { columnId, toIndex } = input as { columnId: string; toIndex: number };
+        const { columnId, toIndex } = input as {
+          columnId: string;
+          toIndex: number;
+        };
         return c.moveColumn(columnId, toIndex) as OpResult<unknown>;
       },
     },

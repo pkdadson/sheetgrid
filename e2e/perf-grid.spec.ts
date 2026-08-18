@@ -10,7 +10,9 @@ test.describe("Perf grid — virtualization UX", () => {
   test("renders virtualized grid with default 10k × 50", async ({ page }) => {
     const g = grid(page, "grid-perf");
     await expect(g).toBeVisible();
-    await expect(g.locator("th.eg-th-leaf", { hasText: "Col 1" }).first()).toBeVisible();
+    await expect(
+      g.locator("th.eg-th-leaf", { hasText: "Col 1" }).first(),
+    ).toBeVisible();
     await expect(g.getByText("R0C0")).toBeVisible();
     const cells = g.getByRole("gridcell");
     const count = await cells.count();
@@ -43,9 +45,9 @@ test.describe("Perf grid — virtualization UX", () => {
     await page.waitForTimeout(300);
 
     // Col 1 should leave the window
-    await expect(g.locator("th.eg-th-leaf", { hasText: /^Col 1$/ })).toHaveCount(
-      0,
-    );
+    await expect(
+      g.locator("th.eg-th-leaf", { hasText: /^Col 1$/ }),
+    ).toHaveCount(0);
     const headers = g.locator("th.eg-th-leaf");
     await expect(headers.first()).toBeVisible();
     const texts = await headers.allTextContents();

@@ -1,5 +1,10 @@
 import type { FilterClause } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 function collectColumnIds(clause: FilterClause, out: Set<string>): void {
   if ("and" in clause) {

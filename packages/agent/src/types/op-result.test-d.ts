@@ -1,8 +1,11 @@
 import { expectTypeOf, test } from "vitest";
-import type { OpResult, OpErrorCode } from "./op-result.js";
+import type { OpErrorCode, OpResult } from "./op-result.js";
 
 test("OpResult discriminates ok from error", () => {
-  const success: OpResult<{ rowId: string }> = { ok: true, value: { rowId: "r1" } };
+  const success: OpResult<{ rowId: string }> = {
+    ok: true,
+    value: { rowId: "r1" },
+  };
   expectTypeOf(success).toMatchTypeOf<OpResult<{ rowId: string }>>();
   const failure: OpResult = {
     ok: false,

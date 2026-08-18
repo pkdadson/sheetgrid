@@ -9,7 +9,9 @@ test.describe("2D Matrix grid", () => {
 
   test("renders header row and body values", async ({ page }) => {
     const g = grid(page, "grid-matrix");
-    await expect(g.getByRole("columnheader", { name: "Product" })).toBeVisible();
+    await expect(
+      g.getByRole("columnheader", { name: "Product" }),
+    ).toBeVisible();
     await expect(g.getByRole("columnheader", { name: "Q1" })).toBeVisible();
     await expect(g.getByText("Widgets")).toBeVisible();
     await expect(g.getByText("Gadgets")).toBeVisible();

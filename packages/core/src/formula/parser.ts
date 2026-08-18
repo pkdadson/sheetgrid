@@ -34,7 +34,10 @@ class Parser {
       }
       return {
         ok: false,
-        error: formulaError("PARSE", e instanceof Error ? e.message : "Parse error"),
+        error: formulaError(
+          "PARSE",
+          e instanceof Error ? e.message : "Parse error",
+        ),
       };
     }
   }
@@ -174,7 +177,9 @@ class Parser {
         throw formulaError("PARSE", `Invalid reference: ${t.value}`);
       }
       if (range.r1 === range.r2 && range.c1 === range.c2) {
-        const cell = parseA1(t.value.includes(":") ? t.value.split(":")[0]! : t.value);
+        const cell = parseA1(
+          t.value.includes(":") ? t.value.split(":")[0]! : t.value,
+        );
         this.leave();
         if (!cell) throw formulaError("PARSE", `Invalid cell: ${t.value}`);
         // single cell from range path when A1:A1

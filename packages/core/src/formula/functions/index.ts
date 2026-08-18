@@ -1,4 +1,3 @@
-import type { FormulaFnDef } from "./types.js";
 import { datetimeFunctions } from "./datetime.js";
 import { financialFunctions } from "./financial.js";
 import { infoFunctions } from "./info.js";
@@ -7,6 +6,7 @@ import { lookupFunctions } from "./lookup.js";
 import { mathFunctions } from "./math.js";
 import { statsFunctions } from "./stats.js";
 import { textFunctions } from "./text.js";
+import type { FormulaFnDef } from "./types.js";
 
 const REGISTRY = new Map<string, FormulaFnDef>();
 

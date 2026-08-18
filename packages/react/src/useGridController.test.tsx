@@ -11,9 +11,7 @@ describe("useGridController (React)", () => {
   });
 
   it("passes options through to createGridController on first render", () => {
-    const { result } = renderHook(() =>
-      useGridController({ readOnly: true }),
-    );
+    const { result } = renderHook(() => useGridController({ readOnly: true }));
     expect(result.current.isAttached()).toBe(false);
     // A write should fail with read_only because the controller was created with readOnly=true.
     const res = result.current.setCell("r", "c", 1);

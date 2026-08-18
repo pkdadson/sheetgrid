@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { describeGridTools } from "./index.js";
 
@@ -55,7 +55,9 @@ describe("describeGridTools — read tools", () => {
   it("query_rows returns rowIds matching a where clause", async () => {
     const c = fx();
     const t = describeGridTools(c).find((t) => t.name === "grid_query_rows")!;
-    const res = await t.execute({ where: { column: "age", op: "gte", value: 30 } });
+    const res = await t.execute({
+      where: { column: "age", op: "gte", value: 30 },
+    });
     expect(res.ok).toBe(true);
     if (!res.ok) throw new Error();
     expect((res.value as any).rowIds).toEqual(["r1"]);

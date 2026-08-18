@@ -5,7 +5,10 @@ import type { ToolDescriptor } from "./index.js";
 function columnListSummary(c: GridController): string {
   const cols = c.getSchema().columns.filter((c) => c.agentWritable);
   return cols
-    .map((c) => `${c.id} (${c.type ?? "any"}${c.description ? `: ${c.description}` : ""})`)
+    .map(
+      (c) =>
+        `${c.id} (${c.type ?? "any"}${c.description ? `: ${c.description}` : ""})`,
+    )
     .join(", ");
 }
 

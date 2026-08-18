@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { GridController } from "@sheetgrid/agent";
 import {
   type CellCoord,
   type ColumnDef,
@@ -47,7 +48,6 @@ import {
   shallowRef,
   watch,
 } from "vue";
-import type { GridController } from "@sheetgrid/agent";
 import SortHeader from "./SortHeader.vue";
 import { resolveColumnType } from "./cells/registry.js";
 import type { ObjectRow, VueColumnDef } from "./column-types.js";

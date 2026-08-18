@@ -1,4 +1,8 @@
-import type { Command, CommandResult, InternalStore } from "./commands/types.js";
+import type {
+  Command,
+  CommandResult,
+  InternalStore,
+} from "./commands/types.js";
 
 export type HistoryEvent =
   | { type: "history.pushed"; kind: string }
@@ -106,7 +110,9 @@ export class History {
   /** Commit collected inverses as a single CompoundCommand entry. */
   commitTransaction(compound: (children: Command[]) => Command): void {
     if (this.transactionDepth <= 0) {
-      throw new Error("commitTransaction called without matching beginTransaction");
+      throw new Error(
+        "commitTransaction called without matching beginTransaction",
+      );
     }
     this.transactionDepth--;
     if (this.transactionDepth === 0 && this.transactionInverses.length > 0) {

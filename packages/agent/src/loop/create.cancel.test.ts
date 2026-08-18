@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it, vi } from "vitest";
 import { createGridController } from "../controller/create.js";
 import { createAgentLoop } from "./create.js";
 import type { SendInput, SendOutput } from "./types.js";

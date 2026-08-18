@@ -67,9 +67,7 @@ describe("sort UI", () => {
         ]}
       />,
     );
-    expect(
-      screen.queryByRole("button", { name: "Sort by Score" }),
-    ).toBeNull();
+    expect(screen.queryByRole("button", { name: "Sort by Score" })).toBeNull();
     expect(screen.getByRole("columnheader", { name: /Score/i })).toBeTruthy();
   });
 
@@ -90,10 +88,10 @@ describe("sort UI", () => {
     expect(rowOrder()).toEqual(["Alan", "Ada", "Grace"]);
     fireEvent.keyDown(btn, { key: " " });
     expect(rowOrder()).toEqual(["Grace", "Ada", "Alan"]);
-    fireEvent.keyDown(
-      screen.getByRole("button", { name: "Sort by Name" }),
-      { key: "Enter", shiftKey: true },
-    );
+    fireEvent.keyDown(screen.getByRole("button", { name: "Sort by Name" }), {
+      key: "Enter",
+      shiftKey: true,
+    });
     const nameHeader = screen.getByRole("columnheader", { name: /Name/i });
     expect(nameHeader.textContent).toMatch(/2/);
   });

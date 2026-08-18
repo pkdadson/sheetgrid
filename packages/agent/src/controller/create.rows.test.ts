@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "./create.js";
 
 function fx() {
@@ -70,7 +70,9 @@ describe("controller row CRUD", () => {
     const c = createGridController();
     c.__attach(store);
     let seen: any = null;
-    c.on("row.moved", (e) => (seen = e));
+    c.on("row.moved", (e) => {
+      seen = e;
+    });
     const res = c.moveRow("r1", 1);
     expect(res.ok).toBe(true);
     expect(store.getRows().map((r) => r.id)).toEqual(["r2", "r1"]);

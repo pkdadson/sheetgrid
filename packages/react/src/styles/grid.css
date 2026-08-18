@@ -132,7 +132,10 @@
 
 .eg-group-row,
 .eg-data-row {
-  scroll-margin-top: var(--eg-header-band-height, calc(var(--eg-header-height) * 2));
+  scroll-margin-top: var(
+    --eg-header-band-height,
+    calc(var(--eg-header-height) * 2)
+  );
 }
 
 .eg-group-toggle {
