@@ -3,6 +3,13 @@
   "version": "0.1.0",
   "description": "SheetGrid design tokens (CSS variables)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkdadson/sheetgrid.git",
+    "directory": "packages/tokens"
+  },
+  "homepage": "https://github.com/pkdadson/sheetgrid/tree/main/packages/tokens#readme",
+  "bugs": "https://github.com/pkdadson/sheetgrid/issues",
   "type": "module",
   "exports": {
     ".": {

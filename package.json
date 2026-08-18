@@ -20,10 +20,14 @@
     "dev:demo-vue": "pnpm --filter=demo-vue dev",
     "ci:assert-green": "node scripts/assert-ci-green.mjs",
     "publish:check": "node scripts/assert-ci-green.mjs && pnpm build && pnpm test && pnpm --filter @sheetgrid/core publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/react publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/tokens publish --dry-run --no-git-checks && pnpm --filter @sheetgrid/agent publish --dry-run --no-git-checks --tag next && pnpm --filter @sheetgrid/vue publish --dry-run --no-git-checks --tag next && pnpm --filter @sheetgrid/nuxt publish --dry-run --no-git-checks --tag next",
-    "publish:npm": "node scripts/publish-npm.mjs"
+    "publish:npm": "node scripts/publish-npm.mjs",
+    "changeset": "changeset",
+    "changeset:version": "changeset version",
+    "changeset:tag": "changeset tag"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
+    "@changesets/cli": "^3.0.0",
     "@playwright/test": "^1.49.0",
     "typescript": "^5.6.0"
   },
@@ -31,5 +35,11 @@
     "overrides": {
       "nanoid@<3.3.17": ">=3.3.17"
     }
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkdadson/sheetgrid.git"
+  },
+  "homepage": "https://github.com/pkdadson/sheetgrid#readme",
+  "bugs": "https://github.com/pkdadson/sheetgrid/issues"
 }
