@@ -3,7 +3,10 @@ import { fileURLToPath } from "node:url";
 import vue from "@vitejs/plugin-vue";
 import { defineConfig } from "vite";
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
+const root = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../..",
+);
 
 export default defineConfig({
   plugins: [vue()],
@@ -13,7 +16,10 @@ export default defineConfig({
     alias: [
       {
         find: "@sheetgrid/core/commands",
-        replacement: path.join(root, "packages/core/src/model/commands/index.ts"),
+        replacement: path.join(
+          root,
+          "packages/core/src/model/commands/index.ts",
+        ),
       },
       {
         find: "@sheetgrid/vue",

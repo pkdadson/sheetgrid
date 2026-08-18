@@ -1,6 +1,12 @@
 import type { FullInternalStore } from "../internal-store.js";
 import { applySnapshot, takeSnapshot } from "../snapshot.js";
-import type { Command, CommandResult, EventSource, InternalStore, Snapshot } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+  Snapshot,
+} from "./types.js";
 
 export class RestoreCommand implements Command {
   readonly kind = "restore";

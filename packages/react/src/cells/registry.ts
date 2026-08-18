@@ -1,11 +1,11 @@
+import { NumberEditor } from "../editors/NumberEditor.js";
+import { SelectEditor } from "../editors/SelectEditor.js";
+import { TextEditor } from "../editors/TextEditor.js";
 import { BooleanCell } from "./BooleanCell.js";
 import { NumberCell } from "./NumberCell.js";
 import { SelectCell } from "./SelectCell.js";
 import { TextCell } from "./TextCell.js";
 import type { BuiltInCellType, CellTypeDefinition } from "./types.js";
-import { NumberEditor } from "../editors/NumberEditor.js";
-import { SelectEditor } from "../editors/SelectEditor.js";
-import { TextEditor } from "../editors/TextEditor.js";
 
 const registry = new Map<string, CellTypeDefinition>();
 

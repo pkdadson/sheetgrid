@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { createInternalStore } from "../internal-store.js";
 import { MoveColumnCommand } from "./move-column.js";
-import { SwapColumnsCommand } from "./swap-columns.js";
 import { SetColumnOrderCommand } from "./set-column-order.js";
+import { SwapColumnsCommand } from "./swap-columns.js";
 
 const src = { kind: "system", reason: "init" } as const;
 

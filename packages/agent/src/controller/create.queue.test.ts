@@ -1,12 +1,17 @@
-import { describe, expect, it } from "vitest";
 import { createGridStore } from "@sheetgrid/core";
+import { describe, expect, it } from "vitest";
 import { createGridController } from "./create.js";
 
 describe("controller queue drain", () => {
   it("enqueues writes when detached, replays on attach", () => {
     const c = createGridController();
     expect(c.isAttached()).toBe(false);
-    c.__enqueue({ type: "grid.set_cell", rowId: "r1", columnId: "n", value: 5 });
+    c.__enqueue({
+      type: "grid.set_cell",
+      rowId: "r1",
+      columnId: "n",
+      value: 5,
+    });
     const store = createGridStore({
       rows: [{ id: "r1", values: { n: 1 } }],
       columns: [{ id: "n", header: "N", type: "number" }],

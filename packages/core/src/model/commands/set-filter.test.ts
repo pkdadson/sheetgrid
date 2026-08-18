@@ -6,7 +6,10 @@ const src = { kind: "system", reason: "init" } as const;
 
 describe("SetFilterCommand", () => {
   it("stores filter clause and inverse restores prev (null)", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
     const res = new SetFilterCommand(
       { column: "a", op: "eq", value: 1 },
       src,
@@ -18,7 +21,10 @@ describe("SetFilterCommand", () => {
   });
 
   it("rejects filter referencing unknown column", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
     const res = new SetFilterCommand(
       { column: "z", op: "eq", value: 1 },
       src,
@@ -27,7 +33,10 @@ describe("SetFilterCommand", () => {
   });
 
   it("accepts null (clear filter)", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
     s.setFilter({ column: "a", op: "eq", value: 5 });
     const res = new SetFilterCommand(null, src).apply(s);
     if (!res.ok) throw new Error();

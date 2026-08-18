@@ -1,4 +1,4 @@
-import { Grid, useGridController, AgentChat } from "@sheetgrid/react";
+import { AgentChat, Grid, useGridController } from "@sheetgrid/react";
 import { ProviderConfigStrip } from "./ProviderConfig.js";
 import { useProviderSend } from "./useProviderSend.js";
 
@@ -30,9 +30,18 @@ export function AgentTab() {
       : `Chat with ${config.model || config.provider}...`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "600px", gap: 12 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "600px",
+        gap: 12,
+      }}
+    >
       <ProviderConfigStrip config={config} onChange={setConfig} />
-      <div style={{ height: 240, border: "1px solid var(--sg-border, #e5e7eb)" }}>
+      <div
+        style={{ height: 240, border: "1px solid var(--sg-border, #e5e7eb)" }}
+      >
         <Grid controller={controller} rows={seedRows} columns={columns} />
       </div>
       <div
@@ -43,7 +52,11 @@ export function AgentTab() {
           borderRadius: 6,
         }}
       >
-        <AgentChat controller={controller} send={send} placeholder={placeholder} />
+        <AgentChat
+          controller={controller}
+          send={send}
+          placeholder={placeholder}
+        />
       </div>
     </div>
   );

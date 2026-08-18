@@ -10,7 +10,13 @@ export type Density = "comfortable" | "compact";
 
 function pageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  if (raw === "matrix" || raw === "perf" || raw === "objects" || raw === "agent") return raw;
+  if (
+    raw === "matrix" ||
+    raw === "perf" ||
+    raw === "objects" ||
+    raw === "agent"
+  )
+    return raw;
   return "objects";
 }
 
@@ -141,9 +147,7 @@ export function App() {
             data-testid="toggle-density"
             aria-pressed={density === "compact"}
             onClick={() =>
-              setDensity((d) =>
-                d === "compact" ? "comfortable" : "compact",
-              )
+              setDensity((d) => (d === "compact" ? "comfortable" : "compact"))
             }
           >
             {density === "compact" ? "Comfortable" : "Compact"}
@@ -159,9 +163,7 @@ export function App() {
         </div>
       </nav>
       <main className="main" data-testid="demo-main" id="demo-main">
-        {page === "objects" && (
-          <ObjectsDemo density={density} theme={theme} />
-        )}
+        {page === "objects" && <ObjectsDemo density={density} theme={theme} />}
         {page === "matrix" && <MatrixDemo density={density} theme={theme} />}
         {page === "perf" && <PerfDemo density={density} theme={theme} />}
         {page === "agent" && <AgentTab />}

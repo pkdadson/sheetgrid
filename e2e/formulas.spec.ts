@@ -1,4 +1,4 @@
-import { expect, test, type Locator, type Page } from "@playwright/test";
+import { type Locator, type Page, expect, test } from "@playwright/test";
 import { goToMatrix, goToObjects, grid, openDemo } from "./helpers";
 
 /**
@@ -7,7 +7,10 @@ import { goToMatrix, goToObjects, grid, openDemo } from "./helpers";
  */
 async function selectWidgetsTotal(page: Page, g: Locator) {
   // Always the Product column (first match), not a formula result that also says Widgets
-  await g.getByRole("gridcell", { name: "Widgets", exact: true }).first().click();
+  await g
+    .getByRole("gridcell", { name: "Widgets", exact: true })
+    .first()
+    .click();
   await g.focus();
   for (let i = 0; i < 5; i++) {
     await page.keyboard.press("ArrowRight");
@@ -42,17 +45,24 @@ test.describe("Matrix formulas", () => {
     await selectWidgetsTotal(page, g);
     // Widgets Q1..Q4: 120+140+135+160 = 555
     await commitFormula(page, g, "=SUM(B1:E1)");
-    await expect(g.getByRole("gridcell", { name: "555", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "555", exact: true }),
+    ).toBeVisible();
   });
 
   test("recalculates when a dependency changes", async ({ page }) => {
     const g = grid(page, "grid-matrix");
     await selectWidgetsTotal(page, g);
     await commitFormula(page, g, "=SUM(B1:E1)");
-    await expect(g.getByRole("gridcell", { name: "555", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "555", exact: true }),
+    ).toBeVisible();
 
     // Edit Q1 (120 → 220): click Widgets, one right to Q1
-    await g.getByRole("gridcell", { name: "Widgets", exact: true }).first().click();
+    await g
+      .getByRole("gridcell", { name: "Widgets", exact: true })
+      .first()
+      .click();
     await g.focus();
     await page.keyboard.press("ArrowRight");
     await page.keyboard.press("Enter");
@@ -62,14 +72,18 @@ test.describe("Matrix formulas", () => {
     await input.press("Enter");
 
     // 220+140+135+160 = 655
-    await expect(g.getByRole("gridcell", { name: "655", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "655", exact: true }),
+    ).toBeVisible();
   });
 
   test("re-editing a formula cell shows formula source", async ({ page }) => {
     const g = grid(page, "grid-matrix");
     await selectWidgetsTotal(page, g);
     await commitFormula(page, g, "=B1+C1");
-    await expect(g.getByRole("gridcell", { name: "260", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "260", exact: true }),
+    ).toBeVisible();
 
     // Total is still active after commit in many grids; re-select Total and edit
     await selectWidgetsTotal(page, g);
@@ -83,7 +97,10 @@ test.describe("Matrix formulas", () => {
   test("IF formula evaluates correctly", async ({ page }) => {
     const g = grid(page, "grid-matrix");
     // Note column is 6 steps right from Product
-    await g.getByRole("gridcell", { name: "Widgets", exact: true }).first().click();
+    await g
+      .getByRole("gridcell", { name: "Widgets", exact: true })
+      .first()
+      .click();
     await g.focus();
     for (let i = 0; i < 6; i++) {
       await page.keyboard.press("ArrowRight");
@@ -118,7 +135,9 @@ test.describe("Matrix formulas", () => {
     await selectWidgetsTotal(page, g);
     await commitFormula(page, g, "=B1+C1");
     // 120+140
-    await expect(g.getByRole("gridcell", { name: "260", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "260", exact: true }),
+    ).toBeVisible();
   });
 
   test("paste formula with leading = commits as formula", async ({
@@ -132,7 +151,9 @@ test.describe("Matrix formulas", () => {
     await g.focus();
     await page.keyboard.press("ControlOrMeta+v");
     // 120*2
-    await expect(g.getByRole("gridcell", { name: "240", exact: true })).toBeVisible({
+    await expect(
+      g.getByRole("gridcell", { name: "240", exact: true }),
+    ).toBeVisible({
       timeout: 5000,
     });
   });
@@ -162,7 +183,9 @@ test.describe("Matrix formulas", () => {
     await expect(input).toHaveValue("=B1+C1");
 
     await input.press("Enter");
-    await expect(g.getByRole("gridcell", { name: "260", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "260", exact: true }),
+    ).toBeVisible();
   });
 
   test("drag across cells inserts a range into the formula", async ({
@@ -220,7 +243,9 @@ test.describe("Object-row formulas", () => {
     const g = grid(page, "grid-objects");
     // Columns: A name, B role, C region, D score, E bonus, F active
     // Ada is store row 1 (A1). Score 98 → D1. Bonus =D1*0.1 → 9.8
-    await g.getByRole("gridcell", { name: "Ada Lovelace", exact: true }).click();
+    await g
+      .getByRole("gridcell", { name: "Ada Lovelace", exact: true })
+      .click();
     await g.focus();
     for (let i = 0; i < 4; i++) {
       await page.keyboard.press("ArrowRight");
@@ -230,12 +255,16 @@ test.describe("Object-row formulas", () => {
     await expect(input).toBeVisible();
     await input.fill("=D1*0.1");
     await input.press("Enter");
-    await expect(g.getByRole("gridcell", { name: "9.8", exact: true })).toBeVisible();
+    await expect(
+      g.getByRole("gridcell", { name: "9.8", exact: true }),
+    ).toBeVisible();
   });
 
   test("click Score while editing Bonus inserts A1 ref", async ({ page }) => {
     const g = grid(page, "grid-objects");
-    await g.getByRole("gridcell", { name: "Ada Lovelace", exact: true }).click();
+    await g
+      .getByRole("gridcell", { name: "Ada Lovelace", exact: true })
+      .click();
     await g.focus();
     for (let i = 0; i < 4; i++) {
       await page.keyboard.press("ArrowRight");
@@ -249,6 +278,8 @@ test.describe("Object-row formulas", () => {
     await expect(input).toBeVisible();
     await expect(input).toHaveValue("=D1");
     await input.press("Enter");
-    await expect(g.getByRole("gridcell", { name: "98", exact: true })).toHaveCount(2);
+    await expect(
+      g.getByRole("gridcell", { name: "98", exact: true }),
+    ).toHaveCount(2);
   });
 });

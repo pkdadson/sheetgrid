@@ -33,7 +33,12 @@ export function makeOpenAICompatibleSend(opts: {
         const toolCalls = m.content
           .filter((b) => b.type === "tool_use")
           .map((b) => {
-            const tu = b as { type: "tool_use"; id: string; name: string; input: unknown };
+            const tu = b as {
+              type: "tool_use";
+              id: string;
+              name: string;
+              input: unknown;
+            };
             return {
               id: tu.id,
               type: "function" as const,
@@ -89,7 +94,8 @@ export function makeOpenAICompatibleSend(opts: {
         input: JSON.parse(tc.function.arguments || "{}"),
       });
     }
-    const stopReason = choice.finish_reason === "tool_calls" ? "tool_use" : "end_turn";
+    const stopReason =
+      choice.finish_reason === "tool_calls" ? "tool_use" : "end_turn";
     return { content, stop_reason: stopReason };
   };
 }

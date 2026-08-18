@@ -1,6 +1,6 @@
+import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 import { defineComponent, h, nextTick, ref } from "vue";
-import { mount } from "@vue/test-utils";
 import SheetGrid from "./SheetGrid.vue";
 import { useGridController } from "./composables/useGridController.js";
 
@@ -18,9 +18,14 @@ describe("Vue paste-as-compound-command", () => {
           { id: "a", header: "A" },
           { id: "b", header: "B" },
         ]);
-        return () => h("div", { style: "height: 300px" }, [
-          h(SheetGrid, { controller, rows: rows.value, columns: columns.value }),
-        ]);
+        return () =>
+          h("div", { style: "height: 300px" }, [
+            h(SheetGrid, {
+              controller,
+              rows: rows.value,
+              columns: columns.value,
+            }),
+          ]);
       },
     });
     const w = mount(Cmp);

@@ -1,9 +1,9 @@
+import { createGridController } from "@sheetgrid/agent";
+import type { SendOutput } from "@sheetgrid/agent";
+import { createGridStore } from "@sheetgrid/core";
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createGridStore } from "@sheetgrid/core";
-import { createGridController } from "@sheetgrid/agent";
 import { useAgent } from "./useAgent.js";
-import type { SendOutput } from "@sheetgrid/agent";
 
 function mockSend(scripts: SendOutput[]) {
   let i = 0;

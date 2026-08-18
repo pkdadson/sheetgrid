@@ -1,11 +1,11 @@
-import { onScopeDispose, shallowRef, triggerRef, type ShallowRef } from "vue";
 import {
-  createAgentLoop,
   type AgentLoop,
   type AgentLoopOptions,
   type AgentState,
   type GridController,
+  createAgentLoop,
 } from "@sheetgrid/agent";
+import { type ShallowRef, onScopeDispose, shallowRef, triggerRef } from "vue";
 
 export interface UseAgentResult {
   state: ShallowRef<AgentState>;

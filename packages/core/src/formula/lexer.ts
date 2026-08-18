@@ -124,7 +124,12 @@ export function tokenize(
       continue;
     }
 
-    if (ch === "." && i + 1 < text.length && text[i + 1]! >= "0" && text[i + 1]! <= "9") {
+    if (
+      ch === "." &&
+      i + 1 < text.length &&
+      text[i + 1]! >= "0" &&
+      text[i + 1]! <= "9"
+    ) {
       let j = i + 1;
       while (j < text.length && text[j]! >= "0" && text[j]! <= "9") j++;
       const n = Number(text.slice(i, j));

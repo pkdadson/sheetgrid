@@ -61,7 +61,11 @@ describe("GridStore v2 CRUD + sort/filter", () => {
     });
     expect(store.getFilter()).toBeNull();
     store.setFilter({ column: "a", op: "eq", value: 1 });
-    expect(store.getFilter()).toMatchObject({ column: "a", op: "eq", value: 1 });
+    expect(store.getFilter()).toMatchObject({
+      column: "a",
+      op: "eq",
+      value: 1,
+    });
     store.clearFilter();
     expect(store.getFilter()).toBeNull();
   });

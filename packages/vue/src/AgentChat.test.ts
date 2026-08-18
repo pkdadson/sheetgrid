@@ -1,9 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
-import { defineComponent, h, nextTick, ref } from "vue";
-import { mount } from "@vue/test-utils";
-import { createGridStore } from "@sheetgrid/core";
 import { createGridController } from "@sheetgrid/agent";
 import type { SendOutput } from "@sheetgrid/agent";
+import { createGridStore } from "@sheetgrid/core";
+import { mount } from "@vue/test-utils";
+import { describe, expect, it, vi } from "vitest";
+import { defineComponent, h, nextTick, ref } from "vue";
 import AgentChat from "./AgentChat.vue";
 
 function fixture() {
@@ -36,7 +36,10 @@ describe("<AgentChat> Vue", () => {
   it("submitting the form calls send and renders assistant text", async () => {
     const controller = fixture();
     const send = mockSend([
-      { content: [{ type: "text", text: "Hello human." }], stop_reason: "end_turn" },
+      {
+        content: [{ type: "text", text: "Hello human." }],
+        stop_reason: "end_turn",
+      },
     ]);
     const w = mount(AgentChat, { props: { controller, send } });
     await w.find("textarea").setValue("hi");
@@ -71,7 +74,11 @@ describe("<AgentChat> Vue", () => {
             { controller, send },
             {
               message: ({ message }: any) =>
-                h("div", { "data-testid": "custom-bubble" }, JSON.stringify(message.role)),
+                h(
+                  "div",
+                  { "data-testid": "custom-bubble" },
+                  JSON.stringify(message.role),
+                ),
             },
           );
       },
@@ -82,6 +89,8 @@ describe("<AgentChat> Vue", () => {
     await nextTick();
     await new Promise((r) => setTimeout(r, 0));
     await nextTick();
-    expect(w.findAll('[data-testid="custom-bubble"]').length).toBeGreaterThan(0);
+    expect(w.findAll('[data-testid="custom-bubble"]').length).toBeGreaterThan(
+      0,
+    );
   });
 });

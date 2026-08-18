@@ -6,7 +6,10 @@ const src = { kind: "system", reason: "init" } as const;
 
 describe("SetSortCommand", () => {
   it("stores sort state and inverse restores prev", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
     const res = new SetSortCommand(
       [{ columnId: "a", direction: "desc" }],
       src,
@@ -18,7 +21,10 @@ describe("SetSortCommand", () => {
   });
 
   it("rejects sort referencing unknown column", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
     const res = new SetSortCommand(
       [{ columnId: "z", direction: "asc" }],
       src,
@@ -27,8 +33,14 @@ describe("SetSortCommand", () => {
   });
 
   it("emits sort.changed event", () => {
-    const s = createInternalStore({ rows: [], columns: [{ id: "a", header: "A" }] });
-    const res = new SetSortCommand([{ columnId: "a", direction: "asc" }], src).apply(s);
+    const s = createInternalStore({
+      rows: [],
+      columns: [{ id: "a", header: "A" }],
+    });
+    const res = new SetSortCommand(
+      [{ columnId: "a", direction: "asc" }],
+      src,
+    ).apply(s);
     if (!res.ok) throw new Error();
     expect(res.events[0]).toMatchObject({
       type: "sort.changed",

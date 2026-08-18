@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import type { ProviderConfig, ProviderId } from "./composables/useProviderSend.js";
+import { computed, ref } from "vue";
+import type {
+  ProviderConfig,
+  ProviderId,
+} from "./composables/useProviderSend.js";
 
 const props = defineProps<{
   config: ProviderConfig;
@@ -15,20 +18,28 @@ const collapsed = ref<boolean>(true);
 const statusLabel = computed(() => {
   if (props.config.provider === "mock") return "Mock (scripted responses)";
   if (props.config.provider === "openai-compatible") {
-    const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
+    const key = props.config.apiKey
+      ? `••••${props.config.apiKey.slice(-4)}`
+      : "missing";
     const url = props.config.baseURL || "(no url)";
     return `openai-compatible: ${props.config.model || "(no model)"} @ ${url} · key ${key}`;
   }
   if (props.config.provider === "vercel") {
-    const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
+    const key = props.config.apiKey
+      ? `••••${props.config.apiKey.slice(-4)}`
+      : "missing";
     return `vercel (${props.config.vercelSubProvider ?? "openai"}): ${props.config.model || "(no model)"} · key ${key}`;
   }
-  const key = props.config.apiKey ? `••••${props.config.apiKey.slice(-4)}` : "missing";
+  const key = props.config.apiKey
+    ? `••••${props.config.apiKey.slice(-4)}`
+    : "missing";
   return `${props.config.provider}: ${props.config.model || "(no model)"} · key ${key}`;
 });
 
 function onProviderChange(e: Event) {
-  emit("change", { provider: (e.target as HTMLSelectElement).value as ProviderId });
+  emit("change", {
+    provider: (e.target as HTMLSelectElement).value as ProviderId,
+  });
 }
 function onModelChange(e: Event) {
   emit("change", { model: (e.target as HTMLInputElement).value });

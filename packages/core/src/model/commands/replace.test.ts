@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createInternalStore } from "../internal-store.js";
-import { ReplaceRowsCommand } from "./replace-rows.js";
 import { ReplaceColumnsCommand } from "./replace-columns.js";
+import { ReplaceRowsCommand } from "./replace-rows.js";
 
 const src = { kind: "system", reason: "init" } as const;
 

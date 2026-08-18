@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import AgentTab from "./AgentTab.vue";
-import ObjectsDemo from "./pages/ObjectsDemo.vue";
 import MatrixDemo from "./pages/MatrixDemo.vue";
+import ObjectsDemo from "./pages/ObjectsDemo.vue";
 import PerfDemo from "./pages/PerfDemo.vue";
 
 export type Page = "objects" | "matrix" | "perf" | "agent";
@@ -11,7 +11,13 @@ export type Density = "comfortable" | "compact";
 
 function pageFromHash(): Page {
   const raw = window.location.hash.replace(/^#\/?/, "").split("?")[0];
-  if (raw === "matrix" || raw === "perf" || raw === "objects" || raw === "agent") return raw;
+  if (
+    raw === "matrix" ||
+    raw === "perf" ||
+    raw === "objects" ||
+    raw === "agent"
+  )
+    return raw;
   return "objects";
 }
 
@@ -22,7 +28,8 @@ function readStoredTheme(): Theme {
   } catch {
     /* ignore */
   }
-  if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
+  if (window.matchMedia?.("(prefers-color-scheme: dark)").matches)
+    return "dark";
   return "light";
 }
 
@@ -40,14 +47,18 @@ const page = ref<Page>(pageFromHash());
 const theme = ref<Theme>(readStoredTheme());
 const density = ref<Density>(readStoredDensity());
 
-watch(theme, (t) => {
-  document.documentElement.setAttribute("data-theme", t);
-  try {
-    localStorage.setItem("sheetgrid-demo-theme", t);
-  } catch {
-    /* ignore */
-  }
-}, { immediate: true });
+watch(
+  theme,
+  (t) => {
+    document.documentElement.setAttribute("data-theme", t);
+    try {
+      localStorage.setItem("sheetgrid-demo-theme", t);
+    } catch {
+      /* ignore */
+    }
+  },
+  { immediate: true },
+);
 
 watch(density, (d) => {
   try {

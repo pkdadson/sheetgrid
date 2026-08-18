@@ -66,7 +66,10 @@ export const lookupFunctions: FormulaFnDef[] = [
       const c = Math.trunc(colIdx) - 1;
       if (c < 0) return formulaError("VALUE");
       for (const row of mat) {
-        if (String(row[0]) === String(lookup) || (!exact && row[0] === lookup)) {
+        if (
+          String(row[0]) === String(lookup) ||
+          (!exact && row[0] === lookup)
+        ) {
           if (c >= row.length) return formulaError("REF");
           return row[c]!;
         }
@@ -149,7 +152,7 @@ export const lookupFunctions: FormulaFnDef[] = [
   {
     name: "CHOOSE",
     minArgs: 2,
-    maxArgs: Infinity,
+    maxArgs: Number.POSITIVE_INFINITY,
     impl: (args) => {
       const idx = toNumber(args[0]!);
       if (isFormulaError(idx)) return idx;
@@ -241,19 +244,26 @@ export const lookupFunctions: FormulaFnDef[] = [
         return isFormulaError(rows) ? rows : cols;
       }
       const height =
-        args[3] !== undefined ? toNumber(args[3]) : ref.__ref
-          ? ref.__ref.r2 - ref.__ref.r1 + 1
-          : 1;
+        args[3] !== undefined
+          ? toNumber(args[3])
+          : ref.__ref
+            ? ref.__ref.r2 - ref.__ref.r1 + 1
+            : 1;
       const width =
-        args[4] !== undefined ? toNumber(args[4]) : ref.__ref
-          ? ref.__ref.c2 - ref.__ref.c1 + 1
-          : 1;
+        args[4] !== undefined
+          ? toNumber(args[4])
+          : ref.__ref
+            ? ref.__ref.c2 - ref.__ref.c1 + 1
+            : 1;
       if (isFormulaError(height) || isFormulaError(width)) {
         return isFormulaError(height) ? height : width;
       }
       const h = Math.trunc(height as number);
       const w = Math.trunc(width as number);
-      if (Math.abs(h) > ctx.limits.maxOffsetSize || Math.abs(w) > ctx.limits.maxOffsetSize) {
+      if (
+        Math.abs(h) > ctx.limits.maxOffsetSize ||
+        Math.abs(w) > ctx.limits.maxOffsetSize
+      ) {
         return formulaError("LIMIT", "OFFSET too large");
       }
       const base = ref.__ref ?? { r1: 0, c1: 0, r2: 0, c2: 0 };
@@ -290,8 +300,7 @@ export const lookupFunctions: FormulaFnDef[] = [
         }
         return ctx.getCellValue(cell.row, cell.col);
       }
-      const cells =
-        (range.r2 - range.r1 + 1) * (range.c2 - range.c1 + 1);
+      const cells = (range.r2 - range.r1 + 1) * (range.c2 - range.c1 + 1);
       if (cells > ctx.limits.maxRangeCells) return formulaError("LIMIT");
       // L1: apply the same four-way bounds check as the cell-ref path above
       if (

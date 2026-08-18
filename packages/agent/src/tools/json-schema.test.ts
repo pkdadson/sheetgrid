@@ -1,15 +1,21 @@
 import { describe, expect, it } from "vitest";
+import type { GridSchema } from "../types/controller.js";
 import {
   columnValueSchema,
   filterClauseSchema,
-  whereClauseSchema,
   sortSpecSchema,
+  whereClauseSchema,
 } from "./json-schema.js";
-import type { GridSchema } from "../types/controller.js";
 
 const schema: GridSchema = {
   columns: [
-    { id: "name", header: "Name", type: "text", agentWritable: true, description: "Full name" },
+    {
+      id: "name",
+      header: "Name",
+      type: "text",
+      agentWritable: true,
+      description: "Full name",
+    },
     { id: "age", header: "Age", type: "number", agentWritable: true },
     { id: "active", header: "Active", type: "boolean", agentWritable: true },
     { id: "role", header: "Role", type: "select", agentWritable: true } as any,
@@ -48,7 +54,11 @@ describe("columnValueSchema", () => {
   });
 
   it("unknown column type → any", () => {
-    const s = columnValueSchema({ id: "x", header: "X", agentWritable: true } as any);
+    const s = columnValueSchema({
+      id: "x",
+      header: "X",
+      agentWritable: true,
+    } as any);
     expect(s.type).toBeUndefined();
   });
 });

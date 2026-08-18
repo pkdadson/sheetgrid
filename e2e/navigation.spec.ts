@@ -7,7 +7,9 @@ test.describe("Demo navigation & shell", () => {
   });
 
   test("loads SheetGrid demo chrome", async ({ page }) => {
-    await expect(page.getByRole("heading", { name: "SheetGrid" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "SheetGrid" }),
+    ).toBeVisible();
     await expect(page.getByTestId("nav-objects")).toBeVisible();
     await expect(page.getByTestId("nav-matrix")).toBeVisible();
     await expect(page.getByTestId("nav-perf")).toBeVisible();
@@ -24,7 +26,9 @@ test.describe("Demo navigation & shell", () => {
 
   test("switches between Objects, Matrix, and Perf", async ({ page }) => {
     await goToMatrix(page);
-    await expect(page.getByRole("heading", { name: "2D matrix data" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "2D matrix data" }),
+    ).toBeVisible();
 
     await goToPerf(page);
     await expect(
@@ -32,7 +36,9 @@ test.describe("Demo navigation & shell", () => {
     ).toBeVisible();
 
     await goToObjects(page);
-    await expect(page.getByRole("heading", { name: "Object rows" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Object rows" }),
+    ).toBeVisible();
   });
 
   test("theme and density toggles update chrome", async ({ page }) => {

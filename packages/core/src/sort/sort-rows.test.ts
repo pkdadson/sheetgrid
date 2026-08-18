@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { sortRows } from "./sort-rows.js";
 import type { ColumnDef, GridRow, SortSpec } from "../types.js";
+import { sortRows } from "./sort-rows.js";
 
 const cols: ColumnDef[] = [
   { id: "name", header: "Name" },

@@ -42,7 +42,9 @@ describe("AddColumnCommand", () => {
 
   it("rejects duplicate column id", () => {
     const s = base();
-    const res = new AddColumnCommand({ id: "a", header: "dup" }, {}, src).apply(s);
+    const res = new AddColumnCommand({ id: "a", header: "dup" }, {}, src).apply(
+      s,
+    );
     expect(res.ok).toBe(false);
     if (res.ok) throw new Error();
     expect(res.code).toBe("conflict");
@@ -50,7 +52,11 @@ describe("AddColumnCommand", () => {
 
   it("emits column.added event", () => {
     const s = base();
-    const res = new AddColumnCommand({ id: "c", header: "C" }, { at: 1 }, src).apply(s);
+    const res = new AddColumnCommand(
+      { id: "c", header: "C" },
+      { at: 1 },
+      src,
+    ).apply(s);
     if (!res.ok) throw new Error();
     expect(res.events[0]).toMatchObject({
       type: "column.added",

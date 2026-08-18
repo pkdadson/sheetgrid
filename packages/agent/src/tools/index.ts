@@ -1,9 +1,9 @@
 import type { GridController } from "../types/controller.js";
 import type { OpResult } from "../types/op-result.js";
-import type { JSONSchema } from "./json-schema.js";
 import { buildColumnTools } from "./column-tools.js";
 import { buildFormulaTools } from "./formula-tools.js";
 import { buildHistoryTools } from "./history-tools.js";
+import type { JSONSchema } from "./json-schema.js";
 import { buildReadTools } from "./read-tools.js";
 import { buildRowTools } from "./row-tools.js";
 import { buildViewTools } from "./view-tools.js";

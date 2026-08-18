@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { createInternalStore } from "./internal-store.js";
-import { History } from "./history.js";
-import { SetCellCommand } from "./commands/set-cell.js";
 import { CompoundCommand } from "./commands/compound.js";
+import { SetCellCommand } from "./commands/set-cell.js";
+import { History } from "./history.js";
+import { createInternalStore } from "./internal-store.js";
 
 const src = { kind: "system", reason: "init" } as const;
 
@@ -73,7 +73,11 @@ describe("History", () => {
     history.dispatch(new SetCellCommand("r1", "a", 2, src));
     history.undo();
     history.redo();
-    expect(seen).toEqual(["history.pushed", "history.undone", "history.redone"]);
+    expect(seen).toEqual([
+      "history.pushed",
+      "history.undone",
+      "history.redone",
+    ]);
   });
 
   it("failure results are not pushed to history", () => {

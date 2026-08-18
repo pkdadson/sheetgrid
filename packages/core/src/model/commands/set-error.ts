@@ -1,6 +1,11 @@
 import { cellKey } from "../../data/cell-key.js";
 import type { CellError, ColumnId, RowId } from "../../types.js";
-import type { Command, CommandResult, EventSource, InternalStore } from "./types.js";
+import type {
+  Command,
+  CommandResult,
+  EventSource,
+  InternalStore,
+} from "./types.js";
 
 export class SetErrorCommand implements Command {
   readonly kind = "error.set";
@@ -13,11 +18,17 @@ export class SetErrorCommand implements Command {
   ) {}
 
   apply(internal: InternalStore): CommandResult {
-    const prev = internal.errors.getMap().get(cellKey(this.rowId, this.columnId)) ?? null;
+    const prev =
+      internal.errors.getMap().get(cellKey(this.rowId, this.columnId)) ?? null;
     internal.errors.set(this.rowId, this.columnId, this.error);
     return {
       ok: true,
-      inverse: new SetErrorCommand(this.rowId, this.columnId, prev, this.source),
+      inverse: new SetErrorCommand(
+        this.rowId,
+        this.columnId,
+        prev,
+        this.source,
+      ),
       events: [
         {
           type: "error.changed",

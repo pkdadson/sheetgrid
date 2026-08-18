@@ -1,8 +1,5 @@
+import type { AgentLoopOptions, GridController } from "@sheetgrid/agent";
 import type { DefineComponent } from "vue";
-import type {
-  AgentLoopOptions,
-  GridController,
-} from "@sheetgrid/agent";
 
 export interface AgentChatProps {
   controller: GridController;

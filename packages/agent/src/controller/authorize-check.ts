@@ -1,7 +1,7 @@
 import type { ColumnDef, ColumnId } from "@sheetgrid/core";
 import type { AgentOp } from "../types/agent-op.js";
 import type { AuthorizeFn } from "../types/authorize.js";
-import { fail, ok, type OpResult } from "../types/op-result.js";
+import { type OpResult, fail, ok } from "../types/op-result.js";
 
 const READ_OPS = new Set([
   "grid.get_schema",
@@ -38,7 +38,8 @@ export interface AuthOptions {
 /** Returns true if the column can be written to by an agent. */
 export function isColumnAgentWritable(col: ColumnDef | undefined): boolean {
   if (!col) return false;
-  const explicit = (col as ColumnDef & { agentWritable?: boolean }).agentWritable;
+  const explicit = (col as ColumnDef & { agentWritable?: boolean })
+    .agentWritable;
   if (explicit === false) return false;
   if (explicit === true) return true;
   // Legacy: fall back to `editable === false` as read-only.

@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { createInternalStore } from "../internal-store.js";
-import { SetFormulaCommand } from "./set-formula.js";
 import { ClearFormulaCommand } from "./clear-formula.js";
+import { SetFormulaCommand } from "./set-formula.js";
 
 const src = { kind: "system", reason: "init" } as const;
 
 function fx() {
   return createInternalStore({
-    rows: [
-      { id: "r1", values: { a: 2, b: 3, c: null } },
-    ],
+    rows: [{ id: "r1", values: { a: 2, b: 3, c: null } }],
     columns: [
       { id: "a", header: "A", type: "number" },
       { id: "b", header: "B", type: "number" },

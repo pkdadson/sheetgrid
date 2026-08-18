@@ -34,7 +34,12 @@ export class SetCellCommand implements Command {
       // No-op. Inverse is a no-op that yields the same command as inverse.
       return {
         ok: true,
-        inverse: new SetCellCommand(this.rowId, this.columnId, prev, this.source),
+        inverse: new SetCellCommand(
+          this.rowId,
+          this.columnId,
+          prev,
+          this.source,
+        ),
         events: [],
       };
     }

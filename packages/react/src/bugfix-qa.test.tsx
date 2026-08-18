@@ -1,6 +1,6 @@
+import { required } from "@sheetgrid/core";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { required } from "@sheetgrid/core";
 import { Grid } from "./Grid.js";
 
 describe("QA bugfixes", () => {
@@ -95,9 +95,12 @@ describe("QA bugfixes", () => {
 
   it("warns once when parent has 0px height (dev only)", async () => {
     const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const originalEnv = (globalThis as { process?: { env: Record<string, string | undefined> } }).process!.env.NODE_ENV;
+    const originalEnv = (
+      globalThis as { process?: { env: Record<string, string | undefined> } }
+    ).process!.env.NODE_ENV;
     // Simulate a non-test dev env so the guard doesn't skip the warning.
-    (globalThis as { process?: { env: Record<string, string | undefined> } }).process!.env.NODE_ENV = "development";
+    (globalThis as { process?: { env: Record<string, string | undefined> } })
+      .process!.env.NODE_ENV = "development";
     try {
       render(
         <div style={{ height: 0 }}>
@@ -108,18 +111,19 @@ describe("QA bugfixes", () => {
         </div>,
       );
       await vi.waitFor(() => {
-        const called = warnSpy.mock.calls.some(([msg]) =>
-          typeof msg === "string" && msg.includes("[sheetgrid]"),
+        const called = warnSpy.mock.calls.some(
+          ([msg]) => typeof msg === "string" && msg.includes("[sheetgrid]"),
         );
         expect(called).toBe(true);
       });
       // Warning should be one-shot per instance — re-measures don't spam.
-      const first = warnSpy.mock.calls.filter(([m]) =>
-        typeof m === "string" && m.includes("[sheetgrid]"),
+      const first = warnSpy.mock.calls.filter(
+        ([m]) => typeof m === "string" && m.includes("[sheetgrid]"),
       ).length;
       expect(first).toBe(1);
     } finally {
-      (globalThis as { process?: { env: Record<string, string | undefined> } }).process!.env.NODE_ENV = originalEnv;
+      (globalThis as { process?: { env: Record<string, string | undefined> } })
+        .process!.env.NODE_ENV = originalEnv;
     }
   });
 
