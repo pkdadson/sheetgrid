@@ -3,6 +3,13 @@
   "version": "0.1.0-alpha.6",
   "description": "Nuxt 3 module for @sheetgrid/vue — auto-imports composables and registers <SheetGrid> globally.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkdadson/sheetgrid.git",
+    "directory": "packages/nuxt"
+  },
+  "homepage": "https://github.com/pkdadson/sheetgrid/tree/main/packages/nuxt#readme",
+  "bugs": "https://github.com/pkdadson/sheetgrid/issues",
   "type": "module",
   "main": "./dist/module.mjs",
   "types": "./dist/types.d.ts",
@@ -13,22 +20,12 @@
       "require": "./dist/module.cjs"
     }
   },
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "files": ["dist", "README.md"],
   "sideEffects": false,
   "publishConfig": {
     "access": "public"
   },
-  "keywords": [
-    "sheetgrid",
-    "nuxt",
-    "nuxt3",
-    "vue",
-    "datagrid",
-    "spreadsheet"
-  ],
+  "keywords": ["sheetgrid", "nuxt", "nuxt3", "vue", "datagrid", "spreadsheet"],
   "scripts": {
     "build": "nuxt-module-build build",
     "prepack": "pnpm run build"

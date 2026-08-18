@@ -3,6 +3,13 @@
   "version": "0.3.0",
   "description": "SheetGrid engine — data model, virtualization, selection, validation, layout",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pkdadson/sheetgrid.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/pkdadson/sheetgrid/tree/main/packages/core#readme",
+  "bugs": "https://github.com/pkdadson/sheetgrid/issues",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
