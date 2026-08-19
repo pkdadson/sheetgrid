@@ -1,4 +1,5 @@
-import { AgentChat, Grid, useGridController } from "@sheetgrid/react";
+import { Grid } from "@sheetgrid/react";
+import { AgentChat, useGridController } from "@sheetgrid/react/agent";
 import { ProviderConfigStrip } from "./ProviderConfig.js";
 import { useProviderSend } from "./useProviderSend.js";
 

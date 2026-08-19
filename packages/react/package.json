@@ -1,7 +1,7 @@
 {
   "name": "@sheetgrid/react",
   "version": "0.4.0",
-  "description": "SheetGrid — Excel-class React data grid: virtualized, customizable, responsive",
+  "description": "SheetGrid \u2014 Excel-class React data grid: virtualized, customizable, responsive",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -19,6 +19,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "import": "./dist/agent.js",
+      "require": "./dist/agent.cjs"
     }
   },
   "files": ["dist", "README.md"],
