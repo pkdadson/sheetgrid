@@ -12,6 +12,7 @@
  *   node scripts/publish-npm.mjs --filter @sheetgrid/react
  */
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -72,7 +73,7 @@ run("pnpm test");
 function localVersion(name) {
   const dir = name.replace("@sheetgrid/", "");
   const pkg = JSON.parse(
-    execSync(`cat packages/${dir}/package.json`, { cwd: root, encoding: "utf8" }),
+    readFileSync(join(root, "packages", dir, "package.json"), "utf8"),
   );
   return pkg.version;
 }
