@@ -22,6 +22,10 @@ export default defineConfig({
         ),
       },
       {
+        find: "@sheetgrid/react/agent",
+        replacement: path.join(root, "packages/react/src/agent.ts"),
+      },
+      {
         find: "@sheetgrid/react",
         replacement: path.join(root, "packages/react/src/index.ts"),
       },

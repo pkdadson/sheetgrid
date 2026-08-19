@@ -53,9 +53,6 @@ export {
   anchorScrollDelta,
 } from "@sheetgrid/core";
 
-export { useGridController } from "./useGridController.js";
-
-export { useAgent } from "./useAgent.js";
-export type { UseAgentResult } from "./useAgent.js";
-export { AgentChat } from "./AgentChat.js";
-export type { AgentChatProps } from "./AgentChat.js";
+// Agent-dependent API (useGridController, useAgent, AgentChat) moved to the
+// "@sheetgrid/react/agent" subpath so this entry never imports the optional
+// @sheetgrid/agent peer. See src/agent.ts.
