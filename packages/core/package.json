@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/core",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "SheetGrid engine — data model, virtualization, selection, validation, layout",
   "license": "MIT",
   "repository": {

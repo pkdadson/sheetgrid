@@ -69,8 +69,40 @@ if (packages.length === 0) {
 run("pnpm build");
 run("pnpm test");
 
+function localVersion(name) {
+  const dir = name.replace("@sheetgrid/", "");
+  const pkg = JSON.parse(
+    execSync(`cat packages/${dir}/package.json`, { cwd: root, encoding: "utf8" }),
+  );
+  return pkg.version;
+}
+
+function isPublished(name, version) {
+  try {
+    // Some npm versions exit 0 with empty output for a missing version of
+    // an existing package, so the check must be on output, not exit code.
+    const out = execSync(`npm view ${name}@${version} version`, {
+      cwd: root,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
 for (const { name, tag } of packages) {
-  console.log(`\n=== Publishing ${name}${tag ? ` (--tag ${tag})` : ""} ===`);
+  const version = localVersion(name);
+  // A release rarely bumps every package; registry versions are immutable,
+  // so republishing an existing one would abort the run mid-sequence.
+  if (isPublished(name, version)) {
+    console.log(`\n=== Skipping ${name}@${version} (already on registry) ===`);
+    continue;
+  }
+  console.log(
+    `\n=== Publishing ${name}@${version}${tag ? ` (--tag ${tag})` : ""} ===`,
+  );
   const tagFlag = tag ? ` --tag ${tag}` : "";
   run(
     `pnpm --filter ${name} publish --access public --no-git-checks${tagFlag}${otpFlag}`,

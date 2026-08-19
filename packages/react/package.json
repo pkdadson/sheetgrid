@@ -1,6 +1,6 @@
 {
   "name": "@sheetgrid/react",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "SheetGrid \u2014 Excel-class React data grid: virtualized, customizable, responsive",
   "license": "MIT",
   "repository": {
